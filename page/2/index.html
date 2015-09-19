@@ -1,0 +1,481 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+  
+  <title>第 2 页 | DEVELOPMENT IN PROGRESS</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="Recursive G&#39;s personal blog" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  
+  <meta property="og:site_name" content="DEVELOPMENT IN PROGRESS"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="DEVELOPMENT IN PROGRESS" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">DEVELOPMENT IN PROGRESS</a></h1>
+  <h2><a href="/">A Blog of Recursive G</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-05-25T10:26:20.000Z"><a href="/2014/05/programming-with-ptrace-part3/">May 25 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/05/programming-with-ptrace-part3/">Programming with PTRACE, Part3 - 进程的终止与信号</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在Part2中，我们粗略了解了如何使用<code>ptrace</code>获得系统调用信息，即在一个大循环里不断获取程序信息，如果程序退出则停止循环。当然，那个判断异常简陋，几乎无法处理任何特殊情况。我将在本Part中详细解说各种异常情况的处理，同时讲解各种信号相关的问题。</p>
+<h2 id="一些重要的宏">一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html">这个</a>页面</p>
+<pre><code>WIFEXITED   如果进程正常退出，返回一个非<span class="number">0</span>值(通常是进程调用了<span class="escape">`e</span>xit()<span class="escape">`或</span>是<span class="escape">`_</span>exit()<span class="escape">`)</span>
+WIFSIGNALED 如果进程由于一个未被捕获的信号而被终止，返回一个非<span class="number">0</span>值
+WIFSTOPPED  当进程被停止(非终止)时，返回一个非<span class="number">0</span>值(通常发生在当进程处于<span class="escape">`t</span>raced<span class="escape">`状</span>态时)
+
+WEXITSTATUS 当<span class="escape">`W</span>IFEXITED<span class="escape">`为</span>非<span class="number">0</span>值，获得进程<span class="escape">`m</span>ain()<span class="escape">`函</span>数的返回值
+WTERMSIG    如果<span class="escape">`W</span>IFSIGNALED<span class="escape">`为</span>非<span class="number">0</span>值，获得引起进程终止的信号代码
+WSTOPSIG    如果<span class="escape">`W</span>IFSTOPPED<span class="escape">`为</span>非<span class="number">0</span>值，获得引起进程停止的信号代码
+</code></pre><p>除了这六个，还有<code>WIFCONTINUED</code>和<code>WCOREDUMP</code>两个宏，不过我们用不到，我也没仔细研究，就不说了。<br>当进程自行终止时，<code>WIFEXITED</code>即为<code>true</code>，配套使用<code>WEXITSTATUS</code>获得返回值，不做过多解释。当子进程进行系统调用时，<code>WIFSTOPPED</code>为<code>true</code>,同时<code>WSTOPSIG</code>等于<code>SIGTRAP</code>(信号代码为7),我们可以用这种方法区分<code>syscall-stop</code>和<code>signal-delivery-stop</code>。当有一个外部信号要发送给子进程，这个信号会先到达父进程，使<code>WIFSTOPPED</code>为<code>true</code>，同时<code>WSTOPSIG</code>等于该信号的信号代码。父进程可以选择将这个信号继续传递或是不传递，甚至传递另一个信号给子进程。一旦信号真正到达子进程，就进入子进程自己的处理流程或是系统默认动作，可能触发<code>WIFSIGNALED</code>，比如<code>SIGINT</code>。<br>在所有信号中，<code>SIGKILL</code>是一个例外，它不会经过父进程引发<code>WIFSTOPPED</code>，而是直接传递到子进程，引发<code>WIFSIGNALED</code>。<br>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/05/programming-with-ptrace-part3/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-04-20T12:00:19.000Z"><a href="/2014/04/programming-with-ptrace-part2/">Apr 20 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/04/programming-with-ptrace-part2/">Programming with PTRACE, Part2 - 系统调用入门</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后<code>给32位系统的Tip</code>手动修改源代码）<br><figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/reg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</span><br><span class="line">  <span class="keyword">pid_t</span> pid;</span><br><span class="line">  pid=fork();</span><br><span class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</span><br><span class="line">    <span class="keyword">return</span>(-<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</span><br><span class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</span><br><span class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</span><br><span class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">struct</span> rusage ru;</span><br><span class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</span><br><span class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">if</span> (intocall)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld .... "</span>,_ORIG_RAX);</span><br><span class="line">        intocall=<span class="number">0</span>;</span><br><span class="line">      &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</span><br><span class="line">        intocall=<span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/04/programming-with-ptrace-part2/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-04-17T13:16:29.000Z"><a href="/2014/04/programming-with-ptrace-part1/">Apr 17 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/04/programming-with-ptrace-part1/">Programming with PTRACE, Part1 - 起步</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h2 id="前言">前言</h2><p>本人作为一个信息学竞赛的参与者，在很久之前曾经试图自己写过一个Online Judge系统（允许用户上传源代码并在服务器上编译运行），考虑到安全因素，必须要对程序的行为进行限制，因此对ptrace进行了一番研究。网上有一份关于ptrace的很好的教程（<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/">Playing with ptrace</a>）,但是时间有点久了，而且没有涉及64位操作系统。因此，我决定写这份教程，基于64位Linux，尽力介绍一些新加入的功能，同时兼顾一下32位系统。另外，由于一开始的目的是“对程序的行为进行<em>限制</em>”，所以不会涉及到诸如设置断点之类的内容，相反，可能会涉及到其他关于系统资源管理的内容。<br><code>ptrace()</code>是一个由Linux内核提供的系统调用。它允许一个用户态进程检查、修改另一个进程的内存和寄存器。这种技术被广泛用于<code>gdb</code>等调试器中。尽管这系列文章的标题叫做“Programming with PTRACE”，但在第一部分中，我将着重介绍Linux的进程和相关的几个重要函数。</p>
+<h2 id="fork(),_vfork()_与_clone()">fork(), vfork() 与 clone()</h2><p>在Linux中，每一个进程都有一个唯一的编号，被称作<code>pid</code>(Process ID)。在Linux中，进程不能凭空产生（<code>init</code>进程是个例外），只能从一个已有进程衍生出来。原来的进程被称做父进程，衍生出来的进程叫子进程。一个系统中所有进程以父子关系相连接，形成一棵树，这棵“树”的树根就是<code>init</code>进程，它是在系统启动时被直接启动的，因此它没有父进程。并且系统中所有其他进程都直接或间接地是它的子进程。在Linux系统中，实现“把一个进程变成两个”这一功能的有三个系统调用，即<code>fork()</code>、<code>vfork()</code>和<code>clone()</code>。</p>
+<p><code>fork()</code>的工作流程的确和叉子有几分相似之处，它将当前进程所有数据复制一份，产生一个和父进程一模一样的子进程。并在两个进程中返回不同的返回值。比如这段代码：<br><figure class="highlight c"><figcaption><span>demo1.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> return_val;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Program started."</span>);</span><br><span class="line">    return_val=fork();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"fork() returned %d\n"</span>,return_val);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>将会输出</p>
+<pre><code>Program started.
+<span class="function"><span class="title">fork</span><span class="params">()</span></span> returned <span class="number">5768</span>
+<span class="function"><span class="title">fork</span><span class="params">()</span></span> returned <span class="number">0</span>
+</code></pre><p>很明显地可以看到，<code>puts()</code>只被调用了一次而<code>printf()</code>被调用了两次，这说明在<code>fork()</code>前的一个进程变成了两个，而且<code>fork()</code>在两个进程中有不同的返回值（这就是“调用一次，返回两次”的来历）。<code>fork()</code>会返回0给子进程，返回子进程的pid给父进程，因此，我们很容易判断出<code>fork() returned 0</code>是由子进程打印的。在实际应用中，也通过<code>if</code>语句判断返回值的方法来决定执行不同的代码：</p>
+<pre><code><span class="keyword">int</span> pid=fork();
+<span class="keyword">if</span> (pid==<span class="number">0</span>){
+  <span class="comment">//子进程的工作</span>
+}<span class="keyword">else</span>{
+  <span class="comment">//父进程的工作</span>
+}
+</code></pre><p>一般来说，子进程的工作就是调用<code>exec</code>族函数，启动另一个程序(把自己替换掉)。如果子进程还在执行而父进程已结束，那么它就成为“孤儿”进程，成为<code>init</code>进程的子进程。另外，请不要纠结那个<code>if</code>判断带来的性能损失，Linux的内核开发者都不纠结，你纠结什么呢？<br>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/04/programming-with-ptrace-part1/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-03-19T11:55:49.000Z"><a href="/2014/03/bad-apple-character-player/">Mar 19 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/03/bad-apple-character-player/">有屏幕的地方就有烂苹果</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
+<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/03/bad-apple-character-player/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-02-28T13:17:41.000Z"><a href="/2014/02/how-to-cross-compile-libcurl-on-linux/">Feb 28 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/02/how-to-cross-compile-libcurl-on-linux/">在Linux下使用MinGW静态交叉编译带有zlib的libcurl</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="http://curl.haxx.se/">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
+<h3 id="STEP1_安装MinGW编译器">STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
+<pre><code>~<span class="preprocessor"># pacman -S mingw-w64</span>
+</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
+<pre><code>~<span class="preprocessor"># pacman -Ql mingw-w64-gcc| grep <span class="string">'/usr/bin/.*gcc$'</span></span>
+mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
+mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
+</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/">Hello World代码</a> ^_^），然后编译试试：</p>
+<pre><code><span class="tag">i686-w64-mingw32-gcc</span> <span class="tag">hello_world</span><span class="class">.c</span> <span class="tag">-o</span> <span class="tag">hello_world</span><span class="class">.exe</span>
+</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。<br>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/02/how-to-cross-compile-libcurl-on-linux/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-02-08T06:12:59.000Z"><a href="/2014/02/clear-a-special-kind-of-messy-code/">Feb 8 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/02/clear-a-special-kind-of-messy-code/">记一次坑爹的乱码解决过程</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/messy-code.png" alt="A Example of the Messy Code"><br>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/02/clear-a-special-kind-of-messy-code/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-12-24T13:26:08.000Z"><a href="/2013/12/site-migration-complete/">Dec 24 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/12/site-migration-complete/">网站从Octopress迁移至Hexo</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>经过我两个小时的折腾，总算是重新把网站弄起来了。Ruby实在是坑爹，各种gem装得目录结构乱七八糟的……（强迫性人格障碍的典型表现）而且速度还慢……<br>曾尝试用Python和Tornado模板自己写一个静态页面生成器，然后发现我想多了。我果然还是不适合写UI……<br>一通Google之后，最终决定使用Hexo。它使用node.js(也就是javascript)作为编程语言(这样说恰当么？反正就是这个意思啦),据说速度极快。最重要的是，AUR源里有Hexo打好的包，能用pacman管理就是好。<br>主题试了一圈下来还是默认的Light看着最舒心。<strong>以后千万不能再手贱自己写主题了！！</strong><br>膜拜一下Hexo的作者tommy351。自己改了一下高亮配色和Widgets，把以前Octopress的Markdown文档做了一点点修改，这样就算上线了吧。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+<nav id="pagination">
+  
+    <a href="/" class="alignleft prev">上一页</a>
+  
+  
+    <a href="/page/3/" class="alignright next">下一页</a>
+  
+  <div class="clearfix"></div>
+</nav></div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" placeholder="搜索">
+    <input type="hidden" name="q" value="site:www.devinprogress.org">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
+      </li>
+    
+      <li>
+        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
+      </li>
+    
+      <li>
+        <a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a>
+      </li>
+    
+      <li>
+        <a href="/2014/07/programming-with-ptrace-part6/">Programming with PTRACE, Part6 - 时间控制</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
+  
+    <li><a href="/categories/Informatics/">Informatics</a><small>17</small></li>
+  
+    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明</h3>
+    <div class="entry">
+        <center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+        </a></center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2015 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+</body>
+</html>

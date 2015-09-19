@@ -1,0 +1,1270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[DEVELOPMENT IN PROGRESS]]></title>
+  <subtitle><![CDATA[A Blog of Recursive G]]></subtitle>
+  <link href="/atom.xml" rel="self"/>
+  <link href="http://www.devinprogress.org/"/>
+  <updated>2015-09-19T21:35:09.326Z</updated>
+  <id>http://www.devinprogress.org/</id>
+  
+  <author>
+    <name><![CDATA[RecursiveG]]></name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Linux下建立GRE隧道并获取IPv6地址]]></title>
+    <link href="http://www.devinprogress.org/2015/09/get-ipv6-via-gre-tunnel/"/>
+    <id>http://www.devinprogress.org/2015/09/get-ipv6-via-gre-tunnel/</id>
+    <published>2015-09-19T06:35:10.000Z</published>
+    <updated>2015-09-19T21:35:09.326Z</updated>
+    <content type="html"><![CDATA[<p>虽然HE有提供免费的Tunnelbroker，不过那速度实在不怎么样。于是考虑在有IPv6地址托管主机上建立一个GRE Tunnel。<br>GRE Tunnel需要有内核模块<code>ip_gre</code>支持。远程主机有一段/64的IPv6，我将其中的一段/80分配给自己的机器。<br>使用iproute2工具。当然，你自己的机器需要有一个公网IPv4地址。</p>
+<ol>
+<li>服务器的公网IPv4是<code>$server_ipv4</code></li>
+<li>自己电脑（或者路由器）的公网IPv4是<code>$client_ipv4</code>。</li>
+<li>服务器的IPv6段是<code>a:b:c:d::/64</code></li>
+<li>要分配下去的IPv6段是<code>a:b:c:d:e::/80</code></li>
+</ol>
+<h2 id="服务器配置">服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl <span class="number">64</span></span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::<span class="number">1</span>/<span class="number">80</span> dev gre-tunnel</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>第一行建立隧道，<code>gre-tunnel</code>是隧道名称，可以按自己喜欢的来，记得其他的也要一起改</li>
+<li>第二行激活隧道</li>
+<li>第三行分配IP地址</li>
+</ul>
+<a id="more"></a>
+<h2 id="本地配置">本地配置</h2><p>脚本如下，和服务端配置几乎一样，同样需要root：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$server_ipv4</span> ttl <span class="number">64</span></span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::<span class="number">2</span>/<span class="number">80</span> dev gre-tunnel</span><br><span class="line">ip -<span class="number">6</span> route add default dev gre-tunnel</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>第一行建立隧道，隧道名称不必和服务器的一样</li>
+<li>第二行激活隧道</li>
+<li>第三行分配IP地址，注意不要和服务器的冲突，这个IP也是将要暴露在网络上的IP</li>
+<li>第四行设定路由，让IPv6流量都走隧道</li>
+</ul>
+<h2 id="访问网络">访问网络</h2><p>现在，两台机器应该可以互ping了。有的比较奇葩的情况可能需要手动<code>ip link set gre0 up</code>一下，gre0似乎是内核模块自动加入的玩意儿，具体怎么回事我也不清楚–_–|<br>但是现在还不能访问外网，还需要在服务器执行以下命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv6.conf.all.forwarding=<span class="number">1</span></span><br><span class="line">sysctl net.ipv6.conf.all.proxy_ndp=<span class="number">1</span></span><br><span class="line">ip -<span class="number">6</span> neigh add proxy a:b:c:d:e::<span class="number">2</span> dev eth0</span><br></pre></td></tr></table></figure></p>
+<p>第一行开启forward<br>二三行和IPv6的NDP(邻居发现)有关，又是个没搞明白的东西真是残念……<br>eth0是服务器实际连接网络的接口。</p>
+<h2 id="删除_&amp;_修改">删除 &amp; 修改</h2><p>要删除Tunnel，在两端均执行:</p>
+<pre><code><span class="literal">ip</span> link set gre-tunnel <span class="preprocessor">down</span>
+<span class="literal">ip</span> tunnel del gre-tunnel
+</code></pre><p>如果客户端IP变化:</p>
+<pre><code>ip tunnel change gre-tunnel remote <span class="variable">$new</span>_client_ipv4
+</code></pre><h2 id="注意事项">注意事项</h2><p>虽然叫做“隧道”，但是内容依然是<em>明文</em>，对保密要求高的同学们要注意了。<br>另外直接用命令建立的隧道在重启后会没有，所以可以考虑用networkd之类的东西来管理。<br>Linux在访问有IPv6地址的域名时会优先使用IPv6，所以要当心服务器流量爆炸。当然配置成IPv4优先也是可以的。<br>如果你的本地IPv4经常变动的话，你可能需要些脚本之类的东西自动更新服务器的Remote IP。<br>对于每一个新的IP(新的设备)，都需要在服务端执行<code>ip -6 neigh add</code>，有知道怎么解决这个问题的请务必留言…</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[如何在Linux服务器上建立隧道并获得IPv6地址]]>
+    
+    </summary>
+    
+      <category term="GRE Tunnel" scheme="http://www.devinprogress.org/tags/GRE-Tunnel/"/>
+    
+      <category term="IPv6" scheme="http://www.devinprogress.org/tags/IPv6/"/>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[IDEA下建立Forge开发环境的正确姿势]]></title>
+    <link href="http://www.devinprogress.org/2014/12/setup-forge-workspace-with-idea/"/>
+    <id>http://www.devinprogress.org/2014/12/setup-forge-workspace-with-idea/</id>
+    <published>2014-12-11T06:17:48.000Z</published>
+    <updated>2015-09-19T07:41:57.762Z</updated>
+    <content type="html"><![CDATA[<h1 id="前言">前言</h1><p>见过不少教程都是基于Eclipse的，而基于IDEA的文章少得可怜，遂决定写此文。<br>本文通篇基于Linux/IntellijIDEA进行讲解，Windows/MAC/Eclipse用户请自行依葫芦画瓢。</p>
+<h1 id="设置Forge工作区">设置Forge工作区</h1><p>当然，你得首先去<a href="http://files.minecraftforge.net/" target="_blank" rel="external">MinecraftForge</a>下载一份源代码。我这里用的是最新的<code>forge-1.7.10-10.13.2.1258-src.zip</code><br>接着，找个地方建立一个文件夹，这将是你的工程目录，我的叫做<code>Forge1.7.10-1258</code>。然后再在里面建立一个目录，比方说就叫<code>forge-1.7.10-10.13.2.1258-src</code>，把你的Forge源码解压进去。<br>现在，你的文件夹层次应该看起来是这样的：</p>
+<pre><code><span class="tag">Forge1</span><span class="class">.7</span><span class="class">.10-1258</span>
+└── <span class="tag">forge-1</span><span class="class">.7</span><span class="class">.10-10</span><span class="class">.13</span><span class="class">.2</span><span class="class">.1258-src</span>
+     ├── <span class="tag">build</span><span class="class">.gradle</span>
+     ├── <span class="tag">CREDITS-fml</span><span class="class">.txt</span>
+     ├── <span class="tag">eclipse</span>
+     ├── <span class="tag">forge-1</span><span class="class">.7</span><span class="class">.10-10</span><span class="class">.13</span><span class="class">.2</span><span class="class">.1258-changelog</span><span class="class">.txt</span>
+     ├── <span class="tag">gradle</span>
+     ├── <span class="tag">gradlew</span>
+     ├── <span class="tag">gradlew</span><span class="class">.bat</span>
+     ├── <span class="tag">LICENSE-fml</span><span class="class">.txt</span>
+     ├── <span class="tag">MinecraftForge-Credits</span><span class="class">.txt</span>
+     ├── <span class="tag">MinecraftForge-License</span><span class="class">.txt</span>
+     ├── <span class="tag">README</span><span class="class">.txt</span>
+     └── <span class="tag">src</span>
+</code></pre><p>你可以先按自己喜好改动一下<code>build.gradle</code>。比如，我喜欢手动指定一下mappings的版本：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">minecraft &#123;</span><br><span class="line">    version = <span class="string">"1.7.10-10.13.2.1258"</span></span><br><span class="line">    runDir = <span class="string">"eclipse"</span></span><br><span class="line">    mappings = <span class="string">"stable_12"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着，cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下两条命令：</p>
+<pre><code>gradle -<span class="tag">i</span> setupDecompWorkspace
+gradle -<span class="tag">i</span> ideaModule
+</code></pre><p>然后请耐心等待指令完成，可以去喝杯牛奶睡个觉什么的。<br><a id="more"></a></p>
+<h1 id="导入到IDEA">导入到IDEA</h1><p>等以上操作完成后，就可以打开IDEA，选“Create New Project”，注意要建立一个<strong>空工程</strong>（Empty Project）<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/1.png" alt="Create New Project"><br>“Project Name”自然可以随意填写，”Project Location”则是之前创建的目录，下方的”Project Format”推荐选”Directory Based”<br>点”Finish”之后应该会自动打开”Project Structure”窗口，如果没有的话可以按Ctrl+Alt+Shift+S或是从菜单栏”File –&gt; Project Structure”<br>打开窗口之后我们首先要选择SDK版本：先点左边的”Project”，然后在右边”Project SDK”里选一个，我是选了Java8，你当然可以选择任何版本（不要低于Java6）<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/2.png" alt="Select Project SDK"><br>接着点左边的”Modules”,再点那个绿色的“+”号，接着选”Import Module”<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/3.png" alt="Location of &quot;Import Module&quot;"><br>然后选forge-1.7.10-10.13.2.1258-src目录下的<code>forge-1.7.10-10.13.2.1258-src.iml</code>文件就好。<br>Import完了之后检查下有没有报错，如果没问题就可以点右下角OK。</p>
+<p>重新cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下三条命令让gradle自动建立运行配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ln <span class="operator">-s</span> ../.idea .</span><br><span class="line">gradle -i genIntellijRun</span><br><span class="line">rm .idea</span><br></pre></td></tr></table></figure>
+<p>回到IDEA，然后有必要的话重新加载一下Project。继续选菜单栏”Run –&gt; Edit Configurations”,点左侧的”Minecraft Client”，修改”Working Directory”到<code>forge-1.7.10-10.13.2.1258-src/eclipse</code>。<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/4.png" alt="Edit Configuration"><br>你也可以像我一样指定一个username。接着对”Minecraft Server”也如法炮制。然后右下角”OK”退出。</p>
+<p>现在Forge应该就可以运行了，在IDEA的主界面右上角有这么一片区域，选”Minecraft Client”然后点右侧那个绿色的三角箭头即可<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/5.png" alt="Execution Control Bar"></p>
+<h1 id="一个Mod！">一个Mod！</h1><p>如果之前的步骤都没有问题，你就可以继续了<br>为了更好地演示运行配置以及发布流程，我决定写一个Mod，添加一种矿石：“Xp Ore”,顾名思义，挖掉后能得到大量经验。</p>
+<p>我们需要新建一个Module来写我们的代码：菜单栏”File –&gt; New Module”<br>我就叫XpOre好了，然后继续打开”Project Structure”，将<code>forge-1.7.10-10.13.2.1258-src</code>添加成为它的依赖。<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/6.png" alt="Add to Dependencies"><br>那个菜单同样是点右边的绿色加号出来，点”Module Dependency”后在弹出来的窗口里选”forge-1.7.10-10.13.2.1258-src”然后”OK”即可。</p>
+<p>之后就可以写Mod了！至于具体Mod怎么写我就不在这里提了，请各位参考其他文章。<br>这是我的代码和目录层次结构，请自行调整，我就不把每一步的细节都写出来了。<br>请记得把<code>java</code>和<code>resources</code>两个目录设置成代码根目录和资源根目录，具体方法是在文件夹上右键然后”Mark Directory As”<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/7.png" alt="The Module Tree"><br>（xp_ore.png是矿石的材质，其实就是拿金矿石的材质把几个像素涂成绿色让它看起来比较像附魔瓶的颜色）<br>为了防止图挂，我再拿文本形式列一下目录</p>
+<pre><code>XpOre
+├── src
+│   └── main
+│       ├── java (Sources Root)
+│       │   └── org
+│       │       └── devinprogress
+│       │           └── xpore
+│       │               └── XpOre<span class="class">.java</span>
+│       └── resources (Resources Root)
+│           ├── assets
+│           │   └── xpore
+│           │       ├── lang
+│           │       │   └── en_US<span class="class">.lang</span>
+│           │       └── textures
+│           │           └── blocks
+│           │               └── xp_ore<span class="class">.png</span>
+│           └── mcmod<span class="class">.info</span>
+└── XpOre.iml
+</code></pre><p>要想让这个Mod在IDEA里运行起来，有两种方式。第一种比较简单，直接菜单栏”Run –&gt; Edit Configurations –&gt; ‘Minecraft Client’ –&gt; Use classpath of mod …”下拉列表里选”XpOre”，保存退出运行即可。这种方式比较适合只开发一个Mod的情况。<br>当有N个Module互相依赖的时候，我推荐创建另一个Module，比方说，叫”Run”。然后令其依赖<code>forge-1.7.10-10.13.2.1258-src</code>和你需要加载的其他Module，然后”Use classpath of mod”选择”Run”即可。</p>
+<h1 id="发布">发布</h1><p>发布其实相当方便，把forge-1.7.10-10.13.2.1258-src文件夹里的<code>build.gradle</code>复制到<code>XpOre</code>文件夹下面<br>按自己喜好修改其中的<code>version</code>,<code>group</code>和<code>archivesBaseName</code>即可。比方说我的是：</p>
+<pre><code><span class="setting">version = <span class="value"><span class="string">"v0.1"</span></span></span>
+<span class="setting">group= <span class="value"><span class="string">"org.devinprogress.xpore"</span></span></span>
+<span class="setting">archivesBaseName = <span class="value"><span class="string">"XpOre-1.7.10"</span></span></span>
+</code></pre><p>然后在XpOre文件夹下<code>gradle build</code>即可。运行完成后，就能在<code>XpOre/build/libs/</code>文件夹下找到编译好的jar了。</p>
+<p>最后来一张Mod的效果图<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/8.png" alt="XpOre Mod"></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[Minecraft mod developing in seperated folders under linux with IDEA.]]>
+    
+    </summary>
+    
+      <category term="Java" scheme="http://www.devinprogress.org/tags/Java/"/>
+    
+      <category term="Minecraft" scheme="http://www.devinprogress.org/tags/Minecraft/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Minecraft Coremod开发杂事记]]></title>
+    <link href="http://www.devinprogress.org/2014/11/minecraft-modding-with-asm/"/>
+    <id>http://www.devinprogress.org/2014/11/minecraft-modding-with-asm/</id>
+    <published>2014-11-04T13:48:53.000Z</published>
+    <updated>2015-09-19T07:44:18.379Z</updated>
+    <content type="html"><![CDATA[<p>表示最近时间荒废得厉害，主要都是耗在了<a href="http://www.minecraft.net" target="_blank" rel="external">Minecraft</a>这款游戏上。<br>Minecraft的一大魅力在于其几乎无穷的MODs，于是我也小试了一下Mod开发，顺便学习一下Java。<del>于是掉入了万劫不复的深坑</del><br>当然，我要做点和加个方块、改个合成表之类的不一样的事。<br>（教程中不少内容都参考了szszss的<a href="http://www.hakugyokurou.net/wordpress/?page_id=126" target="_blank" rel="external">博客</a>，在此表示深深的感谢）</p>
+<h1 id="基础知识">基础知识</h1><p>关于这篇文章，不适合特别特别新的新人，我假设各位读者都有一些基础的编程经验。如果你是入门级别的，在MCBBS论坛的<a href="http://www.mcbbs.net/thread-54579-1-1.html" target="_blank" rel="external">编程开发板块</a>有不少不错的入门教程。<br>我假设各位读者都具备以下能力:</p>
+<ul>
+<li>会安装软件</li>
+<li>了解基本的程序流程控制，比如判断、循环等</li>
+<li>了解基本的OOP概念，比如类，继承等 （其实这条不是那么重要，Java看多了就自然会了 <del>一个原C程序员如是说</del>）</li>
+<li>了解命令行、终端的基本使用方法</li>
+<li>有方法正常访问国际互联网，如Facebook等</li>
+<li>了解基本英语单词（这条似乎也不是那么重要，主要是希望大家能够在遇到问题时不要怕阅读英文资料）</li>
+<li>（本教程面向Linux用户，Mac用户大同小异，Windows用户自己看着办）</li>
+</ul>
+<a id="more"></a>
+<p>然后再来介绍一下要用到的工具:</p>
+<ul>
+<li><a href="http://mcp.ocean-labs.de/" target="_blank" rel="external">MCP</a>(Minecraft Coders’ Pack)主要负责反混淆Minecraft的代码，同时向Forge提供对应的文档</li>
+<li><a href="http://files.minecraftforge.net/fml/" target="_blank" rel="external">FML</a>(Forge Mod Loader)提供了一些底层功能，如Mod加载，ASM等。</li>
+<li><a href="http://www.minecraftforge.net" target="_blank" rel="external">Forge</a>提供了更高级的接口，如增加方块，修改合成表等。</li>
+<li>ForgeGradle帮助建立开发环境和发布</li>
+</ul>
+<p>一般来说，FML都会附带在Forge里，在某些情况下，比如现在（2014年11月5日）1.8的Forge还未完成，但FML已放出，就可以单独只安装FML，先开始Coremod的开发。</p>
+<h1 id="Intellij_IDEA配置教程">Intellij IDEA配置教程</h1><p>网上大部分教程都是讲Eclipse的，但是个人偏好IDEA，所以讲一下IDEA的配置流程。</p>
+<ol>
+<li>安装IDEA，没有必要找破解版，免费的Community Edition足够</li>
+<li><a href="http://files.minecraftforge.net/" target="_blank" rel="external">下载</a>Forge代码，就是Src那个链接。请选择自己需要的版本，我以<code>1.7.10-Recommended</code>为例</li>
+<li><p>解压到一个你看着顺眼的地方，然后依次执行以下命令</p>
+<pre><code>gradle setupDecompWorkspace
+gradle idea
+gradle <span class="keyword">ge</span><span class="label">nIntellijRun</span>
+</code></pre><p>没有装gradle也不想装的，可以用<code>./gradlew</code><br>强烈建议挂着代理或VPN做这事，否则将是极端痛苦的过程。<br>你也可以加上<code>-i</code>选项看滚滚的数据输出以不至于那么无聊。</p>
+</li>
+<li>打开IDEA，直接Open Project，选择目录下的.ipr文件应该就好了，你可以试着Run一下看看有没有什么问题。</li>
+</ol>
+<p>注：直接<code>gradle idea</code>现在是不被推荐的，可以尝试用<code>gradle ideaModule</code>代替，具体方法在<a href="http://www.devinprogress.org/2014/12/setup-forge-workspace-with-idea/">我的另一篇日志</a>里有讲。<br>如果需要Socks代理的，可以这么来<code>gradle -DsocksProxyHost={代理服务器地址} -DsocksProxyPort={代理端口}</code></p>
+<h1 id="代码管理与开发">代码管理与开发</h1><p><del>源代码和资源文件都是放在<code>src</code>文件夹里的，有时要在多个不同的Mod间切换开发，我目前的解决方法是将代码统一放在别处，将src文件夹做软链接进来。同时我也非常推荐也用这种方法处理<code>build.gradle</code>文件。将代码放在别处还有个好处，就是可以用<code>git</code>来管理版本，而且可以用分支方便地管理对不同Minecraft版本做的修改。不管什么方式，自己习惯就好。</del></p>
+<p>用了<code>gradle ideaModule</code>后，代码本身就分开放置了，不再需要这种方法了。</p>
+<p>对于开发这一部分，自己深感无力(其实就是懒)，请参阅szszss的系列教程。<br>另外，现在已经没有Coremod文件夹了，所以所有Mod都放在Mods文件夹下，不同之处只在于<code>MANIFEST.MF</code>文件。</p>
+<h1 id="发布">发布</h1><p>感谢ForgeGradle，打包发布不再需要手动拷贝压缩一大堆文件了。首先，你需要修改下<code>build.gradle</code>文件，这也是我为什么推荐用软链接来管理它的原因。<br>以原始的文件为例：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">version = <span class="string">"1.0"</span></span><br><span class="line">group= <span class="string">"com.yourname.modid"</span> <span class="comment">// http://maven.apache.org/guides/mini/guide-naming-conventions.html</span></span><br><span class="line">archivesBaseName = <span class="string">"modid"</span></span><br><span class="line"></span><br><span class="line">minecraft &#123;</span><br><span class="line">    version = <span class="string">"1.7.10-10.13.2.1230"</span></span><br><span class="line">    runDir = <span class="string">"eclipse"</span></span><br><span class="line">&#125;</span><br><span class="line">```    </span><br><span class="line"></span><br><span class="line">`archivesBaseName`和第一行`version`都可以自由修改，只会影响输出的jar文件的名字，关于`group`用途不明，有了解的求留言告知。</span><br><span class="line">如果你打算把Mod升级到一个新的Forge版本，请务必修改`minecraft.version`和你的开发环境一致，否则会出现奇奇怪怪的问题。</span><br><span class="line">修改好后，就可以用`gradle build`来编译了，同样建议开代理。编译好的jar在`build/libs`下。</span><br><span class="line"></span><br><span class="line">如果是需要对MANIFEST进行修改的，比如Coremod，需要在`build.gradle`中minecraft块之后添加jar块:</span><br><span class="line"></span><br><span class="line">``` groovy</span><br><span class="line">jar &#123;</span><br><span class="line">    manifest &#123;</span><br><span class="line">        attributes <span class="string">'FMLCorePlugin'</span>: <span class="string">'org.devinprogress.uniskinmod.SkinCore'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果你的一个jar包里既有普通Mod（以<code>@Mod</code>作Annotation的）又有Coremod，你还需要</p>
+<pre><code><span class="title">attributes</span> <span class="string">'FMLCorePluginContainsFMLMod'</span>: <span class="built_in">true</span>
+</code></pre><p>否则普通Mod不会被载入。</p>
+<h1 id="ASMTransformer">ASMTransformer</h1><p>因为MCP坑爹的反混淆机制，开发者在处理Method或Field时需要对付三种不同的名字：</p>
+<ol>
+<li>形似<code>a</code>这样的混淆名，<code>obfName</code></li>
+<li>形似<code>func_xxxx_a</code>这样的半混淆名，有时也称作<code>srgName</code></li>
+<li>形似<code>doTick</code>这样的反混淆名，或称<code>mcpName</code></li>
+</ol>
+<p>关于为什么要有srgName，MCP是这么解释的：因为mcpName是任何人都可以贡献的（这是真的），所以会出现这么一种情况，有时为了更好地描述某个函数的功能，在次要版本升级时（比如1.7.1升级1.7.2），mcpName会发生变化，如果直接以mcpName进行编译，那么为1.7.1编译的Mod就无法在1.7.2上使用，即使其他方面都没有问题。于是为了解决这个问题，引入了相对固定的srgName。FML是这么处理名称的，在<code>gradle build</code>时，代码中所有的mcpName均会被混淆成srgName。然后在玩家运行游戏时，所有的obfName均被反混淆成srgName，即<code>RuntimeDeobfuscation</code>，运行时反混淆。</p>
+<p>在你修改某个方法之前，首先必须定位它（废话）。定位一个方法需要四个信息：</p>
+<ul>
+<li>方法所在的类的完全限定名（这里这里指的是反混淆了的类名）</li>
+<li>方法的srgName</li>
+<li>方法的mcpName(用于在开发时确定方法，有时和srgName相同)</li>
+<li>方法的Description，或者说，参数列表。</li>
+</ul>
+<p>类很好确定，每当一个新的类被加载时，都会调用<code>IClassTransformer</code>接口的<code>transform</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IClassTransformer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">byte</span>[] transform(String obfuscatedClassName, String transformedClassName, <span class="keyword">byte</span>[] bytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第二个参数就是反混淆了的类名，并且是点分割，大小写正确的，可以直接用<code>equals()</code>来判断。<br>但是方法名的判断就比较复杂，因为在ASM转换时，运行时反混淆还没有被执行，所以方法名全部都是obfName。更要命的是，如果方法的参数里有Minecraft的类，那么这个类名也是被混淆了的类名。</p>
+<p>不过谢天谢地，我们有<code>FMLDeobfuscatingRemapper</code>，你可以用<code>FMLDeobfuscatingRemapper.INSTANCE</code>来取得实例。这个类提供了几个重要的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">String <span class="title">mapMethodName</span><span class="params">(String obfedClassName, String obfedMethodName, String obfedMethodDescription)</span></span><br><span class="line">String <span class="title">mapFieldName</span><span class="params">(String obfedClassName, String obfedFieldName, String obfedFieldDescription)</span></span><br><span class="line">String <span class="title">mapMethodDesc</span><span class="params">(String obfedMethodDescription)</span></span></span><br></pre></td></tr></table></figure>
+<p>其中<code>mapMethodName</code>和<code>mapFieldName</code>返回对应方法和字段的srgName，<code>mapMethodDesc</code>返回反混淆了的Description，也就是将<code>(Lbee;F)V</code>这种变为<code>(Lnet/minecraft/client/gui/GuiMainMenu;F)V</code>。</p>
+<p>如果你需要在某个方法中添加大段的代码，我极度不推荐写长长的代码将所有这些操作码全部加到目标方法里去，这种方法枯燥至极，又不直观，还难于调试。我一般的方法是，使用<code>INVOKESTATIC</code>调用自己写好的函数，并将需要修改的变量作为参数传递，这样需要的代码不多，也易于调试和维护。</p>
+<p>在向代码中添加操作，尤其是费时的操作时（比如网络IO）请务必谨慎选择插入的位置。因为大部分代码会在主线程中执行，一旦卡住轻则界面冻结，重则直接被服务器超时踢出。</p>
+<p>我不是非常推荐让ASM自动计算栈大小和本地变量区大小，因为碰到一些比较复杂的类时会悲剧，比如<code>AbstractClientPlayer</code></p>
+<p>如果你想清空一个方法让它什么都不做，请还是不要忘记加上RETURN</p>
+<p>有时，开发环境下编译出的class和原始的class会有区别，所以还是建议用javap之类的工具看一下原始的字节码。</p>
+<p>(更多信息随时补充)</p>
+<h1 id="AccessTransformer">AccessTransformer</h1><p>有时，我们需要频繁调用某个private的Method或是Field，使用反射会有性能损失，而ASMTransformer也无效(因为无法通过编译)，这就到了AccessTransformer大显身手的时候了。<br>AccessTransformer用于将private或是protected的Method和Field变为public，这样在代码中就可以直接使用了。<br>你需要首先创建一个<code>*_at.cfg</code>的配置文件放在resources目录（就是放<code>mcmod.info</code>）下，然后将其软链接到根目录下（和<code>build.gradle</code>同目录）。<br>配置文件的语法类似这样（这是<code>fml_at.cfg</code>的一部分）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> net.minecraft.entity.<span class="function">EntityList <span class="title">func_75618_a</span><span class="params">(Ljava/lang/Class;Ljava/lang/String;I)</span>V</span><br><span class="line"><span class="keyword">public</span> net.minecraft.entity.EntityList field_75625_b #nameToClassMap</span><br><span class="line"><span class="keyword">public</span> net.minecraft.item.crafting.CraftingManager <span class="title">func_92103_a</span><span class="params">(Lnet.minecraft.item.ItemStack;[Ljava/lang/Object;)</span>Lnet.minecraft.item.crafting.ShapedRecipes</span>;</span><br></pre></td></tr></table></figure>
+<p>接着重建工作区：</p>
+<pre><code>gradle clean setupDecompWorkspace idea <span class="comment">--refresh-dependencies</span>
+</code></pre><p>同样建议挂代理，用eclipse的同学把<code>idea</code>换成<code>eclipse</code>，有强迫症的同学可以加上<code>-i</code>选项。这样，开发环境下代码的改动就完成了。我在挂着代理的情况下大约需要8分钟。</p>
+<p>为了让其在混淆环境下也能正常工作，你需要创建一个新的类，继承<code>AccessTransformer</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyATransformer</span> <span class="keyword">extends</span> <span class="title">AccessTransformer</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyATransformer</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="string">"mymod_at.cfg"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中的字符串就是配置文件名，然后在实现了<code>IFMLLoadingPlugin</code>的类里：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getAccessTransformerClass</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> MyATransformer.class.getName();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另外需要注意的是，AccessTransformer不会自动转换衍生类，所以在转换基类时请务必当心，否则会编译不通过。</p>
+<p>在1.7.10及以上的版本中，可以在build.gradle文件的中加入以下内容，这样就不必再写IFMLLoadingPlugin了。其中的<code>mymod_at.cfg</code>文件要放在META-INF文件夹下。</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">jar &#123;</span><br><span class="line">    manifest &#123;</span><br><span class="line">        attributes <span class="string">'FMLAT'</span>: <span class="string">'mymod_at.cfg'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="其他杂七杂八的东西">其他杂七杂八的东西</h1><ul>
+<li>如果你想给MCP贡献mcpName，可以去IRC esper#mcp 找 MCPBot_Reborn</li>
+<li>最新的反混淆名对应表可以在<a href="http://export.mcpbot.bspk.rs/" target="_blank" rel="external">MCPBot Export</a>找到</li>
+<li>如果你厌倦了用文本编辑器搜索字符串来找srgName的话，可以试试<a href="https://github.com/bspkrs/MCPMappingViewer/" target="_blank" rel="external">MCPMappingViewer</a></li>
+<li><a href="https://bitbucket.org/mstrobel/procyon" target="_blank" rel="external">Procyon</a>是个极好的Java反编译器</li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[Some notes on developing coremods for Minecraft, mainly about ASM & AccessTransformer]]>
+    
+    </summary>
+    
+      <category term="Java" scheme="http://www.devinprogress.org/tags/Java/"/>
+    
+      <category term="Minecraft" scheme="http://www.devinprogress.org/tags/Minecraft/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[域名注册商更换]]></title>
+    <link href="http://www.devinprogress.org/2014/07/domain-name-registrar-switched/"/>
+    <id>http://www.devinprogress.org/2014/07/domain-name-registrar-switched/</id>
+    <published>2014-07-16T05:43:25.000Z</published>
+    <updated>2014-11-06T04:49:28.294Z</updated>
+    <content type="html"><![CDATA[<p>昨天折腾了一天，把域名从Godaddy转移到了Name.com<br>表示基本没遇到什么麻烦，信用卡借用了家长的，付款也很方便。<br>关键是便宜啊。转入9美刀，续期11美刀,比Godaddy坑爹的18刀便宜太多了啊~~<br>而且还有免费的WHOIS保护啊~~~~优惠码<code>PRIVACYPLEASE</code>超好记有木有！<br>虽然不是最便宜的但是Name.com的控制台相当美观呐~<br>结尾吐槽一句：在万网注册的都是真的勇士。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[A note to the switch of domain name registrar]]>
+    
+    </summary>
+    
+      <category term="Site Management" scheme="http://www.devinprogress.org/tags/Site-Management/"/>
+    
+      <category term="Site Management" scheme="http://www.devinprogress.org/categories/Site-Management/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Programming with PTRACE, Part6 - 时间控制]]></title>
+    <link href="http://www.devinprogress.org/2014/07/programming-with-ptrace-part6/"/>
+    <id>http://www.devinprogress.org/2014/07/programming-with-ptrace-part6/</id>
+    <published>2014-07-07T08:51:03.000Z</published>
+    <updated>2015-09-19T06:04:57.174Z</updated>
+    <content type="html"><![CDATA[<p>#不同的时间计算方法<br>程序运行会占用一小段时间（废话），事实上，我们有不止一种方法来表示一个程序运行了多长时间。最直观的应该是“墙上时间”，也就是说，你掐个秒表，看看程序从开始到结束用了多长时间。除此之外，还有“用户态时间”和“内核态时间”，这两个时间都是以CPU实际运算的时间，也就是CPU周期，来计数的。“用户态时间”就是程序在用户态执行的时间，包括程序所引用的库中的代码（比如STL），“内核态时间”就是指程序在内核态执行的时间，一般是各种系统调用（比如各种IO操作）。这两种时间和墙上时间的区别在于，因为CPU其实是在多个程序中快速切换的，所以在运行某个程序的时间里，CPU也处理了属于其他进程的任务，而且CPU切换任务也需要一定的时间（真的很短）。如果处于被调试状态，tracer的运行时间也会被计算在内，这些不属于这个进程的时间片也会被计算在这个进程的“墙上时间”里。所以一般以用户态时间和内核态时间的总和作为进程的运行时间。</p>
+<p>在Linux系统里有一个叫<code>time</code>的命令可以查看一个命令执行了多长时间。这个命令有两个版本，一个是shell内置的，另一个是独立的可执行文件，可以用<code>type time</code>命令查看。虽然可执行版本功能更强一点，但内置的功能足够，这一点区别可以不管。用法是： <code>time [命令] &lt;参数&gt;</code>。给个例子：</p>
+<pre><code><span class="tag">time</span> ffmpeg -<span class="tag">i</span> sample<span class="class">.mp4</span> target<span class="class">.mp3</span>
+...
+<span class="number">5.42s</span> user
+<span class="number">0.10s</span> system
+<span class="number">100%</span> cpu
+<span class="number">5.520</span> total
+</code></pre><a id="more"></a>
+<p>#动手写个带时限的time<br>还在对上个PART的<code>setrlimit</code>耿耿于怀么？我们现在就来用它！相关的定义位于<code>sys/resource.h</code>头文件里。我们这次要用到<code>RLIMIT_CPU</code>,这个选项限制进程所能占用的CPU时间，以秒为单位，可以把它理解为用户态时间和内核态时间的和。我们首先要使用<code>getrlimit</code>获得当前的限制：</p>
+<pre><code>struct rlimit TimeL<span class="comment">;</span>
+getrlimit<span class="list">(<span class="keyword">RLIMIT_CPU</span>,<span class="keyword">&amp;TimeL</span>)</span><span class="comment">;</span>
+</code></pre><p><code>rlimit</code>结构有两个成员:</p>
+<ul>
+<li><code>rlim_cur</code> 软限制</li>
+<li><code>rlim_max</code> 硬限制</li>
+</ul>
+<p>系统一般会用比较平和的方式对待那些达到软限制的进程，比如发个SIGSEGV什么的。而那些达到硬限制的进程会被直接SIGKILL。我们接下来要修改软限制，注意单位是秒。</p>
+<pre><code>TimeL.rlim_cur=Timeout<span class="comment">;</span>
+</code></pre><p>以上工作都要在<code>fork()</code>之前完成，之后要在<em>子进程</em>里应用这个限制（没错就是exec那里）</p>
+<pre><code>setrlimit<span class="list">(<span class="keyword">RLIMIT_CPU</span>,<span class="keyword">&amp;TimeL</span>)</span><span class="comment">;</span>
+</code></pre><p>这样，如果子进程超过软限制，系统就会发送<code>SIGXCPU</code>信号给子进程。当然，因为ptrace的原因，信号会被先发送给父进程，这样就可以用part3里介绍的方法进行处理。这样子进程是要清蒸还是油炸就都由父进程决定了。<br>当然，我们还有别的方法获取时间信息。一是用<code>gettimeofday()</code>函数配合<code>timeval</code>结构，可以获得当前时间，精确到微秒（百万分之一秒）。在程序开始时调用下，结束时调用下，相减即可得到墙上时间。另一种方法是利用<code>wait4</code>里的<code>ru</code>参数，它其实是个<code>rusage</code>结构,成员<a href="http://man7.org/linux/man-pages/man2/getrusage.2.html" target="_blank" rel="external">见此</a>。其中的<code>ru_utime</code>和<code>ru_stime</code>成员是<code>timeval</code>结构，分别记录了用户态时间和内核态时间，同样精确到微秒。</p>
+<p>#程序睡着了<br><code>RLIMIT_CPU</code>大多数情况下都能正常工作，配合<code>timeval</code>结构甚至能进一步提高精度。但是有两个例外（如果有更多请务必告诉我）：</p>
+<ol>
+<li>程序主动调用<code>sleep()</code></li>
+<li>交互状态下<code>scanf()</code>一类的函数等待键盘输入</li>
+</ol>
+<p>在这两种情况下：进程不占用CPU时间，<code>RLIMIT_CPU</code>管不着；没有系统调用，<code>wait4()</code>不返回。为了能够在这种情况下依然能够限制时间，我想出了两种方法。一是限制和<code>sleep()</code>相关的系统调用，二是父进程设置ALARM。我在这里讲一下第二种方法。<br>Linux提供了一个<code>alarm()</code>函数，可以在指定的秒数<strong>(墙上时间)</strong>后给这个进程本身发送<code>SIGALRM</code>信号。而且，我们可以给信号绑定一个处理函数（就是当信号到达时调用的函数），在这个处理函数里，可以用<code>kill</code>命令给子进程发送信号（比如<code>SIGUSR1</code>），这样就能使父进程里的<code>wait4()</code>返回，就可以控制子进程了。以下是一个简要指导：<br>首先我们需要一个信号处理函数,记得把pid改成全局变量：</p>
+<pre><code><span class="function"><span class="keyword">void</span> <span class="title">AlarmIn</span><span class="params">(<span class="keyword">int</span> sig)</span></span>{
+    <span class="keyword">if</span>(sig==SIGALRM)
+    kill(pid,SIGUSR1);
+}
+</code></pre><p>然后在子程序开始执行的时候绑定信号并设置Alarm，我在这设置超时一秒:</p>
+<pre><code>signal<span class="list">(<span class="keyword">SIGALRM</span>,AlarmIn)</span><span class="comment">;</span>
+alarm<span class="list">(<span class="number">1</span>)</span><span class="comment">;</span>
+</code></pre><p>然后请根据part3所讲的内容在while循环里正确处理<code>SIGUSR1</code>。最后记得取消Alarm，如果没超时的话：</p>
+<pre><code>alarm(<span class="number">0</span>);
+</code></pre><p>#完整代码？<br>表示完整代码太长了，放这儿太不美观，<del>我会稍后贴到gist上去。</del>代码被幽幽子吃掉了大家自己写把。</p>
+<p>#拓展阅读</p>
+<ul>
+<li><a href="http://zh.wikipedia.org/wiki/%E6%95%B0%E9%87%8F%E7%BA%A7_%28%E6%97%B6%E9%97%B4%29" target="_blank" rel="external">Wikipedia - 数量级 (时间)</a> 我把这个链接放这儿是因为老有人把微秒缩写成<code>ms</code>然后和毫秒搞混</li>
+<li><a href="http://blog.csdn.net/xwdok/article/details/542109" target="_blank" rel="external">协同式多任务与抢占式多任务</a></li>
+<li><a href="http://www.cnblogs.com/iceocean/articles/1650929.html" target="_blank" rel="external">Linux时间管理</a></li>
+<li><a href="http://russelltao.iteye.com/blog/1405353" target="_blank" rel="external">浅谈时间函数gettimeofday的成本</a></li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[Sixth part of serial of tutorial: Programming with PTRACE]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="PTRACE" scheme="http://www.devinprogress.org/tags/PTRACE/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Programming with PTRACE, Part5 - 内存管理]]></title>
+    <link href="http://www.devinprogress.org/2014/05/programming-with-ptrace-part5/"/>
+    <id>http://www.devinprogress.org/2014/05/programming-with-ptrace-part5/</id>
+    <published>2014-05-26T02:00:32.000Z</published>
+    <updated>2015-03-31T05:06:07.933Z</updated>
+    <content type="html"><![CDATA[<p>这个part主要讲解Linux的内存管理机制，以及如何查看并限制子进程的内存使用。</p>
+<p>#内存的划分<br>（嘛。。。这一部分也算是现学现卖的，如果大家觉得有什么讲的不到位的请翻下方的拓展阅读部分）<br>大家都知道，32位系统最大可以寻址4GB的地址空间（不考虑<a href="http://zh.wikipedia.org/wiki/%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E6%89%A9%E5%B1%95" target="_blank" rel="external">物理地址扩展</a>），那么这个“地址”究竟指的是哪儿的地址呢？你可以写一个小程序，malloc一点内存，然后把地址打印出来，重复几次，你会发现，分配的内存几乎都在同一个位置。这是因为，对于程序来说，这些地址都是虚拟地址，虚拟地址空间对于每个进程都是独立的，也就是说，对于不同的进程，同样虚拟地址上的数据是不同的。<br>当然，数据肯定是存放在内存条上的，我们把可以直接读写内存条的地址叫做物理地址。物理地址以一定的方式映射到虚拟地址上，所以当程序试图访问虚拟地址时，系统要以一定方式把虚拟地址变成物理地址，这项工作通常是由<a href="http://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83" target="_blank" rel="external">MMU(内存管理单元)</a>来完成的。内存的映射不是大块大块的，而是一小片一小片分别映射的，所以在虚拟地址上连续的地址可能在物理地址上相差十万八千里，这些一小片一小片的内存被称为“页”。<br>页的存在给内存分配带来了极大的灵活性，页可以存储在内存里，也可以存储在交换分区里，可以将同一块物理内存映射到不同进程的虚拟空间里（动态库经常这么干），甚至可以映射到磁盘上的某个文件。光说可能有点抽象，于是给幅图(来自Wikipedia)<br><img src="http://upload.wikimedia.org/wikipedia/commons/3/32/Virtual_address_space_and_physical_address_space_relationship.svg" alt="内存页映射是不连续的"><br>虚拟地址被分成多个段，数据有序存放于其中。这是32位Linux的新内存布局(Linux 2.6.7之后):<br><img src="http://static.duartes.org/img/blogPosts/linuxFlexibleAddressSpaceLayout.png" alt="Linux新内存布局"><br>如果你研究过可执行文件的结构，你就会发现，虚拟地址的段就是按可执行文件的段来填充的。另外，由于代码段的起点地址是固定的(0x08048000)，所以编译器就可以预先算出函数的地址了。顺带一提，因为动态库加载时的虚拟地址是不固定的，不能预先计算出函数地址，所以要在编译时使用<code>-fPIC</code>选项生成位置无关代码，否则每次被一个新进程使用时都要进行重定位(可以理解为重新计算函数地址)，并生成该动态库的一个副本，这样压根没有起到节约内存的作用。<br>扯远了，回来。尽管每个进程的虚拟地址空间时互相独立的，但并不意味着进程想访问哪儿就能访问的，比如3GB以上的区域，那儿是内核的领地。即使是堆段，也只能访问已申请的内存部分，非法的内存访问将会引发段错误(Segmentation Fault)。回到<code>malloc()</code>函数上，malloc最终会调用<code>brk</code>或<code>mmap</code>系统调用，brk用于在堆中分配小块内存，mmap则用于在Memory Mapping Segment中分配大块内存。但是并不是每次malloc都会调用brk，这是因为分配的内存实在是太小了，而brk只能分配大一点的内存，所以C运行库(比如glibc)在收到一个malloc时会先用brk向系统“批发”一块大一点的内存，而收到后续分配请求时则把这块大内存“零售”给程序，直到售完再次brk。<br>如果有一个程序死循环单纯malloc内存，内存会不会被吃光呢？答案是不会(我不清楚是不是真的有如此单纯的系统真的会挂掉)，因为系统发现，你只是分配了内存，却没有使用，于是它很机智地将那片内存设置为“可访问”，却没有把它映射到任何一个实际的内存页上！<br><a id="more"></a></p>
+<p>#你用了多少内存？<br>还记得之前的<code>rusage</code>结构么？其成员可在<a href="http://man7.org/linux/man-pages/man2/getrusage.2.html" target="_blank" rel="external">这里</a>找到。事实上，这是一种非常简陋的内存使用信息获取方式，我们只关心其中的<code>ru_maxrss</code>一项，RSS即”Resident Set Size”，表示该进程在物理内存中的占用大小，不包括交换分区中的内存大小，也不包含分配了却未使用而没有物理内存页的内存。为了获得更详细的内存信息，我们需要访问<code>/proc</code>目录。该目录下各文件的用途在<code>man 5 proc</code>里描述得很清楚，<a href="http://man7.org/linux/man-pages/man5/proc.5.html" target="_blank" rel="external">这里</a>是网页版本。关于这个目录的作用，我就偷懒，将man手册中的描述翻译如下：</p>
+<blockquote>
+<p><code>proc</code>文件系统是一个伪文件系统，提供了访问内核数据结构的接口。它通常被挂载在<code>/proc</code>上并且大部分是只读的，除了少数文件被允许用来改变内核参数。</p>
+</blockquote>
+<p><code>/proc</code>下有N多文件夹，大部分是按进程的pid来命名的，我们关心的是这些文件夹中的<code>status</code>文件。来看一个例子：<code>cat /proc/1/status|grep Vm</code></p>
+<pre><code><span class="attribute">VmPeak</span>: <span class="string">     173616 kB</span>
+<span class="attribute">VmSize</span>: <span class="string">     107968 kB</span>
+<span class="attribute">VmLck</span>: <span class="string">          0 kB</span>
+<span class="attribute">VmPin</span>: <span class="string">          0 kB</span>
+<span class="attribute">VmHWM</span>: <span class="string">       3816 kB</span>
+<span class="attribute">VmRSS</span>: <span class="string">       3744 kB</span>
+<span class="attribute">VmData</span>: <span class="string">      83744 kB</span>
+<span class="attribute">VmStk</span>: <span class="string">        136 kB</span>
+<span class="attribute">VmExe</span>: <span class="string">       1140 kB</span>
+<span class="attribute">VmLib</span>: <span class="string">       2268 kB</span>
+<span class="attribute">VmPTE</span>: <span class="string">         72 kB</span>
+<span class="attribute">VmSwap</span>: <span class="string">          0 kB</span>
+</code></pre><p>我们看到了两个令人感兴趣的东西：<code>VmData</code>和<code>VmStk</code>。分别代表了数据区和栈的大小，而且这两个数据是真正的可访问的虚拟内存大小，即不会像RSS那样，漏掉那些分配了而未访问的内存。当然，其他数据也都是很有趣的，有兴趣的人可以自己去翻man手册。这段代码计算给定进程的数据段和堆栈段内存使用总和。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">getMemory</span><span class="params">(<span class="keyword">const</span> pid_t pid)</span></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> stat_loc[<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">long</span> VmData,VmStk;</span><br><span class="line">    <span class="built_in">sprintf</span>(stat_loc,<span class="string">"/proc/%d/status"</span>,pid);</span><br><span class="line">    FILE *stat=fopen(stat_loc,<span class="string">"r"</span>);</span><br><span class="line">    <span class="keyword">char</span> line[<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">while</span>(EOF!=<span class="built_in">fscanf</span>(stat,<span class="string">"%[^\n]"</span>,line))&#123;</span><br><span class="line">        <span class="built_in">sscanf</span>(line,<span class="string">"VmData: %ld"</span>,&amp;VmData);</span><br><span class="line">        <span class="built_in">sscanf</span>(line,<span class="string">"VmStk: %ld"</span>,&amp;VmStk);</span><br><span class="line">        fgetc(stat);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> VmData+VmStk;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>#限制内存<br>也许你们已经知道，有一个叫做<code>setrlimit</code>的函数可以用来限制资源使用，你们也许已经翻过了它的man手册，看到了<code>RLIMIT_AS</code> <code>RLIMIT_DATA</code> <code>RLIMIT_RSS</code>等一票似乎很有用的参数。现在，请你立刻忘掉他们！既然我们之前讲了<code>/proc</code>当然要用起来啦。我们不用<code>setrlimit</code>是因为，这种限制策略会导致malloc失败（确切的讲是brk和mmap失败），而大部分OIer都没有检查malloc返回值的的习惯，最终导致本应是MLE(Memory Limit Exceeded)的情况变成了由访问无效内存导致的RE(Runtime Error)。更糟糕的是，如果是系统栈增长被限制了，进程会被直接<code>SIGSEGV</code>，连errno都没有，这种情况下就更难分辨了。那么，有什么好的方法来限制内存呢？答案就是在每次分配内存的系统调用（不限于brk和mmap）时通过proc来检查内存使用，注意要在返回时检查哦。一旦超过，就由父进程直接杀死子进程，方法多种多样，你可以使用<code>ptrace(PTRACE_KILL,pid,0,0)</code>，或是用Part3所讲的方法发送信号，或是直接用<a href="http://man7.org/linux/man-pages/man2/kill.2.html" target="_blank" rel="external">kill函数</a>。这种方法看上去很不优雅，但确实很有效。至于那些对<code>setrlimit</code>耿耿于怀的同学，不要担心，下个part时间限制，将会大量用到。</p>
+<p>#拓展阅读&amp;参考资料</p>
+<ul>
+<li><a href="http://xixinfei.iteye.com/blog/1949123" target="_blank" rel="external">Linux内存管理详解</a></li>
+<li><a href="http://www.itvane.net/?p=1240" target="_blank" rel="external">Linux进程地址空间详解</a></li>
+<li><a href="http://www.cnblogs.com/clover-toeic/p/3754433.html" target="_blank" rel="external">Linux虚拟地址空间布局</a></li>
+<li><a href="http://acm.tongji.edu.cn/cnfaqs" target="_blank" rel="external">OJ系统各状态含义</a>(见Question #6；应该还有一个RF:Restricted Function)</li>
+<li><a href="http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/" target="_blank" rel="external">Anatomy of a Program in Memory</a></li>
+<li>man手册</li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[Fifth part of serial of tutorial: Programming with PTRACE]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="PTRACE" scheme="http://www.devinprogress.org/tags/PTRACE/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Programming with PTRACE, Part4 - 系统调用进阶]]></title>
+    <link href="http://www.devinprogress.org/2014/05/programming-with-ptrace-part4/"/>
+    <id>http://www.devinprogress.org/2014/05/programming-with-ptrace-part4/</id>
+    <published>2014-05-26T02:00:31.000Z</published>
+    <updated>2015-09-19T07:50:35.938Z</updated>
+    <content type="html"><![CDATA[<p>这个part是<a href="/2014/04/programming-with-ptrace-part2/">Part2</a>的延续，所以我强烈建议你弄明白Part2中的内容后再来看本part。那么进入正题，我将在这个部分讲解系统调用的参数传递顺序以及如何利用ptrace系统调用获得用户空间的数据。</p>
+<h2 id="参数与寄存器">参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="external">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
+<center>
+
+<table>
+<thead>
+<tr>
+<th style="text-align:left">arch/ABI</th>
+<th style="text-align:left">instruction</th>
+<th style="text-align:left">syscall #</th>
+<th style="text-align:left">retval</th>
+<th style="text-align:left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">arm/OABI</td>
+<td style="text-align:left">swi NR</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">a1</td>
+<td style="text-align:left">NR is syscall #</td>
+</tr>
+<tr>
+<td style="text-align:left">arm/EABI</td>
+<td style="text-align:left">swi 0x0</td>
+<td style="text-align:left">r7</td>
+<td style="text-align:left">r0</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">blackfin</td>
+<td style="text-align:left">excpt 0x0</td>
+<td style="text-align:left">P0</td>
+<td style="text-align:left">R0</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">i386</td>
+<td style="text-align:left">int $0x80</td>
+<td style="text-align:left">eax</td>
+<td style="text-align:left">eax</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">ia64</td>
+<td style="text-align:left">break 0x100000</td>
+<td style="text-align:left">r15</td>
+<td style="text-align:left">r10/r8</td>
+<td style="text-align:left">bool error/errno value</td>
+</tr>
+<tr>
+<td style="text-align:left">parisc</td>
+<td style="text-align:left">ble 0x100(%sr2, %r0)</td>
+<td style="text-align:left">r20</td>
+<td style="text-align:left">r28</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">s390</td>
+<td style="text-align:left">svc 0</td>
+<td style="text-align:left">r1</td>
+<td style="text-align:left">r2</td>
+<td style="text-align:left">See below</td>
+</tr>
+<tr>
+<td style="text-align:left">s390x</td>
+<td style="text-align:left">svc 0</td>
+<td style="text-align:left">r1</td>
+<td style="text-align:left">r2</td>
+<td style="text-align:left">See below</td>
+</tr>
+<tr>
+<td style="text-align:left">sparc/32</td>
+<td style="text-align:left">t 0x10</td>
+<td style="text-align:left">g1</td>
+<td style="text-align:left">o0</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">sparc/64</td>
+<td style="text-align:left">t 0x6d</td>
+<td style="text-align:left">g1</td>
+<td style="text-align:left">o0</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">x86_64</td>
+<td style="text-align:left">syscall</td>
+<td style="text-align:left">rax</td>
+<td style="text-align:left">rax</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">arch/ABI</th>
+<th style="text-align:left">arg1</th>
+<th style="text-align:left">arg2</th>
+<th style="text-align:left">arg3</th>
+<th style="text-align:left">arg4</th>
+<th style="text-align:left">arg5</th>
+<th style="text-align:left">arg6</th>
+<th style="text-align:left">arg7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">arm/OABI</td>
+<td style="text-align:left">a1</td>
+<td style="text-align:left">a2</td>
+<td style="text-align:left">a3</td>
+<td style="text-align:left">a4</td>
+<td style="text-align:left">v1</td>
+<td style="text-align:left">v2</td>
+<td style="text-align:left">v3</td>
+</tr>
+<tr>
+<td style="text-align:left">arm/EABI</td>
+<td style="text-align:left">r0</td>
+<td style="text-align:left">r1</td>
+<td style="text-align:left">r2</td>
+<td style="text-align:left">r3</td>
+<td style="text-align:left">r4</td>
+<td style="text-align:left">r5</td>
+<td style="text-align:left">r6</td>
+</tr>
+<tr>
+<td style="text-align:left">blackfin</td>
+<td style="text-align:left">R0</td>
+<td style="text-align:left">R1</td>
+<td style="text-align:left">R2</td>
+<td style="text-align:left">R3</td>
+<td style="text-align:left">R4</td>
+<td style="text-align:left">R5</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">i386</td>
+<td style="text-align:left">ebx</td>
+<td style="text-align:left">ecx</td>
+<td style="text-align:left">edx</td>
+<td style="text-align:left">esi</td>
+<td style="text-align:left">edi</td>
+<td style="text-align:left">ebp</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">ia64</td>
+<td style="text-align:left">out0</td>
+<td style="text-align:left">out1</td>
+<td style="text-align:left">out2</td>
+<td style="text-align:left">out3</td>
+<td style="text-align:left">out4</td>
+<td style="text-align:left">out5</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">parisc</td>
+<td style="text-align:left">r26</td>
+<td style="text-align:left">r25</td>
+<td style="text-align:left">r24</td>
+<td style="text-align:left">r23</td>
+<td style="text-align:left">r22</td>
+<td style="text-align:left">r21</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">s390</td>
+<td style="text-align:left">r2</td>
+<td style="text-align:left">r3</td>
+<td style="text-align:left">r4</td>
+<td style="text-align:left">r5</td>
+<td style="text-align:left">r6</td>
+<td style="text-align:left">r7</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">s390x</td>
+<td style="text-align:left">r2</td>
+<td style="text-align:left">r3</td>
+<td style="text-align:left">r4</td>
+<td style="text-align:left">r5</td>
+<td style="text-align:left">r6</td>
+<td style="text-align:left">r7</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">sparc/32</td>
+<td style="text-align:left">o0</td>
+<td style="text-align:left">o1</td>
+<td style="text-align:left">o2</td>
+<td style="text-align:left">o3</td>
+<td style="text-align:left">o4</td>
+<td style="text-align:left">o5</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">sparc/64</td>
+<td style="text-align:left">o0</td>
+<td style="text-align:left">o1</td>
+<td style="text-align:left">o2</td>
+<td style="text-align:left">o3</td>
+<td style="text-align:left">o4</td>
+<td style="text-align:left">o5</td>
+<td style="text-align:left">-</td>
+</tr>
+<tr>
+<td style="text-align:left">x86_64</td>
+<td style="text-align:left">rdi</td>
+<td style="text-align:left">rsi</td>
+<td style="text-align:left">rdx</td>
+<td style="text-align:left">r10</td>
+<td style="text-align:left">r8</td>
+<td style="text-align:left">r9</td>
+<td style="text-align:left">-</td>
+</tr>
+</tbody>
+</table>
+<p></p></center><br><a id="more"></a><br>表格内容虽多，但其实我们关心的只有i386和x86_64（32位和64位）一共4行（因为有两张表格嘛）。精简提炼下，一共就两句话<p></p>
+<blockquote>
+<p>对于32位系统，系统调用号存放在EAX寄存器，参数依次放入EBX、ECX、EDX、ESI … 返回值位于EAX寄存器<br>  对于64位系统，系统调用号存放在RAX寄存器，参数依次放入RDI、RSI、RDX、R10 … 返回值位于RAX寄存器</p>
+</blockquote>
+<p>以64位系统下的<code>write()</code>调用为例:</p>
+<pre><code><span class="keyword">ssize_t</span> write(<span class="keyword">int</span> fd, <span class="keyword">const</span> <span class="keyword">void</span> *buf, <span class="keyword">size_t</span> count);
+</code></pre><p>那么RAX是1(write的调用号)，RDI一般为1(stdout),RSI存储着指向用户空间中将要被输出的字符串的地址，RDX自然就是字符串长度啦。</p>
+<h2 id="获取那个字符串">获取那个字符串</h2><p>理论讲完了，进入实战。这次我们拿<code>open()</code>系统调用开刀，一是因为监视程序打开了什么文件比得知输出了什么更常用，二是因为传递给<code>open()</code>的字符串没有长度信息，只能自己通过<code>\0</code>判断，更有挑战性。我们这次要使用ptrace的一个新功能<code>PTRACE_PEEKTEXT</code>,其实还有另外一个叫做<code>PTRACE_PEEKDATA</code>的，不过根据man手册的描述，这两个的功能是一样的。它的用法是这样的</p>
+<pre><code><span class="typedef"><span class="keyword">data</span> = ptrace<span class="container">(<span class="type">PTRACE_PEEKTEXT</span>,<span class="title">pid</span>,<span class="title">addr</span>,0)</span>;</span>
+</code></pre><p>即从子进程（由pid标识）的addr内存地址处取出对应字长(64位为8字节，32位4字节)的数据，做为返回值。也就是说，读取一次能得到八个字符。现在如果我们要取得从<code>base_addr</code>地址开始的一个字符串，那么我们只要8个字节8个字节读取，直到碰到<code>\0</code>为止。把这个功能写成函数就是这样：（32位系统不要忘记改那个define）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">define</span> WORD_LEN <span class="number">8</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">peek_str</span><span class="params">(pid_t pid,<span class="keyword">long</span> base_addr,<span class="keyword">char</span> target[])</span></span>&#123;</span><br><span class="line">  <span class="keyword">union</span>&#123;</span><br><span class="line">    <span class="keyword">long</span> word;</span><br><span class="line">    <span class="keyword">char</span> str[WORD_LEN];</span><br><span class="line">  &#125; data;<span class="comment">/*利用union把WORD_LEN字节的整数变为字符数组*/</span></span><br><span class="line">  <span class="keyword">long</span> offset=<span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> done=<span class="number">0</span>,i;</span><br><span class="line">  target[<span class="number">0</span>]=<span class="string">'\0'</span>;</span><br><span class="line">  <span class="keyword">while</span>(!done)&#123;<span class="comment">/*循环读取*/</span></span><br><span class="line">    data.word=ptrace(PTRACE_PEEKTEXT,pid,base_addr+offset,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">strncat</span>(target,data.str,WORD_LEN);<span class="comment">/*追加至多WORD_LEN个字符*/</span></span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;WORD_LEN;i++)<span class="comment">/*检查是否有'\0'*/</span></span><br><span class="line">      <span class="keyword">if</span>(data.str[i]==<span class="string">'\0'</span>)</span><br><span class="line">        done=<span class="number">1</span>;</span><br><span class="line">    offset+=WORD_LEN;<span class="comment">/*准备读取下一个WORD_LEN字节*/</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主程序的大<code>while()</code>循环里的代码是这样的（我已经设置了<code>PTRACE_O_TRACESYSGOOD</code>标记）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">int</span> sig_no;<span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);<span class="keyword">else</span>&#123;<span class="built_in">puts</span>(<span class="string">"Unknown Status"</span>);<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">if</span>(sig_no!=(SIGTRAP|<span class="number">0x80</span>))&#123;ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);<span class="keyword">continue</span>;&#125;</span><br><span class="line"><span class="keyword">if</span> (intocall)&#123;</span><br><span class="line">  <span class="keyword">struct</span> user_regs_struct reg;</span><br><span class="line">  ptrace(PTRACE_GETREGS,pid,<span class="number">0</span>,&amp;reg);</span><br><span class="line">  <span class="keyword">if</span> (reg.orig_rax==SYS_open)&#123;</span><br><span class="line">    <span class="keyword">char</span> file[<span class="number">255</span>];</span><br><span class="line">    peek_str(pid,reg.rdi,file);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"open() opened: %s\n"</span>,file);</span><br><span class="line">  &#125;      </span><br><span class="line">&#125;</span><br><span class="line">intocall^=<span class="number">1</span>;</span><br><span class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>在这里我使用的<code>PTRACE_GETREGS</code>和<code>user_regs_struct</code>结构来一次性获得所有寄存器的值，该结构定义于<code>sys/user.h</code>头文件中。另外，我还使用了<code>SYS_open</code>来判断系统调用号，避免了Magic Number。<code>SYS_*</code>宏定义于<code>sys/syscall.h</code>头文件中。传递RDI寄存器也很容易理解，查询<code>man 2 open</code>可知open系统调用的路径是第一个参数。现在，重新编译你的<code>target</code>，不要加<code>-static</code>,然后运行，你应该能看到类似这样的输出。</p>
+<pre><code><span class="constant">Parent</span> started
+<span class="constant">Child</span> <span class="constant">PiD</span> == <span class="number">4717</span>
+<span class="constant">Child</span> exec...
+<span class="constant">Child</span> execve() returned <span class="keyword">with</span> <span class="number">0</span>
+open() <span class="symbol">opened:</span> /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">tls</span>/<span class="title">x86_64</span>/<span class="title">libc</span>.<span class="title">so</span>.6</span>
+open() <span class="symbol">opened:</span> /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">tls</span>/<span class="title">libc</span>.<span class="title">so</span>.6</span>
+open() <span class="symbol">opened:</span> /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">x86_64</span>/<span class="title">libc</span>.<span class="title">so</span>.6</span>
+open() <span class="symbol">opened:</span> /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">libc</span>.<span class="title">so</span>.6</span>
+<span class="constant">Hello</span> <span class="constant">World</span>!
+<span class="constant">Exited</span> <span class="keyword">with</span> code <span class="number">0</span>
+</code></pre><p>可以很明显的看到程序搜索动态链接库的过程。<br>如果你觉得这还不够过瘾，那么你可以看<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace, part1</a>,后面提供了一个配合使用<code>PTRACE_PEEKTEXT</code>和<code>PTRACE_POKETEXT</code>来将<code>write</code>输出的字符串反转的例子</p>
+<h2 id="其他资料">其他资料</h2><ul>
+<li><a href="http://godorz.info/2011/02/how-debuggers-work-part-1" target="_blank" rel="external">调试器是怎样工作的</a></li>
+<li><a href="http://linuxgazette.net/issue81/sandeep.html" target="_blank" rel="external">Process Tracing Using Ptrace</a></li>
+</ul>
+<h2 id="不是后记的后记">不是后记的后记</h2><p>不知不觉已经写到Part4了，期间一边查资料一边写代码做验证一边写这篇文章，又发现了好多好多之前遗漏的信息和好文章。同时深深感觉自己真是个蒟蒻，好多东西觉得很重要，想讲却心有余而力不足，而且越来越像是在翻译man手册了……我是不是一开始就应该去翻译手册而不是写这系列文章呢？（笑）<br>下个part开始，估计就要暂时和ptrce说再见，然后和内存管理开始较劲了。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[Fourth part of serial of tutorial: Programming with PTRACE]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="PTRACE" scheme="http://www.devinprogress.org/tags/PTRACE/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Programming with PTRACE, Part3 - 进程的终止与信号]]></title>
+    <link href="http://www.devinprogress.org/2014/05/programming-with-ptrace-part3/"/>
+    <id>http://www.devinprogress.org/2014/05/programming-with-ptrace-part3/</id>
+    <published>2014-05-25T10:26:20.000Z</published>
+    <updated>2015-09-19T07:50:36.428Z</updated>
+    <content type="html"><![CDATA[<p>在Part2中，我们粗略了解了如何使用<code>ptrace</code>获得系统调用信息，即在一个大循环里不断获取程序信息，如果程序退出则停止循环。当然，那个判断异常简陋，几乎无法处理任何特殊情况。我将在本Part中详细解说各种异常情况的处理，同时讲解各种信号相关的问题。</p>
+<h2 id="一些重要的宏">一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html" target="_blank" rel="external">这个</a>页面</p>
+<pre><code>WIFEXITED   如果进程正常退出，返回一个非<span class="number">0</span>值(通常是进程调用了<span class="escape">`e</span>xit()<span class="escape">`或</span>是<span class="escape">`_</span>exit()<span class="escape">`)</span>
+WIFSIGNALED 如果进程由于一个未被捕获的信号而被终止，返回一个非<span class="number">0</span>值
+WIFSTOPPED  当进程被停止(非终止)时，返回一个非<span class="number">0</span>值(通常发生在当进程处于<span class="escape">`t</span>raced<span class="escape">`状</span>态时)
+
+WEXITSTATUS 当<span class="escape">`W</span>IFEXITED<span class="escape">`为</span>非<span class="number">0</span>值，获得进程<span class="escape">`m</span>ain()<span class="escape">`函</span>数的返回值
+WTERMSIG    如果<span class="escape">`W</span>IFSIGNALED<span class="escape">`为</span>非<span class="number">0</span>值，获得引起进程终止的信号代码
+WSTOPSIG    如果<span class="escape">`W</span>IFSTOPPED<span class="escape">`为</span>非<span class="number">0</span>值，获得引起进程停止的信号代码
+</code></pre><p>除了这六个，还有<code>WIFCONTINUED</code>和<code>WCOREDUMP</code>两个宏，不过我们用不到，我也没仔细研究，就不说了。<br>当进程自行终止时，<code>WIFEXITED</code>即为<code>true</code>，配套使用<code>WEXITSTATUS</code>获得返回值，不做过多解释。当子进程进行系统调用时，<code>WIFSTOPPED</code>为<code>true</code>,同时<code>WSTOPSIG</code>等于<code>SIGTRAP</code>(信号代码为7),我们可以用这种方法区分<code>syscall-stop</code>和<code>signal-delivery-stop</code>。当有一个外部信号要发送给子进程，这个信号会先到达父进程，使<code>WIFSTOPPED</code>为<code>true</code>，同时<code>WSTOPSIG</code>等于该信号的信号代码。父进程可以选择将这个信号继续传递或是不传递，甚至传递另一个信号给子进程。一旦信号真正到达子进程，就进入子进程自己的处理流程或是系统默认动作，可能触发<code>WIFSIGNALED</code>，比如<code>SIGINT</code>。<br>在所有信号中，<code>SIGKILL</code>是一个例外，它不会经过父进程引发<code>WIFSTOPPED</code>，而是直接传递到子进程，引发<code>WIFSIGNALED</code>。<br><a id="more"></a></p>
+<h2 id="信号的传递与修改">信号的传递与修改</h2><p>之前提到，父进程需要将信号传递给子进程，这是由<code>ptrace(PTRACE_SYSCALL,pid,0,0)</code>的第四个参数决定的。如果为0,就不传递信号，否则传递对应代码的信号，比如<code>ptrace(PTRACE_SYSCALL,pid,0,9)</code>就将信号9(SIGKILL)传递给了子进程。<br>修改信号简直信手拈来，传一个你想要传的信号即可。</p>
+<h2 id="strsignal()和代码">strsignal()和代码</h2><p><code>strsignal()</code>接受一个整数参数，返回<code>const char*</code>，用于把信号代码变为对应的、人类可读的字符串描述，定义于<code>string.h</code>。下面给出判断程序退出的代码：</p>
+<pre><code>wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);
+<span class="keyword">if</span>(WIFEXITED(sta)){<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;}
+<span class="keyword">if</span>(WIFSIGNALED(sta)){<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;}
+<span class="keyword">int</span> sig_no;
+<span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);
+<span class="keyword">if</span>(sig_no==SIGTRAP)sig_no=<span class="number">0</span>;
+......
+ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);
+</code></pre><h2 id="来自ptrace的高级选项">来自ptrace的高级选项</h2><p>你也许会纠结，如果外部传递了一个<code>SIGTRAP</code>信号，那么如何分辨呢？答案是使用<code>PTRACE_SETOPTIONS</code>设置<code>PTRACE_O_TRACESYSGOOD</code>标记，即在while之前，第一个wait之后，第一个<code>PTRACE_SYSCALL</code>之前，使用<code>ptrace(PTRACE_SETOPTIONS,pid,0,PTRACE_O_TRACESYSGOOD)</code>。这会使得<code>syscall-stop</code>导致的<code>WSTOPSIG</code>从<code>SIGTRAP</code>变为<code>SIGTRAP|0x80</code>，而普通的来自外部的<code>SIGTRAP</code>依然是<code>SIGTRAP</code>。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[Third part of serial of tutorial: Programming with PTRACE]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="PTRACE" scheme="http://www.devinprogress.org/tags/PTRACE/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Programming with PTRACE, Part2 - 系统调用入门]]></title>
+    <link href="http://www.devinprogress.org/2014/04/programming-with-ptrace-part2/"/>
+    <id>http://www.devinprogress.org/2014/04/programming-with-ptrace-part2/</id>
+    <published>2014-04-20T12:00:19.000Z</published>
+    <updated>2015-09-19T07:50:36.878Z</updated>
+    <content type="html"><![CDATA[<p>在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后<code>给32位系统的Tip</code>手动修改源代码）<br><figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/reg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</span><br><span class="line">  <span class="keyword">pid_t</span> pid;</span><br><span class="line">  pid=fork();</span><br><span class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</span><br><span class="line">    <span class="keyword">return</span>(-<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</span><br><span class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</span><br><span class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</span><br><span class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">struct</span> rusage ru;</span><br><span class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</span><br><span class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">if</span> (intocall)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld .... "</span>,_ORIG_RAX);</span><br><span class="line">        intocall=<span class="number">0</span>;</span><br><span class="line">      &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</span><br><span class="line">        intocall=<span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h2 id="运行我们的程序">运行我们的程序</h2><p>当然，如果你试图直接编译并运行上面这段程序肯定是失败的，因为你缺少一个用于被执行的“target”（就是execlp里的那个）。在这里，我们的第一个target是最经典的“Hello World!”程序：<br><figure class="highlight c"><figcaption><span>target.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Hello World!"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后，我建议你静态方式进行链接：</p>
+<pre><code>gcc -<span class="keyword">static</span> <span class="keyword">target</span>.c -o <span class="keyword">target</span>
+</code></pre><p>注意到我这里使用了<code>-static</code>参数，它的作用是将c运行时库静态链接入可执行文件中。你可以比较一下用两种方式编译的文件大小（几K和几百K的区别）。虽然用动态链接也可以，但是会和我之后的输出有一点点出入（因为动态链接文件需要根据环境变量搜索动态库）。现在把<code>target</code>和<code>demo4.c</code>放在同一目录下，然后</p>
+<pre><code>gcc dem<span class="preprocessor">o4</span>.c -o dem<span class="preprocessor">o4</span> &amp;&amp; ./dem<span class="preprocessor">o4</span>
+</code></pre><p>如果运行正确，你应该看到类似如下的输出</p>
+<pre><code><span class="keyword">Parent</span> started
+Child PiD == <span class="number">9702</span>
+Child sleeping<span class="attribute">...</span>
+Child exec<span class="attribute">...</span>
+Child execve() returned <span class="keyword">with</span> <span class="number">0</span>
+Entering SYSCALL <span class="number">63</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">0</span>
+Entering SYSCALL <span class="number">12</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">31248384</span>
+Entering SYSCALL <span class="number">12</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">31252928</span>
+Entering SYSCALL <span class="number">158</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">0</span>
+Entering SYSCALL <span class="number">89</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">55</span>
+Entering SYSCALL <span class="number">12</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">31388096</span>
+Entering SYSCALL <span class="number">12</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">31391744</span>
+Entering SYSCALL <span class="number">5</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">0</span>
+Entering SYSCALL <span class="number">9</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">140378408579072</span>
+Hello World<span class="subst">!</span>
+Entering SYSCALL <span class="number">1</span> <span class="attribute">...</span><span class="built_in">. </span>Exited <span class="keyword">with</span> <span class="number">13</span>
+Entering SYSCALL <span class="number">231</span> <span class="attribute">...</span><span class="built_in">. </span>Child Exited
+</code></pre><h2 id="深入这段代码">深入这段代码</h2><p>我先介绍一下各个头文件的用途：</p>
+<ul>
+<li><code>stdio.h</code>：（如果你不知道这个文件是干嘛的请重学C语言）</li>
+<li><code>unistd.h</code>：提供<code>fork()</code>、<code>pid_t</code>、<code>execlp()</code>、<code>sleep()</code>等</li>
+<li><code>sys/ptrace.h</code>：提供ptrace相关函数和宏定义</li>
+<li><code>sys/wait.h</code>：提供<code>wait4()</code>和<code>WIFEXITED</code>宏</li>
+<li><code>sys/resource.h</code>：提供<code>rusage</code>结构定义</li>
+<li><code>sys/reg.h</code>：提供寄存器系列宏定义（<code>ORIG_RAX</code>等）</li>
+</ul>
+<p>看到代码的第15行，一个巨大的<code>if...else...</code>将代码清晰地分成了父子进程两个部分，16行的<code>ptrace(PTRACE_TRACEME,0,0,0);</code>首先吸引了我们的注意力。（为什么有一种在写春游作文的感觉）这个调用使得子进程被标记为<code>TRACED</code>并且使系统内核在子进程调用exec族函数<em>之后</em>通知父进程，这也是为什么17到19行的系统调用没有被追踪到的原因。<br>再看父进程部分，由于系统调用是一个从用户态到内核态再到用户态的过程，所以每进行一次系统调用都会触发两次<code>syscall_stop</code>,分别是进入时的<code>syscall_enter_stop</code>和离开内核时的<code>syscall_exit_stop</code>。这种子进程的状态的变化可以在父进程中使用<code>wait()</code>、<code>waitpid()</code>、<code>wait4()</code>等一票函数完成（还记得part1课后阅读中的僵尸进程么？）。值得注意的是，第一次的状态变化是由<code>execve()</code>调用返回导致的<code>syscall_exit_stop</code>，所以我在25到29行单独做了处理。我喜欢使用<code>wait4()</code>的原因是它还可以获得子进程的当前资源占用情况（就是那个<code>rusage</code>结构），这对于了解进程资源使用情况非常有用，只不过现在还用不到（我应该会在之后专门开几个part来讲系统资源的限制），所以我们只要关注那个<code>sta</code>就可以了。<br>注意下面那个大的<code>while</code>循环，在每次循环的开头等待，一旦<code>wait4()</code>返回，子进程就已经进入了暂停的状态（其实是内核给子进程发送了<code>SIGTRAP</code>信号，但因为子进程处于<code>TRACED</code>状态，所以这个信号被转交给了父进程，使父进程的<code>wait4()</code>返回，但这也意味着由其他方式引起的信号(比如<code>kill</code>命令)也会引起wait4的返回）。接着在32行使用<code>WIFEXITED</code>宏加上wait4收集的状态信息<code>sta</code>判断子进程是否已经退出，如果已退出，那么父进程也从循环中退出。当然这是一个非常粗糙的处理方式，更具完整的处理流程将在之后的part里介绍。接着，我们就可以使用各种各样的命令来调戏子进程了，这里我们只是简单的取得系统调用号和返回值。最后，在45行，让子进程继续执行，并要求子进程在下一个系统调用（进入或返回）停住，然后父进程开始等待下一次的<code>syscall_stop</code>。因为一次系统调用会导致两次<code>syscall_stop</code>，所以我使用变量<code>intocall</code>来分辨，并且在38到44行打印出不同的提示信息。顺带提一下，在输出中，<code>Hello World!</code>应该输出在<code>Entering SYSCALL 1</code>和<code>Exited with 13</code>中间，但因为缓冲区刷新的问题所以被输出到了前面。</p>
+<p>终于到最激动人心的部分了！36、37两行代码是最重要的部分，可以看出，他们做的工作是差不多的，都是从子进程的内存空间中取一些数据。为了解释好这两行，我要讲一讲系统调用的调用过程。系统调用和普通的函数调用差不多，函数调用是将参数以约定好的顺序压入栈中，而系统调用则发生了一个类似上下文切换的过程：程序将需要调用的系统调用的调用号以及参数存入寄存器中，然后将所有寄存器存入栈中，进入内核态后，内核从栈中取得调用号和调用参数，并将返回值写入栈中对应寄存器的位置，最后还原寄存器的值并返回用户态，于是返回值就这样被“还原”到了寄存器里。在x86-64平台上，负责传递系统调用号和返回值的都是<code>RAX</code>寄存器，也就是说返回值会覆盖调用号，为了在系统调用返回时也能知道调用号，<code>RAX</code>寄存器在保存时被入栈两遍，一个是用于保存返回值的<code>RAX</code>，另一个是负责保存调用号的<code>ORIG_RAX</code>。现在，我们要获得寄存器的值，只要访问栈中的对应位置就可以了。而系统内核又会在系统调用时将栈中的这些信息复制一遍到一个叫做<code>u-area</code>(USER Area)的内存区域。在<code>sys/reg.h</code>头文件中定义了各寄存器保存时在<code>u-area</code>中的顺序，乘以每个寄存器的长度（64位系统自然就是8了嘛~~）就得到了我们所要访问的字节偏移量，<code>PTRACE_PEEKUSER</code>要求ptrace从指定偏移取出一个寄存器长度的数据（也就是8字节）作为返回值，于是<code>ptrace(PTRACE_PEEKUSER,pid,8*ORIG_RAX,0)</code>就能获得系统调用号啦！</p>
+<h2 id="给32位系统的Tip">给32位系统的Tip</h2><p>要让程序通过编译，需要做两个改动：</p>
+<ol>
+<li><p>在<code>int main()</code>之前加入这两个预处理命令：</p>
+<pre><code><span class="hexcolor">#def</span>ine RAX EAX
+<span class="hexcolor">#def</span>ine ORIG_RAX ORIG_EAX
+</code></pre></li>
+<li>把26、36、37行ptrace第三个参数中的8全部改成4</li>
+</ol>
+<p>这是因为32位系统的寄存器长度是4字节，而且负责传递系统调用号和返回值的是<code>EAX</code>寄存器。</p>
+<h2 id="其他资料">其他资料</h2><ul>
+<li><a href="http://sourceforge.net/projects/strace/" target="_blank" rel="external">strace</a>是一个用于监视并输出某程序系统调用情况的工具，比如<code>strace ./target</code></li>
+<li><a href="http://man7.org/linux/man-pages/man7/signal.7.html" target="_blank" rel="external">Linux信号代码</a>：也可以通过查man手册得到<code>man 7 signal</code></li>
+<li><a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace</a>：Pradeep Padala 的关于ptrace的文章。</li>
+<li><a href="http://blog.rchapman.org/post/36801038863/linux-system-call-table-for-x86-64" target="_blank" rel="external">x86_64 系统调用号列表</a>：也可以在<code>asm/unistd_64.h</code>头文件中找到，<code>asm/unistd_32.h</code>就是32位的</li>
+<li><a href="http://www.hep.wisc.edu/~pinghc/Process_Memory.htm" target="_blank" rel="external">Process and Process Memory</a></li>
+<li><strong>有问题或意见请务必留言啊啊啊啊~</strong>没人留言都不知道评论系统是否工作正常</li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[Second part of serial of tutorial: Programming with PTRACE]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="PTRACE" scheme="http://www.devinprogress.org/tags/PTRACE/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Programming with PTRACE, Part1 - 起步]]></title>
+    <link href="http://www.devinprogress.org/2014/04/programming-with-ptrace-part1/"/>
+    <id>http://www.devinprogress.org/2014/04/programming-with-ptrace-part1/</id>
+    <published>2014-04-17T13:16:29.000Z</published>
+    <updated>2014-11-06T04:51:22.413Z</updated>
+    <content type="html"><![CDATA[<h2 id="前言">前言</h2><p>本人作为一个信息学竞赛的参与者，在很久之前曾经试图自己写过一个Online Judge系统（允许用户上传源代码并在服务器上编译运行），考虑到安全因素，必须要对程序的行为进行限制，因此对ptrace进行了一番研究。网上有一份关于ptrace的很好的教程（<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace</a>）,但是时间有点久了，而且没有涉及64位操作系统。因此，我决定写这份教程，基于64位Linux，尽力介绍一些新加入的功能，同时兼顾一下32位系统。另外，由于一开始的目的是“对程序的行为进行<em>限制</em>”，所以不会涉及到诸如设置断点之类的内容，相反，可能会涉及到其他关于系统资源管理的内容。<br><code>ptrace()</code>是一个由Linux内核提供的系统调用。它允许一个用户态进程检查、修改另一个进程的内存和寄存器。这种技术被广泛用于<code>gdb</code>等调试器中。尽管这系列文章的标题叫做“Programming with PTRACE”，但在第一部分中，我将着重介绍Linux的进程和相关的几个重要函数。</p>
+<h2 id="fork(),_vfork()_与_clone()">fork(), vfork() 与 clone()</h2><p>在Linux中，每一个进程都有一个唯一的编号，被称作<code>pid</code>(Process ID)。在Linux中，进程不能凭空产生（<code>init</code>进程是个例外），只能从一个已有进程衍生出来。原来的进程被称做父进程，衍生出来的进程叫子进程。一个系统中所有进程以父子关系相连接，形成一棵树，这棵“树”的树根就是<code>init</code>进程，它是在系统启动时被直接启动的，因此它没有父进程。并且系统中所有其他进程都直接或间接地是它的子进程。在Linux系统中，实现“把一个进程变成两个”这一功能的有三个系统调用，即<code>fork()</code>、<code>vfork()</code>和<code>clone()</code>。</p>
+<p><code>fork()</code>的工作流程的确和叉子有几分相似之处，它将当前进程所有数据复制一份，产生一个和父进程一模一样的子进程。并在两个进程中返回不同的返回值。比如这段代码：<br><figure class="highlight c"><figcaption><span>demo1.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> return_val;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Program started."</span>);</span><br><span class="line">    return_val=fork();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"fork() returned %d\n"</span>,return_val);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>将会输出</p>
+<pre><code>Program started.
+<span class="function"><span class="title">fork</span><span class="params">()</span></span> returned <span class="number">5768</span>
+<span class="function"><span class="title">fork</span><span class="params">()</span></span> returned <span class="number">0</span>
+</code></pre><p>很明显地可以看到，<code>puts()</code>只被调用了一次而<code>printf()</code>被调用了两次，这说明在<code>fork()</code>前的一个进程变成了两个，而且<code>fork()</code>在两个进程中有不同的返回值（这就是“调用一次，返回两次”的来历）。<code>fork()</code>会返回0给子进程，返回子进程的pid给父进程，因此，我们很容易判断出<code>fork() returned 0</code>是由子进程打印的。在实际应用中，也通过<code>if</code>语句判断返回值的方法来决定执行不同的代码：</p>
+<pre><code><span class="keyword">int</span> pid=fork();
+<span class="keyword">if</span> (pid==<span class="number">0</span>){
+  <span class="comment">//子进程的工作</span>
+}<span class="keyword">else</span>{
+  <span class="comment">//父进程的工作</span>
+}
+</code></pre><p>一般来说，子进程的工作就是调用<code>exec</code>族函数，启动另一个程序(把自己替换掉)。如果子进程还在执行而父进程已结束，那么它就成为“孤儿”进程，成为<code>init</code>进程的子进程。另外，请不要纠结那个<code>if</code>判断带来的性能损失，Linux的内核开发者都不纠结，你纠结什么呢？<br><a id="more"></a></p>
+<p><code>vfork()</code>的存在是一个历史遗留问题，在很久很久以前，<code>fork()</code>调用是没有<a href="http://en.wikipedia.org/wiki/Copy_on_write" target="_blank" rel="external">CoW</a>机制的，如果fork出的一个子进程又立即调用了<code>exec</code>族函数，那么辛辛苦苦拷贝出来的内存又立马被扔进了废纸篓里（这个比喻可能不太恰当，毕竟被从内存里抹去的数据是捡不回来的）。Linux的开发者当然不会允许效率如此低下的事情发生，于是他们创造出了<code>vfork()</code>。它和<code>fork()</code>最大的差别在于，vfork出的子进程，在执行<code>exec</code>族函数前和父进程<strong>共享同一块内存</strong>。也就是说，子进程对内存的修改也会体现在父进程上。只有当子进程执行了<code>exec</code>族函数，它才真正拥有一块属于自己的内存。这样就节省了<code>fork()</code>中那个无意义的内存拷贝。现在因为有了CoW，<code>fork()</code>和<code>vfork()</code>已经几乎没有性能差异了。<br><figure class="highlight c"><figcaption><span>demo2.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid,x=<span class="number">1</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"X=%d\n"</span>,x);</span><br><span class="line">    pid=vfork();</span><br><span class="line">    <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</span><br><span class="line">        x+=<span class="number">1</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Child-X=%d\n"</span>,x);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        x+=<span class="number">1</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Parent-X=%d\n"</span>,x);</span><br><span class="line">    &#125;</span><br><span class="line">    _exit(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段代码输出，而且一定输出</p>
+<pre><code>X=<span class="number">1</span>
+Child-X=<span class="number">2</span>
+Parent-X=<span class="number">3</span>
+</code></pre><p>很好地说明了内存的共享，如果换成<code>fork()</code>，那么父子进程就都输出X=2了。<br>也许有人会问，为什么不可能是父进程先输出呢？这涉及到<code>vfork()</code>的另一个特点。如果使用<code>vfork()</code>创建进程，那么在子进程使用<code>exec</code>族函数或是<code>_exit()</code>(这就是我为什么不用<code>return 0</code>的原因，但没有详细研究过原因，求大神指教)之前，父进程会始终等待vfork返回。比如以下代码：<br><figure class="highlight c"><figcaption><span>demo3.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid;</span><br><span class="line">    pid=vfork();</span><br><span class="line">    <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Child Sleeping..."</span>);</span><br><span class="line">        sleep(<span class="number">3</span>);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exit."</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Parent Exit."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    _exit(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>输出</p>
+<pre><code>Child Sleeping...
+<span class="comment">//这里等了3秒</span>
+Child <span class="keyword">Exit</span>.
+<span class="keyword">Parent</span> <span class="keyword">Exit</span>.
+</code></pre><p>而改成<code>fork()</code>后输出</p>
+<pre><code><span class="keyword">Parent</span> <span class="keyword">Exit</span>.
+Child Sleeping...
+~$
+<span class="comment">//这里等了3秒</span>
+Child <span class="keyword">Exit</span>.
+</code></pre><p>可以明显看出两者差别。(给Windows用户的Tip: 那个<code>~$</code>是Linux终端的提示符，类似cmd)</p>
+<p><code>clone()</code>函数提供了更多的控制选项，可自由决定要执行哪个代码片段甚至是哪些内存共享，哪些内存要复制。但我没怎么用过，不敢乱说，有兴趣的读者可以自行实验。</p>
+<h2 id="令人困惑的exec族函数">令人困惑的exec族函数</h2><p>我在这篇文章之前的部分N次提到了一个叫<code>exec族函数</code>的东西，如果我们man手册里查找(<code>man 3 exec</code>)，我们会得到一大堆函数（是不是开始感到困惑了？）：</p>
+<pre><code><span class="function"><span class="keyword">int</span> <span class="title">execl</span>  <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *path, <span class="keyword">const</span> <span class="keyword">char</span> *arg, ...)</span></span>;
+<span class="function"><span class="keyword">int</span> <span class="title">execlp</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *file, <span class="keyword">const</span> <span class="keyword">char</span> *arg, ...)</span></span>;
+<span class="function"><span class="keyword">int</span> <span class="title">execle</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *path, <span class="keyword">const</span> <span class="keyword">char</span> *arg, ..., <span class="keyword">char</span> * <span class="keyword">const</span> envp[])</span></span>;
+<span class="function"><span class="keyword">int</span> <span class="title">execv</span>  <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *path, <span class="keyword">char</span> *<span class="keyword">const</span> argv[])</span></span>;
+<span class="function"><span class="keyword">int</span> <span class="title">execve</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *path, <span class="keyword">char</span> *<span class="keyword">const</span> argv[], <span class="keyword">char</span> *<span class="keyword">const</span> envp[])</span></span>;
+<span class="function"><span class="keyword">int</span> <span class="title">execvp</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *file, <span class="keyword">char</span> *<span class="keyword">const</span> argv[])</span></span>;
+<span class="function"><span class="keyword">int</span> <span class="title">execvpe</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *file, <span class="keyword">char</span> *<span class="keyword">const</span> argv[], <span class="keyword">char</span> *<span class="keyword">const</span> envp[])</span></span>;
+</code></pre><p><code>exec族函数</code>就是这一“族”函数，全部以exec打头，他们都是对系统调用<code>execve()</code>的包装。他们的作用就是把某个进程（通常是fork出来的子进程）从里到外，完完整整，包括代码、堆栈，全部换成另一个程序，然后从头开始运行。它们的调用效果是一样的，区别在于调用方式。总的来说，大致的参数顺序是这样的：<code>exec*(可执行文件路径，程序参数表[,环境变量表])</code>，其中环境变量表是可选的。<br>去掉打头的exec，带<code>l</code>（代表list）的函数使用了一种比较接近人类方法来表示程序参数表，即以<code>NULL</code>作为结尾（man手册推荐使用<code>(char *)0</code>）的变参列表；而带<code>v</code>(代表vector)的则使用一个字符串数组来表示程序参数表，就像<code>int main(int argc,char *argv[])</code>里的<code>argv</code>一样。<br>如果结尾带<code>e</code>（environment），则该函数接受一个字符串数组表示的环境变量表；反之，则会默认传递所有当前环境变量。如果带有<code>p</code>，那么你就不必在第一个参数中列出完整路径，系统会自动检查当前目录和<code>PATH</code>环境变量（如果你非要手贱加个路径分割符进去，那么系统就会把它当成完整路径）。<br>值得一提的是，不管你使用那种方法表示程序参数表，第0个参数（C的数组下标从0开始，记得么？）都应当和可执行文件路径保持一致，虽然不一致依然可以正确运行，但有可能出现奇奇怪怪的问题。（博主继续偷懒，欢迎各位读者当小白鼠自行实验）。如果你已经混乱了，或是直接跳过了上面的一大堆说明直接到了这，那么我推荐你直接使用<code>execlp()</code>函数，比如说，你要运行一个叫<code>foo</code>的程序：</p>
+<pre><code>execlp(<span class="string">"foo"</span>,<span class="string">"foo"</span>,<span class="literal">NULL</span>)<span class="comment">;</span>
+</code></pre><p>或是列举出根目录下所有文件：</p>
+<pre><code>execlp(<span class="string">"ls"</span>,<span class="string">"ls"</span>,<span class="string">"/"</span>,<span class="literal">NULL</span>)<span class="comment">;</span>
+</code></pre><h2 id="继续之前的其他一些准备">继续之前的其他一些准备</h2><p>从本系列的下一篇开始，我将要开始讨论<code>ptraec()</code>这一强大的工具。但是，如果你有一下现象之一的，我建议你<em>不要</em>继续阅读并且从头学习有关<code>*nix</code>系列系统的知识：</p>
+<ol>
+<li>基本看不懂这篇文章的</li>
+<li>不会C语言的</li>
+<li>狂热的Windows爱好者</li>
+<li>不会使用<a href="https://www.google.com" target="_blank" rel="external">Google</a>的</li>
+<li>没有IDE就不会编译程序的</li>
+<li>没有听说过<code>寄存器</code>，<code>堆栈</code>的</li>
+</ol>
+<p>另外，<code>ptrace()</code>相当接近系统底层，对内核版本，系统构架，指令长度，库头文件等有相当大的依赖性，如果你还在使用2.x系列的内核，你可能在之后遇到问题，因为一些功能在新版本内核才被加入。我在这里列出我的编程环境：</p>
+<ul>
+<li>系统: ArchLinux x86_64</li>
+<li>内核: Linux 3.14.1</li>
+<li>glibc 2.19</li>
+<li>gcc 4.8.2</li>
+</ul>
+<p>另外，这里有更多关于进程的文章</p>
+<ul>
+<li><a href="http://www.cnblogs.com/vamei/archive/2012/09/20/2694466.html" target="_blank" rel="external">Linux进程基础</a> （我觉得其中关于食谱的那个比喻不太恰当，也许程序和进程的关系更像类和类的实例的关系？）</li>
+<li><a href="http://www.ibm.com/developerworks/cn/linux/l-linux-process-management/" target="_blank" rel="external">Linux 进程管理剖析</a> (IBM developerWorks是我超喜欢的一个网站，有相当多高质量的文章)</li>
+<li><a href="http://coolshell.cn/articles/656.html" target="_blank" rel="external">Linux 的僵尸(zombie)进程</a></li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[First part of serial of tutorial: Programming with PTRACE]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="PTRACE" scheme="http://www.devinprogress.org/tags/PTRACE/"/>
+    
+      <category term="教程" scheme="http://www.devinprogress.org/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[有屏幕的地方就有烂苹果]]></title>
+    <link href="http://www.devinprogress.org/2014/03/bad-apple-character-player/"/>
+    <id>http://www.devinprogress.org/2014/03/bad-apple-character-player/</id>
+    <published>2014-03-19T11:55:49.000Z</published>
+    <updated>2015-09-19T07:50:37.111Z</updated>
+    <content type="html"><![CDATA[<p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="external">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
+<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br><a id="more"></a><br>第二步要把视频变成一帧一帧的图片，请出FFmpeg来帮忙:</p>
+<pre><code>ffmpeg -i BadApple.mkv -s <span class="number">80</span>x60 -r <span class="number">15</span> Ba%d.png
+</code></pre><p>然后你就会得到<code>Ba1.png Ba2.png Ba3.png</code>等一大堆文件，这就是各帧了。注意我在这一步同时把大小缩小到了80*60和把帧速率调到了15帧每秒。</p>
+<p>第三步用ImageMagick将图像转换成黑白图，然后再转换成<code>xpm</code>格式。XPM格式本质上是一个文本文档，可以直接被<code>#include</code>。我们这一步要用到一点点脚本技巧。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> *.png</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  convert <span class="variable">$x</span> -monochrome `basename <span class="operator">-s</span> .png <span class="variable">$x</span>`.xpm</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure></p>
+<p>最后写一段C语言小程序，利用游程编码进一步缩小文件体积。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &#60;stdio.h&#62;&#10;#include &#34;xpm.h&#34;&#10;void main()&#123;&#10;  FILE *f=fopen(&#34;BA.dat&#34;,&#34;a&#34;);&#10;  char count;&#10;  int t=ARR[0][6]==&#39;1&#39;?1:2;&#10;  for(int i=1+t;i&#60;61+t;i++)&#123;&#10;    count=1;&#10;    for(int j=1;j&#60;80;j++)&#123;&#10;      if(ARR[i][j]==ARR[i][j-1])&#123;&#10;        count++;&#10;      &#125;else&#123;&#10;        if(ARR[i][j]==&#39;.&#39;)count=-count;&#10;        fprintf(f,&#34;%c&#34;,count);&#10;        count=1;&#10;      &#125;&#10;    &#125;&#10;    if(ARR[i][79]==&#39; &#39;)count=-count;&#10;    fprintf(f,&#34;%c&#34;,count);&#10;    fprintf(f,&#34;%c&#34;,0);&#10;  &#125;&#10;  fclose(f);&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>当然，离不了脚本和编译器的帮助，我这里使用了<code>tcc</code>进行编译<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (( i=<span class="number">1</span>; i&lt;=<span class="number">3288</span>; i++))</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  cp Ba<span class="variable">$i</span>.xpm xpm.h</span><br><span class="line">  tcc -DARR=Ba<span class="variable">$i</span> bad_apple.c &amp;&amp; ./a.out</span><br><span class="line">  rm xpm.h</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure></p>
+<p>其中，那个3288就是总帧数。这样就得到了一个<code>BA.dat</code>文件。文件内容是一堆用二进制存储的数字，正数代表连续的白色，负数代表连续的黑色，零代表换行。一帧60行，总计3288帧。这样就把一个80多兆的视频压缩到了900多K。有了数据文件剩下的就好办了。</p>
+<p><strong>未完待续。。。。。。</strong></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[A short tutorial on creating a character-base animation]]>
+    
+    </summary>
+    
+      <category term="东方Project" scheme="http://www.devinprogress.org/tags/%E4%B8%9C%E6%96%B9Project/"/>
+    
+      <category term="技术宅" scheme="http://www.devinprogress.org/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
+    
+      <category term="ACG" scheme="http://www.devinprogress.org/categories/ACG/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[在Linux下使用MinGW静态交叉编译带有zlib的libcurl]]></title>
+    <link href="http://www.devinprogress.org/2014/02/how-to-cross-compile-libcurl-on-linux/"/>
+    <id>http://www.devinprogress.org/2014/02/how-to-cross-compile-libcurl-on-linux/</id>
+    <published>2014-02-28T13:17:41.000Z</published>
+    <updated>2015-09-19T07:50:37.425Z</updated>
+    <content type="html"><![CDATA[<p><a href="http://curl.haxx.se/" target="_blank" rel="external">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
+<h3 id="STEP1_安装MinGW编译器">STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
+<pre><code>~<span class="preprocessor"># pacman -S mingw-w64</span>
+</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
+<pre><code>~<span class="preprocessor"># pacman -Ql mingw-w64-gcc| grep <span class="string">'/usr/bin/.*gcc$'</span></span>
+mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
+mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
+</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/">Hello World代码</a> ^_^），然后编译试试：</p>
+<pre><code><span class="tag">i686-w64-mingw32-gcc</span> <span class="tag">hello_world</span><span class="class">.c</span> <span class="tag">-o</span> <span class="tag">hello_world</span><span class="class">.exe</span>
+</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。<br><a id="more"></a></p>
+<h3 id="STEP2_下载源码">STEP2 下载源码</h3><p>很简单的步骤，如果自己搞不定的建议直接右上角。</p>
+<ul>
+<li><a href="http://curl.haxx.se/download.html" target="_blank" rel="external">LibCurl</a>:最上面的Source Archives</li>
+<li><a href="http://www.zlib.net/" target="_blank" rel="external">zLib</a>:请下Source Code</li>
+<li><a href="https://www.openssl.org/source/" target="_blank" rel="external">OpenSSL</a>:可选，如果没有必要就不要编译，会极大地增加文件体积</li>
+</ul>
+<p>把<code>curl-7.35.0</code>和<code>zlib-1.2.8</code>(可能还有<code>openssl-1.0.1f</code>)这几个文件夹放在同一个目录下，然后进行下一步。</p>
+<h3 id="STEP3_编译源码">STEP3 编译源码</h3><p>先打开<code>zlib/win32</code>文件夹下的<code>Makefile.gcc</code>文件,把<code>PREFIX =</code>这行改成STEP1里的gcc前缀，对于我来说就是<code>PREFIX = i686-w64-mingw32-</code>。把这个文件拷贝到<code>zlib</code>文件夹下，然后在<code>zlib</code>文件夹下<code>make -f Makefile.gcc</code>，你就应该能看到<code>libz.a</code>这个文件了。</p>
+<p>如果你要编译OpenSSL,那么就去openssl文件夹下</p>
+<pre><code><span class="variable">$ </span>./<span class="constant">Configure</span> no-shared --cross-compile-prefix=i686-w64-mingw32- mingw
+<span class="variable">$ </span>make
+</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<code>libcrypto.a</code></p>
+<p>最后去libcurl里的lib文件夹里修改<code>Makefile.m32</code>文件，在<code>CC    = $(CROSSPREFIX)gcc</code>上加一行<code>CROSSPREFIX=i686-w64-mingw32-</code>（请按需修改），然后把下面<code>CFLAGS</code>那行改成这样<code>CFLAGS    = -g -O2 -Wall -DCURL_DISABLE_LDAP</code>，最后</p>
+<pre><code>make -f Makefile<span class="class">.m32</span> CFG=-zlib
+</code></pre><p>或是</p>
+<pre><code>make -f Makefile<span class="class">.m32</span> CFG=-zlib-ssl
+</code></pre><p>make到最后时会报个错，是因为文件没放对地方，手动挪一下即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> vtls/openssl.o vtls/gtls.o vtls/vtls.o vtls/nss.o vtls/qssl.o vtls/polarssl.o vtls/polarssl_threadlock.o vtls/axtls.o vtls/cyassl.o vtls/curl_schannel.o vtls/curl_darwinssl.o vtls/gskit.o</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    mv `basename <span class="variable">$x</span>` vtls</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>然后再make一下，<code>libcurl.a</code>文件应该就出现了。<br>如果生成dll出错也不要紧，我们要的是<code>.a</code>文件</p>
+<h3 id="STEP4_测试">STEP4 测试</h3><p>现在，你可以找一段libcurl的demo来测试了。注意要加上宏定义<code>CURL_STATICLIB</code></p>
+<pre><code><span class="tag">i686-w64-mingw32-gcc</span> <span class="tag">-I</span>. <span class="tag">-L</span>. <span class="tag">-DCURL_STATICLIB</span> <span class="tag">curl_demo</span><span class="class">.c</span> <span class="tag">-lcurl</span> <span class="tag">-lz</span> <span class="tag">-lws2_32</span> <span class="tag">-o</span> <span class="tag">curl_demo</span><span class="class">.exe</span>
+</code></pre><p>如果你因为不知道gcc<code>-I</code>和<code>-L</code>选项的用法而编译不过，请自行Google。如果你加了ssl支持，你需要链接更多的库，具体请根据错误信息自行Google。最后提醒一点:<strong>请把<code>-lcurl</code>选项放在源文件后面</strong>，我当初就是因为这个死活链接不过。最后把<code>curl_demo.exe</code>拖进虚拟机里，如果一切正常，那么恭喜你，你成功了。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[A short memo on how to cross-compile libcurl statically on linux.]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="MinGW" scheme="http://www.devinprogress.org/tags/MinGW/"/>
+    
+      <category term="交叉编译" scheme="http://www.devinprogress.org/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[记一次坑爹的乱码解决过程]]></title>
+    <link href="http://www.devinprogress.org/2014/02/clear-a-special-kind-of-messy-code/"/>
+    <id>http://www.devinprogress.org/2014/02/clear-a-special-kind-of-messy-code/</id>
+    <published>2014-02-08T06:12:59.000Z</published>
+    <updated>2014-11-06T04:47:17.938Z</updated>
+    <content type="html"><![CDATA[<p>某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/messy-code.png" alt="A Example of the Messy Code"><br><a id="more"></a><br>为了解释这个问题，我要先引入Python3中的字符串与字节序列的概念。在Python3中，一个字符串不存在‘编码类型’这种概念，每一个包含相同文字的字符串都是完全一样的(确切的讲,Python3中的字符串是以<a href="https://zh.wikipedia.org/wiki/Unicode" target="_blank" rel="external">Unicode</a>编码的字节序列)。而字节序列和C中的char数组很像，它是字符串保存在文件系统上的真正形态。一个固定的字符串(即包含相同的文字)可以被编码(即Python中的<code>encode()</code>)成字节序列。如果对其使用不同的编码方式，生成的字节序列也不同。举个例子，一栋房子地面上的第一层，英国人叫它’ground floor’，而美国人叫它‘first floor’。这就是不同的编码方式。相反，解码(Python中的<code>decode()</code>)就是把一个字节序列变回字符串。在普通情况下，乱码是由于对一个字节序列使用了错误的编码方式进行解码，解码之后的内容自然无法阅读。就像一个英国人给一个美国人留了张便条，写着‘Meet me at first floor.’(二楼)，然后美国人去一楼转了半天都没找到。这种使用了错误的解码方式的问题一般是由于操作系统的默认设定造成的，比如Windows系统使用当地语言的编码(大陆GBK,台湾BIG5,日本SHIFT-JIS之类的)，而Linux普遍使用UTF-8编码。解决这种乱码的方法也很简单，你不是默认以UTF8方式解读么？而现在的字节序列又需要以GBK方式解读才能获得正确的内容，那么我们只要找到一个字节序列，让它被以UTF8解码时得到的内容和现在的字节序列被以GBK解码时得到的内容一样就行了。具体方法就是把当前的字节序列先以GBK解码，再以UTF-8编码，然后写回文件系统里，就搞定了。这个命令在Linux上就是<code>iconv -f GBK -t UTF-8</code>(记得加管道)。</p>
+<p>但是，这次的乱码坑爹就坑爹在: 它的字节序列(字符串是以字节序列的形式保存在磁盘上的，还记得么？)无法以GBK方式解码，相反，它更像是一个根正苗红的UTF-8编码的字节序列。在多次尝试失败后，我开始无聊地“欣赏”乱码字符。注意到那些字符上的装饰了么？就是那些小点波浪尖角什么的？我也注意到了。然后我意识到，这是显著的西欧字符集的特征。也就是说，曾经有某个字节序列被以ISO-8859-1(一种西欧字符集)解码过一次，然后才表现出了现在的样子。那么，我们把现在的<strong>字符串</strong>用ISO-8859-1编码一次看看：<code>iconv -f UTF-8 -t ISO-8859-1</code>(因为我的系统的默认编码是UTF-8，所以需要‘-f UTF-8’)。然后得到了一坨问号，这正是GBK编码以UTF-8方式解码的结果，于是再接再厉：<code>iconv -f GBK -t UTF-8</code>。终于看到了熟悉的文字。最终，这个问题以两行命令被解决(因为是文件名乱码，所以用<code>convmv</code>命令)：</p>
+<pre><code>convmv -f UTF-<span class="number">8</span> -t ISO-<span class="number">8859</span>-<span class="number">1</span> --notest *
+convmv -f GBK -t UTF-<span class="number">8</span> --notest *
+</code></pre><p><strong>总结：</strong>这个乱码的产生原因也是对字节序列使用了错误的解码方式（对GBK字节序列使用ISO-8859-1解码），但是因为最终的字节序列是一个根正苗红的UTF-8编码，所以特别难以解决。这种问题特别容易发生在网络当中，比如，一个网站允许用户上传文件，因为一些原因，这个网站把所有的文件名都转成UTF-8存储，如果用户用西欧语言，那么这样就完全没关系，但如果一个中国用户上传了一个GBK文件名编码的文件，那么这种问题就发生了。</p>
+<p>如果大家对排版或是图片之类的有什么意见建议请务必留言。<br><strong>做人要厚道，转载请注明出处</strong></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[Linux系统下一种特殊乱码的形成原因以及解决方案]]>
+    
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="Python" scheme="http://www.devinprogress.org/tags/Python/"/>
+    
+      <category term="乱码" scheme="http://www.devinprogress.org/tags/%E4%B9%B1%E7%A0%81/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[网站从Octopress迁移至Hexo]]></title>
+    <link href="http://www.devinprogress.org/2013/12/site-migration-complete/"/>
+    <id>http://www.devinprogress.org/2013/12/site-migration-complete/</id>
+    <published>2013-12-24T13:26:08.000Z</published>
+    <updated>2015-09-19T03:52:46.762Z</updated>
+    <content type="html"><![CDATA[<p>经过我两个小时的折腾，总算是重新把网站弄起来了。Ruby实在是坑爹，各种gem装得目录结构乱七八糟的……（强迫性人格障碍的典型表现）而且速度还慢……<br>曾尝试用Python和Tornado模板自己写一个静态页面生成器，然后发现我想多了。我果然还是不适合写UI……<br>一通Google之后，最终决定使用Hexo。它使用node.js(也就是javascript)作为编程语言(这样说恰当么？反正就是这个意思啦),据说速度极快。最重要的是，AUR源里有Hexo打好的包，能用pacman管理就是好。<br>主题试了一圈下来还是默认的Light看着最舒心。<strong>以后千万不能再手贱自己写主题了！！</strong><br>膜拜一下Hexo的作者tommy351。自己改了一下高亮配色和Widgets，把以前Octopress的Markdown文档做了一点点修改，这样就算上线了吧。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>经过我两个小时的折腾，总算是重新把网站弄起来了。Ruby实在是坑爹，各种gem装得目录结构乱七八糟的……（强迫性人格障碍的典型表现）而且速度还慢……<br>曾尝试用Python和Tornado模板自己写一个静态页面生成器，然后发现我想多了。我果然还是不适合写UI……<br>]]>
+    </summary>
+    
+      <category term="Hexo" scheme="http://www.devinprogress.org/tags/Hexo/"/>
+    
+      <category term="Site Management" scheme="http://www.devinprogress.org/categories/Site-Management/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[通用存储及分布式文件共享系统的设想]]></title>
+    <link href="http://www.devinprogress.org/2013/03/universal-storge/"/>
+    <id>http://www.devinprogress.org/2013/03/universal-storge/</id>
+    <published>2013-03-30T12:02:00.000Z</published>
+    <updated>2014-03-19T13:25:37.321Z</updated>
+    <content type="html"><![CDATA[<p><strong>Update: 本计划已无限期暂停，在可预见的未来没有重启计划，如有需要资料的欢迎发邮件索取</strong></p>
+<p>众所周知，网盘这东西对大众来说不可或缺，国内的在线存储服务也欣欣向荣。但是，由于各种原因，我们仍感到这些不能完全满足我们的要求。<br>比如各种限制、各种暂停分享、还有各种必须付钱才能用的VIP服务等。各大公司想挣钱无可非议，毕竟网络存储绝对是烧钱的主，但作为一个搞技术的人，决不能整天写登陆界面，对吧？<br>动机在<a href="/2013/01/data-structure-of-vdisk/">新浪微盘数据结构解析</a>中说了，在那之后我又研究了其他的网盘，萌生了这么一个设想。<br>简要的说，这个系统可以大大方便文件的传播与获取，延长资源的存活时间。<br><a id="more"></a><br>废话不多说，以下是我的构想：</p>
+<ol>
+<li>人肉解析各资源站链接协议，比如下载上传链接解析什么的。</li>
+<li>写成模块，类库什么的，方便调用。</li>
+<li>以统一的界面管理多处资源，进行下载、上传等。</li>
+<li>以写成的库为基础，对资源进行自动管理，比如可以分块存储于不同的位置，或是创建多个备份等。</li>
+<li>维护一个数据库，存储用户共享信息，实现全网资源搜索。其实，不仅文件可以是分布式的，数据库也可以是分布式的，技术细节正在努力构思中。</li>
+<li>有条件的同学可以在自己的服务器上运行一个特殊的服务端，接受来自其他用户的请求，比如一些已被停止共享的文件的下载(比如115的VIP的离线下载功能)。</li>
+</ol>
+<p><strong>更多可能，任君想象</strong></p>
+<p>可能你们已经注意到了，我尽可能的避免使用<code>网盘</code>这个字眼。没错，我的目标不仅是网盘，我还希望加入一些“只读”的资源，比如通过解析视频网站的地址来下载视频文件等。正如Bilibili所做的那样(不过也许他们有合作关系？)。<br>目前，统一管理界面正在书写中，使用Python3, 应该不久可以放出Alpha版和API。不过，最后，我要给大家浇盆冷水，<em>本计划仍处于设想阶段</em>，不要期望能瞬间完成。而且，我们需要考虑遭到封杀后的应对措施，以及如何保持协议更新后库的快速升级等问题。</p>
+<p>PS：欢迎有兴趣和有能力的同学来信交流：<code>gzh.shadow@gmail.com</code></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p><strong>Update: 本计划已无限期暂停，在可预见的未来没有重启计划，如有需要资料的欢迎发邮件索取</strong></p>
+<p>众所周知，网盘这东西对大众来说不可或缺，国内的在线存储服务也欣欣向荣。但是，由于各种原因，我们仍感到这些不能完全满足我们的要求。<br>比如各种限制、各种暂停分享、还有各种必须付钱才能用的VIP服务等。各大公司想挣钱无可非议，毕竟网络存储绝对是烧钱的主，但作为一个搞技术的人，决不能整天写登陆界面，对吧？<br>动机在<a href="/2013/01/data-structure-of-vdisk/">新浪微盘数据结构解析</a>中说了，在那之后我又研究了其他的网盘，萌生了这么一个设想。<br>简要的说，这个系统可以大大方便文件的传播与获取，延长资源的存活时间。<br>]]>
+    
+    </summary>
+    
+      <category term="Black Technology" scheme="http://www.devinprogress.org/tags/Black-Technology/"/>
+    
+      <category term="网盘" scheme="http://www.devinprogress.org/tags/%E7%BD%91%E7%9B%98/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Pascal中鲜为人知的那些技巧]]></title>
+    <link href="http://www.devinprogress.org/2013/01/cheat-with-pascal/"/>
+    <id>http://www.devinprogress.org/2013/01/cheat-with-pascal/</id>
+    <published>2013-01-31T13:46:00.000Z</published>
+    <updated>2015-09-19T07:54:02.636Z</updated>
+    <content type="html"><![CDATA[<p>做为一个搞信息学竞赛这么长时间的人，再加上估计很快就要转C++了，我觉得我有必要留下一些关于Pascal语言的资料，于是就有了这篇文章。我只负责解释用法，对基础概念不了解的请自行Google。所有这篇文章里的东西应该都能在Free Pascal自带的文档里找到，我写出来是为了众多不喜欢看英文的同学们，如果你愿意自己去看一下，一定会收益匪浅。</p>
+<p>###不同进制的表示<br>平时我们写的常量都是十进制数，但我们有时需要写一个比如十六进制数怎么办呢？我们当然可以手动计算一下，但还有更优雅的方法。</p>
+<p>  writeln($Ff,#32,&amp;10,#32,%100);</p>
+<p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。<br><a id="more"></a></p>
+<p>###函数内联<br>关于内联的解释请自己找资料，写法如下：</p>
+<p>  function foo(bar:Type):ReturnType;inline;</p>
+<p>即在函数头后加<code>inline;</code>即可。测试证明确实有效，不过建议只用于诸如<code>min</code>或<code>max</code>这种函数。</p>
+<p>###函数的重载<br>Pascal也是支持重载的，甚至可以重载系统函数！演示如下：</p>
+<pre><code><span class="function"><span class="keyword">procedure</span> <span class="title">sort</span><span class="params">(<span class="keyword">var</span> a:TArray;l,r:longint)</span>;</span>
+<span class="keyword">begin</span>
+  ...
+<span class="keyword">end</span>;
+<span class="function"><span class="keyword">procedure</span> <span class="title">sort</span><span class="params">(<span class="keyword">var</span> a:TArray;r:longint)</span>;</span>
+<span class="keyword">begin</span>
+  sort(a,<span class="number">1</span>,r)
+<span class="keyword">end</span>;
+</code></pre><p>这样，调用<code>sort(arr,top)</code>就相当于调用<code>sort(arr,1,top)</code>.</p>
+<p>###操作符重载<br>是不是对写高精度时的<code>plus(a,b)</code>感到厌倦？是不是想换一种更帅的书写方式？没问题，操作符重载能满足你的愿望！它可以让你用<code>a+b</code>的形式对高精度进行计算！</p>
+<pre><code><span class="tag">operator</span> + (<span class="tag">a</span>,<span class="rule"><span class="attribute">b</span>:<span class="value">Type) c:Type</span></span>;
+<span class="rule"><span class="attribute">operator </span>:<span class="value">= (a:Type1) b:Type2</span></span>;
+<span class="tag">operator</span> &gt; (<span class="tag">a</span>,<span class="rule"><span class="attribute">b</span>:<span class="value">Type) c:boolean</span></span>;
+</code></pre><p>需要注意的是</p>
+<ul>
+<li>比较操作符的返回值只能是<code>Boolean</code></li>
+<li>二元操作符和赋值操作符如果两端类型不同不能随意交换位置</li>
+<li>重载后优先级不变</li>
+</ul>
+<p>为了解决不能随意交换位置的问题，你可以这样写：</p>
+<pre><code><span class="tag">operator</span> + (<span class="rule"><span class="attribute">a</span>:<span class="value">Type1</span></span>;<span class="rule"><span class="attribute">b</span>:<span class="value">Type2)c:ReturnType</span></span>;
+<span class="tag">begin</span>
+  ...
+<span class="tag">end</span>;
+
+<span class="tag">operator</span> + (<span class="rule"><span class="attribute">a</span>:<span class="value">Type2</span></span>;<span class="rule"><span class="attribute">b</span>:<span class="value">Type1)c:ReturnType</span></span>;
+<span class="tag">begin</span>
+  <span class="rule"><span class="attribute">c</span>:<span class="value">=b+a
+end</span></span>;
+</code></pre><p>###想重载str()和val()？<br>看完前面的函数重载，你是不是迫不及待地想要重载<code>val()</code>和<code>str()</code>这两个你看着不爽很久的函数了？但是却发现不能调用系统原来的函数了，Pascal把它当成了递归！解决方法很简单，在要用原始系统函数的地方加上<code>system.</code>即可。</p>
+<figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">str</span><span class="params">(x:longint)</span>:</span><span class="keyword">string</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">//str(x,str)&lt;--This is completely wrong!</span></span><br><span class="line">  system.str(x,str);<span class="comment">//&lt;--This is the right form</span></span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure>
+<p>###动态数组<br>担心数组太大爆内存？但心数组太小存不下？动态数组解除你的忧虑！主要操作如下：</p>
+<ol>
+<li><code>a:array of Type;</code>：变量声明。</li>
+<li><code>setlength(a,length)</code>：设定数组下标，范围为<code>[0..length-1]</code>，会自动清零。</li>
+<li><code>b:=a</code>:看上去像是赋值，但其实不是赋值，只是复制地址而已，因此对<code>b</code>的修改就是对<code>a</code>的修改。</li>
+<li><code>c:=copy(a,0,length(a))</code>：这就是真正的赋值了！还记得<code>copy()</code>和<code>length()</code>函数么？现在它们可以用于动态数组了！</li>
+<li><code>d:array of array of Type</code>:二维动态数组声明。</li>
+<li><code>setlength(d,length1,length2)</code>:不解释。</li>
+<li><code>a:=d[1]</code>:<code>a</code>是一维动态数组，对<code>a[x]</code>的修改就是对<code>d[1][x]</code>的修改。</li>
+<li><code>copy(d[x],0,length(d[x]))</code>:取出第<code>x</code>个一维动态数组。</li>
+<li>二维动态数组可以用<code>d[x,y]</code>的方式访问，也可以用<code>d[x][y]</code>的方式访问。</li>
+</ol>
+<p>###取地址操作符<br>想用C语言中的<code>&amp;</code>操作符？在Pascal中它是<code>@</code>!估计某年的NOIP坑了不少人。</p>
+<p>###输入输出重定向<br>你还在定义<code>text</code>类型么？你还在用查找替换功能批量替换你的<code>readln()</code>么？赶快试试这个！</p>
+<pre><code><span class="keyword">assign</span>(<span class="keyword">input</span>,'foo<span class="typename">.in</span>');reset(<span class="keyword">input</span>);
+<span class="keyword">assign</span>(<span class="keyword">output</span>,'foo<span class="typename">.out</span>');rewrite(<span class="keyword">output</span>);
+...
+close(<span class="keyword">input</span>);close(<span class="keyword">output</span>);
+</code></pre><p>再也不用担心输入输出了！</p>
+<p>###用动态数组实现伪变参<br>是不是很羡慕C中<code>printf</code>的变参？是不是很羡慕<code>writeln</code>可以有好多好多参数？利用动态数组可以实现类似的功能！<br><figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">average</span><span class="params">(arr:<span class="keyword">array</span> <span class="keyword">of</span> longint)</span>:</span>real;</span><br><span class="line"><span class="keyword">var</span> i:longint;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  average:=<span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> i:=<span class="number">0</span> <span class="keyword">to</span> high(arr) <span class="keyword">do</span></span><br><span class="line">    average:=average+arr[i];</span><br><span class="line">  average:=average/length(arr)</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure></p>
+<p>请注意其中<code>high()</code>和<code>length()</code>的区别。合法调用如下：</p>
+<pre><code>var A:<span class="built_in">array</span>[<span class="number">1.</span>.MAX]of longint;
+average([<span class="number">3</span>]);
+average([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]);
+average(A);
+average(A[<span class="number">1.</span><span class="number">.5</span>]);
+</code></pre><p>###函数也是变量？！<br>或许你对C++中的<code>sort()</code>已有所耳闻，或许你已经知道，它的比较函数是做为参数传进去的。配合<code>@</code>操作符，Pascal可以做到相同的效果。<br><figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> TMyCompareFunc=<span class="function"><span class="keyword">Function</span><span class="params">(a,b:MyType)</span>:</span>boolean;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">largerthan</span><span class="params">(a,b:MyType)</span>:</span>boolean;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="function"><span class="keyword">procedure</span> <span class="title">sort</span><span class="params">(<span class="keyword">var</span> a:<span class="keyword">array</span> <span class="keyword">of</span> MyType;l,r:longint;f:TMyCompareFunc)</span>;</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">  <span class="comment">//Use `f(a[x],a[y])` to compare</span></span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">compare(arr,<span class="number">1</span>,max,@largerthan);</span><br><span class="line"><span class="keyword">end</span>.</span><br></pre></td></tr></table></figure></p>
+<p>既然是变量，就能互相赋值，但是请注意：<br><figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> TNoArgFunc=<span class="function"><span class="keyword">Function</span><span class="params">()</span>:</span>integer;</span><br><span class="line"><span class="keyword">var</span></span><br><span class="line">  F:TNoArgFunc;</span><br><span class="line">  N:integer;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyFunc</span><span class="params">()</span>:</span>integer;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  MyFunc:=<span class="number">3</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">F:=MyFunc; <span class="comment">//F()成为MyFunc()的别名</span></span><br><span class="line">N:=MyFunc; <span class="comment">//N被赋值为3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//if F=MyFunc then</span></span><br><span class="line"><span class="comment">//  writeln('You will never see this');</span></span><br><span class="line"><span class="comment">//这个判断将导致`类型不匹配`编译错误</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> F=@MyFunc <span class="keyword">then</span></span><br><span class="line">  writeln(<span class="string">'这是同一个函数'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> F()=MyFunc <span class="keyword">then</span></span><br><span class="line">  writeln(<span class="string">'这两个函数的返回值相同'</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure></p>
+<p>###C风格的操作符<br>我就不多介绍了<code>+=</code>、<code>-=</code>、<code>*=</code>、<code>/=</code>…考试时先试试能不能用。使用有风险，偷懒须谨慎。</p>
+<p>###强制类型转换<br>知道C中的<code>(int)a</code>或是<code>int(a)</code>么？不知道没关系，Pascal中的强制类型转换是这样写的<code>TypeIdentifier(Variable)</code>。下面给几个例子：<br><figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> IntPtr=^integer;</span><br><span class="line">IntVal:=<span class="number">97</span>;</span><br><span class="line">RealVal:=<span class="number">3.7</span>;</span><br><span class="line">longint(IntVal);<span class="comment">//长版的IntVal</span></span><br><span class="line">real(IntVal);<span class="comment">//实数版IntVal，效果和赋值一样</span></span><br><span class="line">pointer(IntVal);<span class="comment">//一个指向内存地址97的无类型指针</span></span><br><span class="line">IntPtr(IntVal);<span class="comment">//一个指向内存地址97的Integer指针</span></span><br><span class="line">longint(@IntVal);<span class="comment">//IntVal地址的Longint版。注意，它是一个数，所以可以用writeln()输出</span></span><br><span class="line">writeln(IntPtr(@RealVal)^);<span class="comment">//你可以猜猜这句话输出什么（写程序时请绝对不要这么做）</span></span><br></pre></td></tr></table></figure></p>
+<p>###无类型变量与无类型指针<br>标题写着<code>无类型变量</code>，其实应该叫做<code>多类型变量</code>更准确。他的主要工作原理就是在内部进行类型转换，因此效率极其低下，占用空间还特别大，连官方手册都不建议用。类型名为<code>Variant</code>。<br>无类型指针就是上一节提到的<code>Pointer</code>了。任何指针都可以赋值给它，它也可以赋值给任何指针，例子如下：<br><figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span></span><br><span class="line">  p:pointer;</span><br><span class="line">  r:real;</span><br><span class="line">  i:^integer;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  r:=<span class="number">3.7</span>;</span><br><span class="line">  p:=@r;</span><br><span class="line">  i:=p;</span><br><span class="line">  writeln(i^);</span><br><span class="line"><span class="keyword">end</span>.</span><br></pre></td></tr></table></figure></p>
+<p>看出来了么？这段文字和上一段的最后一句话等效。</p>
+<p>###这玩意儿是类？！<br>这是我最近才看到的一种写法，从来没用过。有愿意尝试的请自行研究。<br><figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span></span><br><span class="line">  TGetSum=<span class="keyword">object</span></span><br><span class="line">  a,b:longint;</span><br><span class="line">  <span class="function"><span class="keyword">procedure</span> <span class="title">Init</span><span class="params">(x,y:longint)</span>;</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">GetSum</span><span class="params">()</span>:</span>longint;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="function"><span class="keyword">procedure</span> <span class="title">TGetSum</span>.<span class="title">Init</span><span class="params">(x,y:longint)</span>;</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  a:=x;b:=y;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">TGetSum</span>.<span class="title">GetSum</span><span class="params">()</span>:</span>longint;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  GetSum:=a+b;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="keyword">var</span></span><br><span class="line">  sum:TGetSum;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  sum.Init(<span class="number">2</span>,<span class="number">3</span>);</span><br><span class="line">  writeln(sum.GetSum())</span><br><span class="line"><span class="keyword">end</span>.</span><br></pre></td></tr></table></figure></p>
+<p>关于Object Pascal,推荐一本书:<a href="http://code-sd.com/books/startprog/" target="_blank" rel="external">Start Programming Using Object Pascal</a></p>
+<p>###后记<br>Pascal是不少OIer最开始使用的一种语言，仅以此文献给众多正在使用和曾经使用过Pascal的OIer。<br><strong>做人要厚道，转载请注明出处！</strong></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[Some special skills programming with pascal. Useful in ACM.]]>
+    
+    </summary>
+    
+      <category term="ACM" scheme="http://www.devinprogress.org/tags/ACM/"/>
+    
+      <category term="Pascal" scheme="http://www.devinprogress.org/tags/Pascal/"/>
+    
+      <category term="编程" scheme="http://www.devinprogress.org/tags/%E7%BC%96%E7%A8%8B/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[新浪微盘数据结构解析]]></title>
+    <link href="http://www.devinprogress.org/2013/01/data-structure-of-vdisk/"/>
+    <id>http://www.devinprogress.org/2013/01/data-structure-of-vdisk/</id>
+    <published>2013-01-27T14:00:00.000Z</published>
+    <updated>2015-09-19T07:50:37.831Z</updated>
+    <content type="html"><![CDATA[<p><em>注意!这个是<a href="http://vdisk.weibo.com" target="_blank" rel="external">微盘</a>而不是<a href="http://www.vdisk.cn" target="_blank" rel="external">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。<br><a id="more"></a></p>
+<p>###用户的登录<br>微盘内部使用一个叫做<code>gsid</code>的值来识别用户。具体获取方法如下：</p>
+<ol>
+<li>URL:<code>http://vdisk.weibo.com/wap_auth</code>。</li>
+<li>POST参数 <code>username</code>:用户名</li>
+<li>POST参数 <code>password</code>:用户密码</li>
+<li>返回数据：JSON字符串。Example:<code>{ &quot;message&quot;: &quot;/?gsid=...&quot;}</code>。其中<code>...</code>的部分就是<code>gsid</code></li>
+</ol>
+<p>###文件信息的获取<br>得到<code>gsid</code>后，就可以用来下载文件了。当然，要先得到下载连接。</p>
+<ol>
+<li>URL：<code>http://vdisk.weibo.com/share/ajaxFileinfo</code></li>
+<li>GET参数 <code>fid</code>：文件ID</li>
+<li>Cookie参数 <code>gsid</code>:GSID</li>
+<li>浏览器标识(UA):需要设置为移动设备</li>
+<li><p>返回数据：JSON字符串。    Example:</p>
+<p> {“id”:”406458665”,”name”:”\u5fae\u535a\u5c01\u9762\u80cc\u666f.zip”,”uid”:”60999569”,”dir_id”:”0”,”ctime”:”1358820088”,”ltime”:”1358820088”,”dtime”:”0”,”size”:”1662111”,”is_locked”:”0”,”type”:”application\/x-zip”,”md5”:”9e8eec4a5d2d3ac5be41bb9f34dc3e40”,”sha1”:”6e59853b198e3eae818d5b0756f47c34d4eae6df”,”w”:”0”,”h”:”0”,”hid”:”0”,”status”:”1”,”app_key”:”139204333”,”source”:”2”,”ip”:”0”,”rev_id”:”140316098”,”share_status”:”0”,”share”:-1,”s3_url”:”http:\/\/file.data.vdisk.me\/61099569\/6e59853b198e3eae818d5b0756f47c34d4eae6df?ip=1358945643,10.75.7.27&amp;ssig=o9x4sQ9tz6&amp;Expires=1358944443&amp;KID=sae,l30zoo1wmz&amp;fn=%E5%BE%AE%E5%8D%9A%E5%B0%81%E9%9D%A2%E8%83%8C%E6%99%AF.zip”,”url”:”http:\/\/vdisk.weibo.com\/s\/oex4F”,”byte”:”1662111”,”length”:”1662111”}</p>
+</li>
+</ol>
+<p>其中，<code>s3_url</code>就是下载地址了。顺带一提，从<code>http://vdisk.weibo.com/file/info?fid=...</code>也可以得到文件信息，需要Cookie:<code>gsid</code>，但似乎不是所有文件都能成功得到信息。</p>
+<p>###文件下载<br>从上一步得到了URL就可以下载了。</p>
+<ol>
+<li>URL：<code>s3_url</code></li>
+<li>Cookie参数 <code>gsid</code>：GSID</li>
+</ol>
+<p>需要注意的是，这个URL可能会有很多<code>302 Redirection</code>，可能是出于负载平衡的原因吧。</p>
+<p>###fid与fid64<br>平时我们下载都是用<code>http://vdisk.weibo.com/s/aMVfa</code>这种形式的短链接，其中<code>aMVfa</code>就是fid64,说白了就是64进制表示的fid，其0～63对应如下：<br>    0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-<br>因此，<code>aR_8-</code>解码后就是<code>181920319</code></p>
+<p>###文件列表的获取<br>研究完上文所提到的东西后，应该就可以进行文件批量下载了。但做为一个上进的好青年，我们不会止步与此。为了能够方便地管理自己的文件夹，当然要做进一步研究。</p>
+<ol>
+<li>URL：<code>http://vdisk.weibo.com/dir/list</code></li>
+<li>GET参数 <code>dir_id</code>：Directionary ID</li>
+<li>Cookie参数 <code>gsid</code>：GSID</li>
+<li>浏览器标识(UA):需要设置为移动设备</li>
+<li>返回数据：JSON字符串。其中<code>dirinfo</code>中的<code>dir_num</code>和<code>file_num</code>分别储存了在这个文件夹下有多少个目录和多少个文件。<code>data</code>段是一个数组，每个元素都代表了一个文件或目录，其中保存了<code>fid</code>或是<code>dir_id</code>。通过是否有<code>type</code>段来判断具体是文件还是目录。</li>
+</ol>
+<p>用户根文件夹的<code>dir_id</code>是<code>0</code></p>
+<p>###Cookie与浏览器标识(UA)<br>似乎所有的链接都可以通过在Cookie中加入<code>device=mobile</code>来跳过UA检查。(就是说不用设置UA了)</p>
+<p>##未完待续。。。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p><em>注意!这个是<a href="http://vdisk.weibo.com">微盘</a>而不是<a href="http://www.vdisk.cn">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。<br>]]>
+    
+    </summary>
+    
+      <category term="Black Technology" scheme="http://www.devinprogress.org/tags/Black-Technology/"/>
+    
+      <category term="网盘" scheme="http://www.devinprogress.org/tags/%E7%BD%91%E7%9B%98/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[公钥加密]]></title>
+    <link href="http://www.devinprogress.org/2012/12/public-key-cryptography/"/>
+    <id>http://www.devinprogress.org/2012/12/public-key-cryptography/</id>
+    <published>2012-12-31T13:02:00.000Z</published>
+    <updated>2014-11-06T04:45:45.682Z</updated>
+    <content type="html"><![CDATA[<p>各种加密方法大体可以分成两类，一类是对称加密，另一类是非对称加密。</p>
+<p>凯撒密码是对称加密中的一种，他的加密方法是把A变成B，把B变成C，于是解密的时候只要把字母替换回来就行了。也就是说，任何知道加密方法的人就可以解密。</p>
+<p>RSA是一种非对称加密算法，他的特点是任何人都可以加密，但只有我可以解密。做个比喻，人人都可以把锁头扣上，但只有拥有钥匙的人可以开锁。这个分发出去的用于加密的东西叫做公钥，也被称作证书。而留在自己身边的“钥匙”就是私钥，是绝对不能被第二个人拿到的。</p>
+<p>于是乎，你可以把公钥发给别人，别人把数据用你的公钥加密后传给你，你用私钥解密后阅读。在这个过程中，任何人截取到数据都是无效的，因为它没有你的私钥。</p>
+<p>RSA还有一个特点，就是可以用私钥加密，用公钥解密。你会问，公钥人人都能拿到，相当于人人都能解密，那这样加密有什么意义呢？意义在于，它可以作为身份验证。用私钥加密的过程叫签名，而验证签名就是用对应的公钥解密。因为为只有用对应的私钥签名的文件才能用公钥解密，既然它可以用公钥解密，就一定是由对应私钥签署的，而私钥只有你有，于是这份文件就一定是你发布的。网络上的HTTPS就是依靠着个。一般来说，用私钥加密的都是MD5、SHA1 之类的，加密原文太耗系统资源。</p>
+<p>对付这种非对称的加密方式，有一种叫做“中间人攻击”的攻击方法，它会使双方之间的通信完全暴露。我就偷懒不写了，大家自己找资料。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>各种加密方法大体可以分成两类，一类是对称加密，另一类是非对称加密。</p>
+<p>凯撒密码是对称加密中的一种，他的加密方法是把A变成B，把B变成C，于是解密的时候只要把字母替换回来就行了。也就是说，任何知道加密方法的人就可以解密。</p>
+<p>RSA是一种非对称加密算法，]]>
+    </summary>
+    
+      <category term="RSA" scheme="http://www.devinprogress.org/tags/RSA/"/>
+    
+      <category term="加密" scheme="http://www.devinprogress.org/tags/%E5%8A%A0%E5%AF%86/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Sync with iDevice on Linux]]></title>
+    <link href="http://www.devinprogress.org/2012/12/sync-with-idevice-on-linux/"/>
+    <id>http://www.devinprogress.org/2012/12/sync-with-idevice-on-linux/</id>
+    <published>2012-12-31T13:01:00.000Z</published>
+    <updated>2013-12-24T13:18:34.014Z</updated>
+    <content type="html"><![CDATA[<p>It’s a bit hard to connect an iDevice with Linux because Apple is not so open and we have to use iTunes to sync with our iDevice for a long time. Luckily we now have a set of tool so that we can control our device on linux. The most important two library are <a href="http://www.libimobiledevice.org/" target="_blank" rel="external">libimobiledevice</a>(libiphone) and libgpod.</p>
+<p>libimobiledevice, like it’s name, is a library who provides the interface to access the iDevice. It provides a higher level of access such as photo, bookmark, install/uninstall softwares and even sync music. And it doesn’t need jailbreak.</p>
+<p>What I want to mention is how musics synchronized with an iDevice. Under the iTunes folder (You may never seen that before. That’s ordinary.), there’s a file called iTunesDB. That’s the file which libgpod really works with. This file contains the name of songs, singers’ names, your play lists and so on. Unfortunately, because Apple don’t want it be modified by any programs except iTunes, they add some hash info into the file. If iPod found the hash is incorrect, it refused to display the songs. There was once a project called iPodHash, but it seems to be die due to a DMCA notice. Apple engineers have changed the hash algorithm for several times and the latest version haven’t been reverse-engineering, as a result, now we can only sync with a old version of iOS.</p>
+<p>If your iDevice is jailbreaked, you can change a key called DBVersion(Sorry, I forgot where it is.). It tells iPod which version of hash algorithm it should use so we could use a known hash on new iOS. This process depends on libimobiledevice too. It only support to sync with iOS 4 or older. That means it’s useless even if you changed DBVersion on your iOS5 device. By the way, you may will not find a iTunesDB file but a iTunesCDB instead. It’s a compressed version of iTunesDB using zlib.</p>
+<p>I feel so sad that such a project is closed and now I can only sync with my iPod on Windows.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>It’s a bit hard to connect an iDevice with Linux because Apple is not so open and we have to use iTunes to sync with our iDevice for a lo]]>
+    </summary>
+    
+      <category term="Linux" scheme="http://www.devinprogress.org/tags/Linux/"/>
+    
+      <category term="Written In English" scheme="http://www.devinprogress.org/tags/Written-In-English/"/>
+    
+      <category term="iDevice" scheme="http://www.devinprogress.org/tags/iDevice/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[How to solve the "Connection Reset" problem]]></title>
+    <link href="http://www.devinprogress.org/2012/12/how-to-solve-the-connection-reset-problem/"/>
+    <id>http://www.devinprogress.org/2012/12/how-to-solve-the-connection-reset-problem/</id>
+    <published>2012-12-31T12:50:00.000Z</published>
+    <updated>2015-09-19T07:54:54.201Z</updated>
+    <content type="html"><![CDATA[<p>考虑到安全原因，这篇文章用英语写成。如果你没有足够的勇气读完它，请自觉退出。</p>
+<p>This article is written mainly for those people in China. Be sure you are enough familiar with what you are reading and what you try to do.</p>
+<p>================================================================</p>
+<p>As we all known, in China mainland, we cannot visit sites like YouTube Facebook Twitter. And the Google sites are out of service frequently. It’s because the Chinese government used some technical methods to prevent us from visiting them. The government has setup a system to do this. It’s called the <a href="https://en.wikipedia.org/wiki/Great_Firewall" target="_blank" rel="external">Great Firewall of China</a> (GFW). This system keeps look on the gateway export. And if it finds something unusual. It will stop the connection.</p>
+<p>The system usually inject a RESET into the TCP connection. To prevent this, we can use HTTPS(The S means Secure) instead of HTTP. So the system can not inject the RESET any more. It’s easy to perform. You just need to replace the “http://“ part of a URL with “https://“. And the URL will look like this “<a href="https://www.facebook.com" target="_blank" rel="external">https://www.facebook.com</a>“. Most of the sites support a HTTPS connection.</p>
+<p>Unfortunately, this will not always works. Because the system also used another method called “DNS Redirection”. As we all known, the computers on the Internet are identified by IP address. But human can’t remember them easily. So we use some meaningful phases called “Domain”. Some computers on the Internet provide the kind of service to translate the domains to IP address which is the only form computers can recognize. They are called the “DNS Server”. DNS Redirection is that the DNS servers won’t return the correct IP address (usually were instructed to do so) so that we can’t visit the particular sites.</p>
+<p>Luckily, we can assign an IP to a domain manually. That’s the function of a file called <a href="https://en.wikipedia.org/wiki/Hosts_(file" target="_blank" rel="external">hosts</a>). There’s a project called <a href="https://code.google.com/p/smarthosts/" target="_blank" rel="external">smarthosts</a> on Google Code. It provided a set of IP address you may use. Paste them to your local hosts file and enjoy the Internet.</p>
+<p>I will write more about the Internet censorship and how to avoid it. Check back later.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>考虑到安全原因，这篇文章用英语写成。如果你没有足够的勇气读完它，请自觉退出。</p>
+<p>This article is written mainly for those people in China. Be sure you are enough familiar w]]>
+    </summary>
+    
+      <category term="Black Technology" scheme="http://www.devinprogress.org/tags/Black-Technology/"/>
+    
+      <category term="GFW" scheme="http://www.devinprogress.org/tags/GFW/"/>
+    
+      <category term="Written In English" scheme="http://www.devinprogress.org/tags/Written-In-English/"/>
+    
+      <category term="Informatics" scheme="http://www.devinprogress.org/categories/Informatics/"/>
+    
+  </entry>
+  
+</feed>

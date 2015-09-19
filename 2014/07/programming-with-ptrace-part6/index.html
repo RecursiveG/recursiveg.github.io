@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+  
+  <title>Programming with PTRACE, Part6 - 时间控制 | DEVELOPMENT IN PROGRESS</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="Sixth part of serial of tutorial: Programming with PTRACE" />
+  
+  <meta name="keywords" content="ptrace,time,signal,setrlimit,getrlimit,RLIMIT_CPU,gettimeofday,timeval" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <meta property="og:title" content="Programming with PTRACE, Part6 - 时间控制"/>
+  <meta property="og:site_name" content="DEVELOPMENT IN PROGRESS"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="DEVELOPMENT IN PROGRESS" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">DEVELOPMENT IN PROGRESS</a></h1>
+  <h2><a href="/">A Blog of Recursive G</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-07-07T08:51:03.000Z"><a href="/2014/07/programming-with-ptrace-part6/">Jul 7 2014</a></time>
+      
+      
+  
+    <h1 class="title">Programming with PTRACE, Part6 - 时间控制</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>#不同的时间计算方法<br>程序运行会占用一小段时间（废话），事实上，我们有不止一种方法来表示一个程序运行了多长时间。最直观的应该是“墙上时间”，也就是说，你掐个秒表，看看程序从开始到结束用了多长时间。除此之外，还有“用户态时间”和“内核态时间”，这两个时间都是以CPU实际运算的时间，也就是CPU周期，来计数的。“用户态时间”就是程序在用户态执行的时间，包括程序所引用的库中的代码（比如STL），“内核态时间”就是指程序在内核态执行的时间，一般是各种系统调用（比如各种IO操作）。这两种时间和墙上时间的区别在于，因为CPU其实是在多个程序中快速切换的，所以在运行某个程序的时间里，CPU也处理了属于其他进程的任务，而且CPU切换任务也需要一定的时间（真的很短）。如果处于被调试状态，tracer的运行时间也会被计算在内，这些不属于这个进程的时间片也会被计算在这个进程的“墙上时间”里。所以一般以用户态时间和内核态时间的总和作为进程的运行时间。</p>
+<p>在Linux系统里有一个叫<code>time</code>的命令可以查看一个命令执行了多长时间。这个命令有两个版本，一个是shell内置的，另一个是独立的可执行文件，可以用<code>type time</code>命令查看。虽然可执行版本功能更强一点，但内置的功能足够，这一点区别可以不管。用法是： <code>time [命令] &lt;参数&gt;</code>。给个例子：</p>
+<pre><code><span class="tag">time</span> ffmpeg -<span class="tag">i</span> sample<span class="class">.mp4</span> target<span class="class">.mp3</span>
+...
+<span class="number">5.42s</span> user
+<span class="number">0.10s</span> system
+<span class="number">100%</span> cpu
+<span class="number">5.520</span> total
+</code></pre><a id="more"></a>
+<p>#动手写个带时限的time<br>还在对上个PART的<code>setrlimit</code>耿耿于怀么？我们现在就来用它！相关的定义位于<code>sys/resource.h</code>头文件里。我们这次要用到<code>RLIMIT_CPU</code>,这个选项限制进程所能占用的CPU时间，以秒为单位，可以把它理解为用户态时间和内核态时间的和。我们首先要使用<code>getrlimit</code>获得当前的限制：</p>
+<pre><code>struct rlimit TimeL<span class="comment">;</span>
+getrlimit<span class="list">(<span class="keyword">RLIMIT_CPU</span>,<span class="keyword">&amp;TimeL</span>)</span><span class="comment">;</span>
+</code></pre><p><code>rlimit</code>结构有两个成员:</p>
+<ul>
+<li><code>rlim_cur</code> 软限制</li>
+<li><code>rlim_max</code> 硬限制</li>
+</ul>
+<p>系统一般会用比较平和的方式对待那些达到软限制的进程，比如发个SIGSEGV什么的。而那些达到硬限制的进程会被直接SIGKILL。我们接下来要修改软限制，注意单位是秒。</p>
+<pre><code>TimeL.rlim_cur=Timeout<span class="comment">;</span>
+</code></pre><p>以上工作都要在<code>fork()</code>之前完成，之后要在<em>子进程</em>里应用这个限制（没错就是exec那里）</p>
+<pre><code>setrlimit<span class="list">(<span class="keyword">RLIMIT_CPU</span>,<span class="keyword">&amp;TimeL</span>)</span><span class="comment">;</span>
+</code></pre><p>这样，如果子进程超过软限制，系统就会发送<code>SIGXCPU</code>信号给子进程。当然，因为ptrace的原因，信号会被先发送给父进程，这样就可以用part3里介绍的方法进行处理。这样子进程是要清蒸还是油炸就都由父进程决定了。<br>当然，我们还有别的方法获取时间信息。一是用<code>gettimeofday()</code>函数配合<code>timeval</code>结构，可以获得当前时间，精确到微秒（百万分之一秒）。在程序开始时调用下，结束时调用下，相减即可得到墙上时间。另一种方法是利用<code>wait4</code>里的<code>ru</code>参数，它其实是个<code>rusage</code>结构,成员<a href="http://man7.org/linux/man-pages/man2/getrusage.2.html" target="_blank" rel="external">见此</a>。其中的<code>ru_utime</code>和<code>ru_stime</code>成员是<code>timeval</code>结构，分别记录了用户态时间和内核态时间，同样精确到微秒。</p>
+<p>#程序睡着了<br><code>RLIMIT_CPU</code>大多数情况下都能正常工作，配合<code>timeval</code>结构甚至能进一步提高精度。但是有两个例外（如果有更多请务必告诉我）：</p>
+<ol>
+<li>程序主动调用<code>sleep()</code></li>
+<li>交互状态下<code>scanf()</code>一类的函数等待键盘输入</li>
+</ol>
+<p>在这两种情况下：进程不占用CPU时间，<code>RLIMIT_CPU</code>管不着；没有系统调用，<code>wait4()</code>不返回。为了能够在这种情况下依然能够限制时间，我想出了两种方法。一是限制和<code>sleep()</code>相关的系统调用，二是父进程设置ALARM。我在这里讲一下第二种方法。<br>Linux提供了一个<code>alarm()</code>函数，可以在指定的秒数<strong>(墙上时间)</strong>后给这个进程本身发送<code>SIGALRM</code>信号。而且，我们可以给信号绑定一个处理函数（就是当信号到达时调用的函数），在这个处理函数里，可以用<code>kill</code>命令给子进程发送信号（比如<code>SIGUSR1</code>），这样就能使父进程里的<code>wait4()</code>返回，就可以控制子进程了。以下是一个简要指导：<br>首先我们需要一个信号处理函数,记得把pid改成全局变量：</p>
+<pre><code><span class="function"><span class="keyword">void</span> <span class="title">AlarmIn</span><span class="params">(<span class="keyword">int</span> sig)</span></span>{
+    <span class="keyword">if</span>(sig==SIGALRM)
+    kill(pid,SIGUSR1);
+}
+</code></pre><p>然后在子程序开始执行的时候绑定信号并设置Alarm，我在这设置超时一秒:</p>
+<pre><code>signal<span class="list">(<span class="keyword">SIGALRM</span>,AlarmIn)</span><span class="comment">;</span>
+alarm<span class="list">(<span class="number">1</span>)</span><span class="comment">;</span>
+</code></pre><p>然后请根据part3所讲的内容在while循环里正确处理<code>SIGUSR1</code>。最后记得取消Alarm，如果没超时的话：</p>
+<pre><code>alarm(<span class="number">0</span>);
+</code></pre><p>#完整代码？<br>表示完整代码太长了，放这儿太不美观，<del>我会稍后贴到gist上去。</del>代码被幽幽子吃掉了大家自己写把。</p>
+<p>#拓展阅读</p>
+<ul>
+<li><a href="http://zh.wikipedia.org/wiki/%E6%95%B0%E9%87%8F%E7%BA%A7_%28%E6%97%B6%E9%97%B4%29" target="_blank" rel="external">Wikipedia - 数量级 (时间)</a> 我把这个链接放这儿是因为老有人把微秒缩写成<code>ms</code>然后和毫秒搞混</li>
+<li><a href="http://blog.csdn.net/xwdok/article/details/542109" target="_blank" rel="external">协同式多任务与抢占式多任务</a></li>
+<li><a href="http://www.cnblogs.com/iceocean/articles/1650929.html" target="_blank" rel="external">Linux时间管理</a></li>
+<li><a href="http://russelltao.iteye.com/blog/1405353" target="_blank" rel="external">浅谈时间函数gettimeofday的成本</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Informatics/">Informatics</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/Linux/">Linux</a>, <a href="/tags/PTRACE/">PTRACE</a>, <a href="/tags/教程/">教程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" placeholder="搜索">
+    <input type="hidden" name="q" value="site:www.devinprogress.org">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
+      </li>
+    
+      <li>
+        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
+      </li>
+    
+      <li>
+        <a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a>
+      </li>
+    
+      <li>
+        <a href="/2014/07/programming-with-ptrace-part6/">Programming with PTRACE, Part6 - 时间控制</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
+  
+    <li><a href="/categories/Informatics/">Informatics</a><small>17</small></li>
+  
+    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明</h3>
+    <div class="entry">
+        <center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+        </a></center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2015 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+</body>
+</html>

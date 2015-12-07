@@ -1,13 +1,13 @@
-title: 记一次坑爹的乱码解决过程
+title: "记一次坑爹的乱码解决过程"
 date: 2014-02-08 14:12:59
 categories: Informatics
 tags: [Linux,乱码,Python]
 keywords: []
-description: Linux系统下一种特殊乱码的形成原因以及解决方案
+description: "Linux系统下一种特殊乱码的形成原因以及解决方案"
 comments: true
 ---
 某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：
-![A Example of the Messy Code](http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/messy-code.png)
+![An Example of the Messy Code](http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/messy-code.png)
 <!--more-->
 为了解释这个问题，我要先引入Python3中的字符串与字节序列的概念。在Python3中，一个字符串不存在‘编码类型’这种概念，每一个包含相同文字的字符串都是完全一样的(确切的讲,Python3中的字符串是以[Unicode](https://zh.wikipedia.org/wiki/Unicode)编码的字节序列)。而字节序列和C中的char数组很像，它是字符串保存在文件系统上的真正形态。一个固定的字符串(即包含相同的文字)可以被编码(即Python中的`encode()`)成字节序列。如果对其使用不同的编码方式，生成的字节序列也不同。举个例子，一栋房子地面上的第一层，英国人叫它'ground floor'，而美国人叫它‘first floor’。这就是不同的编码方式。相反，解码(Python中的`decode()`)就是把一个字节序列变回字符串。在普通情况下，乱码是由于对一个字节序列使用了错误的编码方式进行解码，解码之后的内容自然无法阅读。就像一个英国人给一个美国人留了张便条，写着‘Meet me at first floor.’(二楼)，然后美国人去一楼转了半天都没找到。这种使用了错误的解码方式的问题一般是由于操作系统的默认设定造成的，比如Windows系统使用当地语言的编码(大陆GBK,台湾BIG5,日本SHIFT-JIS之类的)，而Linux普遍使用UTF-8编码。解决这种乱码的方法也很简单，你不是默认以UTF8方式解读么？而现在的字节序列又需要以GBK方式解读才能获得正确的内容，那么我们只要找到一个字节序列，让它被以UTF8解码时得到的内容和现在的字节序列被以GBK解码时得到的内容一样就行了。具体方法就是把当前的字节序列先以GBK解码，再以UTF-8编码，然后写回文件系统里，就搞定了。这个命令在Linux上就是`iconv -f GBK -t UTF-8`(记得加管道)。
 
@@ -15,9 +15,8 @@ comments: true
 
     convmv -f UTF-8 -t ISO-8859-1 --notest *
     convmv -f GBK -t UTF-8 --notest *
-        
+
 **总结：**这个乱码的产生原因也是对字节序列使用了错误的解码方式（对GBK字节序列使用ISO-8859-1解码），但是因为最终的字节序列是一个根正苗红的UTF-8编码，所以特别难以解决。这种问题特别容易发生在网络当中，比如，一个网站允许用户上传文件，因为一些原因，这个网站把所有的文件名都转成UTF-8存储，如果用户用西欧语言，那么这样就完全没关系，但如果一个中国用户上传了一个GBK文件名编码的文件，那么这种问题就发生了。
 
 如果大家对排版或是图片之类的有什么意见建议请务必留言。
 **做人要厚道，转载请注明出处**
-

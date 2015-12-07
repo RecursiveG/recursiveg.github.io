@@ -1,9 +1,9 @@
 ---
 title: 'How to solve the "Connection Reset" problem'
-date: 2012-12-31 20:50
+date: "2012-12-31 20:50"
 comments: true
 categories: Informatics
-tags: [Written In English,Black Technology,GFW]
+tags: ["Written In English","Black Technology",GFW]
 ---
 考虑到安全原因，这篇文章用英语写成。如果你没有足够的勇气读完它，请自觉退出。
 

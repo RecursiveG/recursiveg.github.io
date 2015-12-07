@@ -1,9 +1,9 @@
-title: Programming with PTRACE, Part2 - 系统调用入门
+title: "Programming with PTRACE, Part2 - 系统调用入门"
 date: 2014-04-20 20:00:19
 categories: Informatics
 tags: [Linux,PTRACE,教程]
 keywords: [ptrace,ABI,syscall,register,signal]
-description: Second part of serial of tutorial: Programming with PTRACE
+description: "Second part of serial of tutorial: Programming with PTRACE"
 comments: true
 ---
 在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后`给32位系统的Tip`手动修改源代码）
@@ -71,11 +71,11 @@ int main()
 然后，我建议你静态方式进行链接：
 
     gcc -static target.c -o target
-    
+
 注意到我这里使用了`-static`参数，它的作用是将c运行时库静态链接入可执行文件中。你可以比较一下用两种方式编译的文件大小（几K和几百K的区别）。虽然用动态链接也可以，但是会和我之后的输出有一点点出入（因为动态链接文件需要根据环境变量搜索动态库）。现在把`target`和`demo4.c`放在同一目录下，然后
-  
+
     gcc demo4.c -o demo4 && ./demo4
-    
+
 如果运行正确，你应该看到类似如下的输出
 
     Parent started
@@ -115,6 +115,7 @@ int main()
 要让程序通过编译，需要做两个改动：
 
 1. 在`int main()`之前加入这两个预处理命令：
+
         #define RAX EAX
         #define ORIG_RAX ORIG_EAX
 2. 把26、36、37行ptrace第三个参数中的8全部改成4
@@ -127,4 +128,3 @@ int main()
 * [x86_64 系统调用号列表](http://blog.rchapman.org/post/36801038863/linux-system-call-table-for-x86-64)：也可以在`asm/unistd_64.h`头文件中找到，`asm/unistd_32.h`就是32位的
 * [Process and Process Memory](http://www.hep.wisc.edu/~pinghc/Process_Memory.htm)
 * **有问题或意见请务必留言啊啊啊啊~**没人留言都不知道评论系统是否工作正常
-

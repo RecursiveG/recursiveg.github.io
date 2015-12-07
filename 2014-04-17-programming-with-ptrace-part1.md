@@ -1,9 +1,9 @@
-title: Programming with PTRACE, Part1 - 起步
+title: "Programming with PTRACE, Part1 - 起步"
 date: 2014-04-17 21:16:29
 categories: Informatics
 tags: [Linux,PTRACE,教程]
 keywords: [ptrace,fork,execve,linux process,]
-description: First part of serial of tutorial: Programming with PTRACE
+description: "First part of serial of tutorial: Programming with PTRACE"
 comments: true
 ---
 ## 前言

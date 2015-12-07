@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "公钥加密"
-date: 2012-12-31 21:02
+date: "2012-12-31 21:02"
 comments: true
 categories: Informatics
 tags: [加密,RSA]

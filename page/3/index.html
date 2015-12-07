@@ -119,9 +119,9 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>做为一个搞信息学竞赛这么长时间的人，再加上估计很快就要转C++了，我觉得我有必要留下一些关于Pascal语言的资料，于是就有了这篇文章。我只负责解释用法，对基础概念不了解的请自行Google。所有这篇文章里的东西应该都能在Free Pascal自带的文档里找到，我写出来是为了众多不喜欢看英文的同学们，如果你愿意自己去看一下，一定会收益匪浅。</p>
-<p>###不同进制的表示<br>平时我们写的常量都是十进制数，但我们有时需要写一个比如十六进制数怎么办呢？我们当然可以手动计算一下，但还有更优雅的方法。</p>
-<p>  writeln($Ff,#32,&amp;10,#32,%100);</p>
-<p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。<br>
+<h3 id="不同进制的表示">不同进制的表示</h3><p>平时我们写的常量都是十进制数，但我们有时需要写一个比如十六进制数怎么办呢？我们当然可以手动计算一下，但还有更优雅的方法。</p>
+<pre><code>writeln($Ff,<span class="preprocessor">#<span class="number">32</span>,&amp;<span class="number">10</span>,#<span class="number">32</span>,%<span class="number">100</span>);</span>
+</code></pre><p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。<br>
       
     </div>
     <footer>

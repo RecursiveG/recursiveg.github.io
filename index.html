@@ -71,6 +71,49 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2015-12-25T10:59:54.000Z"><a href="/2015/12/linux-socket-epoll-demo/">Dec 25 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。<br>没有错误处理。</p>
+<h2 id="地址解析">地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> addrinfo *listen_addr; <span class="comment">//存放解析结果。参见`man getaddrinfo`</span></span><br><span class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">freeaddrinfo(listen_addr); <span class="comment">//释放资源，返回void</span></span><br></pre></td></tr></table></figure>
+<h2 id="监听">监听</h2><p>这种方式只能同时处理一个连接<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见`man 3 socket` 创建文件描述符， 出错返回-1</span></span><br><span class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</span><br><span class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></span><br><span class="line">    <span class="comment">// 绑定地址，出错返回-1，参见`man 3 bind`</span></span><br><span class="line">listen(fd, SOMAXCONN);</span><br><span class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></span><br><span class="line">    <span class="comment">// 开始监听，出错返回-1</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第2，3个参数同bind()</span></span><br><span class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是EAGAIN,取决于你需要什么)</span></span><br><span class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符,出错返回-1</span></span><br><span class="line">    <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">    close(new_fd); <span class="comment">// 关闭文件描述符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="发起连接">发起连接</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> addrinfo *server_addr;</span><br><span class="line">getaddrinfo(<span class="string">"127.0.0.1"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;server_addr);</span><br><span class="line"><span class="keyword">int</span> server_socket = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">connect(server_socket, server_addr-&gt;ai_addr, server_addr-&gt;ai_addrlen)</span><br><span class="line">    <span class="comment">// 基本同bind() 参见 man 3 connect</span></span><br><span class="line">    <span class="comment">// 成功后可用server_socket与服务器通信</span></span><br><span class="line"><span class="comment">// ... send(...)</span></span><br><span class="line"><span class="comment">// ... recv(...)</span></span><br><span class="line">close(server_socket);</span><br><span class="line">freeaddrinfo(server_addr);</span><br></pre></td></tr></table></figure>
+<h2 id="传送数据">传送数据</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *payload = <span class="string">"hello"</span></span><br><span class="line">send(new_fd, payload, <span class="built_in">strlen</span>(payload), <span class="number">0</span>); <span class="comment">// send([fd], [buffer], [需发送消息长度], [flag]) 返回实际发送的消息长度</span></span><br><span class="line"><span class="keyword">char</span> buf[<span class="number">255</span>];</span><br><span class="line">recv(new_fd, buf, <span class="keyword">sizeof</span>(buf), <span class="number">0</span>); <span class="comment">// send([fd], [buffer], [最大接收消息长度], [flag]) 返回实际接收的消息长度。阻塞模式下，若无消息则阻塞</span></span><br></pre></td></tr></table></figure>
+<h2 id="多进程请求处理">多进程请求处理</h2><p>对于每一个请求fork()一个新的进程进行处理。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123; <span class="comment">// fork()返回0说明是子进程</span></span><br><span class="line">        <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">        close(new_fd);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="Epoll">Epoll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> epollfd = epoll_create(<span class="number">1024</span>);</span><br><span class="line">    <span class="comment">// 创建epoll文件描述符，出错返回-1</span></span><br><span class="line">    <span class="comment">// int epoll_create(int size) 从Linux2.6.8开始，size值被忽略，不过为保持兼容需要设定为一个正整数</span></span><br><span class="line"><span class="keyword">struct</span> epoll_event ev; <span class="comment">// 记录套接字相关信息</span></span><br><span class="line">ev.events = EPOLLIN; <span class="comment">// 监视有数据可读事件</span></span><br><span class="line">ev.data.fd = fd; <span class="comment">// 文件描述符数据，其实这里可以放任何数据。</span></span><br><span class="line">epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &amp;ev);</span><br><span class="line">    <span class="comment">// int epoll_ctl([Epoll FD], [Operation], [fd], [epoll_event]);</span></span><br><span class="line">    <span class="comment">// 加入监听列表，当fd上有对应事件产生时，epoll_wait会将epoll_event填充到events_in数组里</span></span><br><span class="line">    <span class="comment">// 出错返回-1</span></span><br><span class="line"><span class="keyword">struct</span> epoll_event events_in[<span class="number">16</span>];</span><br><span class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> event_count = epoll_wait(epollfd, events_in, <span class="number">16</span>, -<span class="number">1</span>);</span><br><span class="line">        <span class="comment">// 等待事件，epoll_wait会将事件填充至events_in内</span></span><br><span class="line">        <span class="comment">// int epoll_wait([epoll fd], struct epoll_event *events, [最大事件数量], int timeout);</span></span><br><span class="line">        <span class="comment">// 返回 获得的事件数量，若超时且没有任何事件返回0，出错返回-1。timeout设置为-1表示无限等待。</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i&lt;event_count; i++) &#123; <span class="comment">// 遍历所有事件</span></span><br><span class="line">        <span class="keyword">if</span> (events_in[i].data.fd == fd) &#123; <span class="comment">// 新连接请求</span></span><br><span class="line">            <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">            ev.events = EPOLLIN; <span class="comment">// 参见man 7 epoll 如果要使用Edge Trigger还需将new_fd设为非阻塞</span></span><br><span class="line">            ev.data.fd = new_fd;</span><br><span class="line">            epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &amp;ev); <span class="comment">// 将新连接加入监视列表</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> new_fd = events_in[i].data.fd;</span><br><span class="line">            <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">            epoll_ctl(epollfd, EPOLL_CTL_DEL, new_fd, <span class="literal">NULL</span>); <span class="comment">// 不再监听fd，最后一个参数被忽略</span></span><br><span class="line">            close(new_fd);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="拓展阅读">拓展阅读</h2><ul>
+<li><a href="http://www.linux-mag.com/id/308/" target="_blank" rel="external">Blocking 与 Non-Blocking I/O</a></li>
+<li><a href="http://www.ccvita.com/515.html" target="_blank" rel="external">Epoll 的 Edge-Trigger 与 Level-Trigger</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2015-09-19T06:35:10.000Z"><a href="/2015/09/get-ipv6-via-gre-tunnel/">Sep 19 2015</a></time>
       
       
@@ -330,261 +373,6 @@ gradle -<span class="tag">i</span> ideaModule
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-05-26T02:00:31.000Z"><a href="/2014/05/programming-with-ptrace-part4/">May 25 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/05/programming-with-ptrace-part4/">Programming with PTRACE, Part4 - 系统调用进阶</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>这个part是<a href="/2014/04/programming-with-ptrace-part2/">Part2</a>的延续，所以我强烈建议你弄明白Part2中的内容后再来看本part。那么进入正题，我将在这个部分讲解系统调用的参数传递顺序以及如何利用ptrace系统调用获得用户空间的数据。</p>
-<h2 id="参数与寄存器">参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
-<center>
-
-<table>
-<thead>
-<tr>
-<th style="text-align:left">arch/ABI</th>
-<th style="text-align:left">instruction</th>
-<th style="text-align:left">syscall #</th>
-<th style="text-align:left">retval</th>
-<th style="text-align:left">Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">arm/OABI</td>
-<td style="text-align:left">swi NR</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">a1</td>
-<td style="text-align:left">NR is syscall #</td>
-</tr>
-<tr>
-<td style="text-align:left">arm/EABI</td>
-<td style="text-align:left">swi 0x0</td>
-<td style="text-align:left">r7</td>
-<td style="text-align:left">r0</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">blackfin</td>
-<td style="text-align:left">excpt 0x0</td>
-<td style="text-align:left">P0</td>
-<td style="text-align:left">R0</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">i386</td>
-<td style="text-align:left">int $0x80</td>
-<td style="text-align:left">eax</td>
-<td style="text-align:left">eax</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">ia64</td>
-<td style="text-align:left">break 0x100000</td>
-<td style="text-align:left">r15</td>
-<td style="text-align:left">r10/r8</td>
-<td style="text-align:left">bool error/errno value</td>
-</tr>
-<tr>
-<td style="text-align:left">parisc</td>
-<td style="text-align:left">ble 0x100(%sr2, %r0)</td>
-<td style="text-align:left">r20</td>
-<td style="text-align:left">r28</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">s390</td>
-<td style="text-align:left">svc 0</td>
-<td style="text-align:left">r1</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">See below</td>
-</tr>
-<tr>
-<td style="text-align:left">s390x</td>
-<td style="text-align:left">svc 0</td>
-<td style="text-align:left">r1</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">See below</td>
-</tr>
-<tr>
-<td style="text-align:left">sparc/32</td>
-<td style="text-align:left">t 0x10</td>
-<td style="text-align:left">g1</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">sparc/64</td>
-<td style="text-align:left">t 0x6d</td>
-<td style="text-align:left">g1</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">x86_64</td>
-<td style="text-align:left">syscall</td>
-<td style="text-align:left">rax</td>
-<td style="text-align:left">rax</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">arch/ABI</th>
-<th style="text-align:left">arg1</th>
-<th style="text-align:left">arg2</th>
-<th style="text-align:left">arg3</th>
-<th style="text-align:left">arg4</th>
-<th style="text-align:left">arg5</th>
-<th style="text-align:left">arg6</th>
-<th style="text-align:left">arg7</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">arm/OABI</td>
-<td style="text-align:left">a1</td>
-<td style="text-align:left">a2</td>
-<td style="text-align:left">a3</td>
-<td style="text-align:left">a4</td>
-<td style="text-align:left">v1</td>
-<td style="text-align:left">v2</td>
-<td style="text-align:left">v3</td>
-</tr>
-<tr>
-<td style="text-align:left">arm/EABI</td>
-<td style="text-align:left">r0</td>
-<td style="text-align:left">r1</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">r3</td>
-<td style="text-align:left">r4</td>
-<td style="text-align:left">r5</td>
-<td style="text-align:left">r6</td>
-</tr>
-<tr>
-<td style="text-align:left">blackfin</td>
-<td style="text-align:left">R0</td>
-<td style="text-align:left">R1</td>
-<td style="text-align:left">R2</td>
-<td style="text-align:left">R3</td>
-<td style="text-align:left">R4</td>
-<td style="text-align:left">R5</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">i386</td>
-<td style="text-align:left">ebx</td>
-<td style="text-align:left">ecx</td>
-<td style="text-align:left">edx</td>
-<td style="text-align:left">esi</td>
-<td style="text-align:left">edi</td>
-<td style="text-align:left">ebp</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">ia64</td>
-<td style="text-align:left">out0</td>
-<td style="text-align:left">out1</td>
-<td style="text-align:left">out2</td>
-<td style="text-align:left">out3</td>
-<td style="text-align:left">out4</td>
-<td style="text-align:left">out5</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">parisc</td>
-<td style="text-align:left">r26</td>
-<td style="text-align:left">r25</td>
-<td style="text-align:left">r24</td>
-<td style="text-align:left">r23</td>
-<td style="text-align:left">r22</td>
-<td style="text-align:left">r21</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">s390</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">r3</td>
-<td style="text-align:left">r4</td>
-<td style="text-align:left">r5</td>
-<td style="text-align:left">r6</td>
-<td style="text-align:left">r7</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">s390x</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">r3</td>
-<td style="text-align:left">r4</td>
-<td style="text-align:left">r5</td>
-<td style="text-align:left">r6</td>
-<td style="text-align:left">r7</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">sparc/32</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left">o1</td>
-<td style="text-align:left">o2</td>
-<td style="text-align:left">o3</td>
-<td style="text-align:left">o4</td>
-<td style="text-align:left">o5</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">sparc/64</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left">o1</td>
-<td style="text-align:left">o2</td>
-<td style="text-align:left">o3</td>
-<td style="text-align:left">o4</td>
-<td style="text-align:left">o5</td>
-<td style="text-align:left">-</td>
-</tr>
-<tr>
-<td style="text-align:left">x86_64</td>
-<td style="text-align:left">rdi</td>
-<td style="text-align:left">rsi</td>
-<td style="text-align:left">rdx</td>
-<td style="text-align:left">r10</td>
-<td style="text-align:left">r8</td>
-<td style="text-align:left">r9</td>
-<td style="text-align:left">-</td>
-</tr>
-</tbody>
-</table>
-<p></center><br>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2014/05/programming-with-ptrace-part4/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -608,6 +396,10 @@ gradle -<span class="tag">i</span> ideaModule
   <ul class="entry">
     
       <li>
+        <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
+      </li>
+    
+      <li>
         <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
       </li>
     
@@ -623,10 +415,6 @@ gradle -<span class="tag">i</span> ideaModule
         <a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a>
       </li>
     
-      <li>
-        <a href="/2014/07/programming-with-ptrace-part6/">Programming with PTRACE, Part6 - 时间控制</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -640,6 +428,8 @@ gradle -<span class="tag">i</span> ideaModule
   
     <li><a href="/categories/Informatics/">Informatics</a><small>17</small></li>
   
+    <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
+  
     <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
   
   </ul>
@@ -650,7 +440,7 @@ gradle -<span class="tag">i</span> ideaModule
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
   </div>
 </div>
 

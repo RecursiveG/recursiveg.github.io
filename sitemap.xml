@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.devinprogress.org/2015/12/linux-socket-epoll-demo/</loc>
+    <lastmod>2015-12-26T02:50:26.271Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://www.devinprogress.org/2014/11/minecraft-modding-with-asm/</loc>
     <lastmod>2015-12-07T04:01:33.993Z</lastmod>
   </url>
@@ -42,7 +47,7 @@
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2015/09/get-ipv6-via-gre-tunnel/</loc>
+    <loc>http://www.devinprogress.org/about/index.html</loc>
     <lastmod>2015-11-26T07:22:04.904Z</lastmod>
   </url>
   
@@ -52,22 +57,12 @@
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/about/index.html</loc>
+    <loc>http://www.devinprogress.org/2015/09/get-ipv6-via-gre-tunnel/</loc>
     <lastmod>2015-11-26T07:22:04.904Z</lastmod>
   </url>
   
   <url>
     <loc>http://www.devinprogress.org/2014/03/bad-apple-character-player/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://www.devinprogress.org/2014/04/programming-with-ptrace-part1/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://www.devinprogress.org/2014/07/domain-name-registrar-switched/</loc>
     <lastmod>2015-11-26T07:22:04.821Z</lastmod>
   </url>
   
@@ -82,12 +77,22 @@
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2013/12/site-migration-complete/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://www.devinprogress.org/2014/07/domain-name-registrar-switched/</loc>
+    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.devinprogress.org/2014/04/programming-with-ptrace-part1/</loc>
+    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
   </url>
   
   <url>
     <loc>http://www.devinprogress.org/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
+    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.devinprogress.org/2013/12/site-migration-complete/</loc>
     <lastmod>2015-11-26T07:22:04.817Z</lastmod>
   </url>
   

@@ -2,128 +2,178 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.devinprogress.org/2015/12/linux-socket-epoll-demo/</loc>
-    <lastmod>2015-12-26T02:50:26.271Z</lastmod>
+    <loc>http://recursiveg.me/404.html</loc>
+    
+    <lastmod>2016-06-15T15:24:56.256Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/11/minecraft-modding-with-asm/</loc>
-    <lastmod>2015-12-07T04:01:33.993Z</lastmod>
+    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
+    
+    <lastmod>2016-01-14T03:23:30.452Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/05/programming-with-ptrace-part3/</loc>
-    <lastmod>2015-12-07T03:54:17.906Z</lastmod>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2013/01/data-structure-of-vdisk/</loc>
-    <lastmod>2015-12-07T03:53:42.483Z</lastmod>
+    <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/02/clear-a-special-kind-of-messy-code/</loc>
-    <lastmod>2015-12-07T03:50:56.640Z</lastmod>
+    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2013/03/universal-storge/</loc>
-    <lastmod>2015-12-07T03:50:15.176Z</lastmod>
+    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2013/01/cheat-with-pascal/</loc>
-    <lastmod>2015-12-07T03:49:24.306Z</lastmod>
+    <loc>http://recursiveg.me/2013/03/universal-storge/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/05/programming-with-ptrace-part5/</loc>
-    <lastmod>2015-12-07T03:17:25.473Z</lastmod>
+    <loc>http://recursiveg.me/2013/12/site-migration-complete/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/07/programming-with-ptrace-part6/</loc>
-    <lastmod>2015-12-07T03:16:46.640Z</lastmod>
+    <loc>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/about/index.html</loc>
-    <lastmod>2015-11-26T07:22:04.904Z</lastmod>
+    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/12/setup-forge-workspace-with-idea/</loc>
-    <lastmod>2015-11-26T07:22:04.904Z</lastmod>
+    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2015/09/get-ipv6-via-gre-tunnel/</loc>
-    <lastmod>2015-11-26T07:22:04.904Z</lastmod>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/03/bad-apple-character-player/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
+    <loc>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/04/programming-with-ptrace-part2/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/05/programming-with-ptrace-part4/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/07/domain-name-registrar-switched/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/04/programming-with-ptrace-part1/</loc>
-    <lastmod>2015-11-26T07:22:04.821Z</lastmod>
+    <loc>http://recursiveg.me/2014/07/programming-with-ptrace-part6/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/2014/07/domain-name-registrar-switched/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2013/12/site-migration-complete/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/2014/11/minecraft-modding-with-asm/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2012/12/public-key-cryptography/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2012/12/how-to-solve-the-connection-reset-problem/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2012/12/helloworld/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/2012/12/helloworld/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/404.html</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
+    
+    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/google9ce4763fb612caec.html</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/about/index.html</loc>
+    
+    <lastmod>2015-12-28T09:28:13.099Z</lastmod>
+    
   </url>
   
   <url>
-    <loc>http://www.devinprogress.org/2012/12/sync-with-idevice-on-linux/</loc>
-    <lastmod>2015-11-26T07:22:04.817Z</lastmod>
+    <loc>http://recursiveg.me/google9ce4763fb612caec.html</loc>
+    
+    <lastmod>2015-12-28T09:28:12.986Z</lastmod>
+    
   </url>
   
 </urlset>

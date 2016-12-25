@@ -1,6 +1,95 @@
-<!DOCTYPE HTML><html><head><meta charset="UTF-8"><title>Programming with PTRACE, Part2 - 系统调用入门 | RECURSIVE LAND</title><meta name="author" content="RecursiveG"><meta name="description" content="Second part of serial of tutorial: Programming with PTRACE"><meta name="keywords" content="ptrace,ABI,syscall,register,signal"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta property="og:title" content="Programming with PTRACE, Part2 - 系统调用入门"><meta property="og:site_name" content="RECURSIVE LAND"><meta property="og:image" content="undefined"><link href="/favicon.png" rel="icon"><link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml"><link rel="stylesheet" href="/css/style.css" media="screen" type="text/css"><script type="text/javascript">top.location!=self.location&&(alert("No iFrame Allowed!"),top.location=self.location)</script><!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]--><script>-1==window.location.origin.indexOf("localhost")&&-1==window.location.origin.indexOf("127.0.0.1")&&(!function(e,n,o,a,t,i,c){e.GoogleAnalyticsObject=t,e[t]=e[t]||function(){(e[t].q=e[t].q||[]).push(arguments)},e[t].l=1*new Date,i=n.createElement(o),c=n.getElementsByTagName(o)[0],i.async=1,i.src=a,c.parentNode.insertBefore(i,c)}(window,document,"script","//www.google-analytics.com/analytics.js","ga"),ga("create","UA-37331447-3","auto"),ga("send","pageview"))</script></head></html><body><header id="header" class="inner"><div class="alignleft"><h1><a href="/">RECURSIVE LAND</a></h1><h2><a href="/">A Blog of Recursive G</a></h2></div><nav id="main-nav" class="alignright"><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li><li><a href="/archives">Archives</a></li><li><a href="https://github.com/RecursiveG">Github</a></li><li><a href="/atom.xml">RSS</a></li></ul><div class="clearfix"></div></nav><div class="clearfix"></div></header><div id="content" class="inner"><div id="main-col" class="alignleft"><div id="wrapper"><article class="post"><div class="post-content"><header><div class="icon"></div><time datetime="2014-04-20T12:00:19.000Z"><a href="/2014/04/programming-with-ptrace-part2/">Apr 20 2014</a></time><h1 class="title">Programming with PTRACE, Part2 - 系统调用入门</h1></header><div class="entry"><p>在这部分，我会介绍如何使用 ptrace 监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在 64 位系统上有效，32 位系统请参照最后 <code>给 32 位系统的 Tip</code>手动修改源代码）<br></p><figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</span><br><span class="line">  <span class="keyword">pid_t</span> pid;</span><br><span class="line">  pid=fork();</span><br><span class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</span><br><span class="line">    <span class="keyword">return</span>(<span class="number">-1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</span><br><span class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</span><br><span class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</span><br><span class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">struct</span> rusage ru;</span><br><span class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</span><br><span class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">if</span> (intocall)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld ...."</span>,_ORIG_RAX);</span><br><span class="line">        intocall=<span class="number">0</span>;</span><br><span class="line">      &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</span><br><span class="line">        intocall=<span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><a id="more"></a><h2 id="运行我们的程序"><a href="# 运行我们的程序" class="headerlink" title="运行我们的程序"></a>运行我们的程序</h2><p>当然，如果你试图直接编译并运行上面这段程序肯定是失败的，因为你缺少一个用于被执行的“target”（就是 execlp 里的那个）。在这里，我们的第一个 target 是最经典的“Hello World!”程序：<br></p><figure class="highlight c"><figcaption><span>target.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Hello World!"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><p>然后，我建议你静态方式进行链接：</p><pre><code>gcc -static target.c -o target
-</code></pre><p>注意到我这里使用了 <code>-static</code> 参数，它的作用是将 c 运行时库静态链接入可执行文件中。你可以比较一下用两种方式编译的文件大小（几 K 和几百 K 的区别）。虽然用动态链接也可以，但是会和我之后的输出有一点点出入（因为动态链接文件需要根据环境变量搜索动态库）。现在把 <code>target</code> 和<code>demo4.c</code>放在同一目录下，然后</p><pre><code>gcc demo4.c -o demo4 &amp;&amp; ./demo4
-</code></pre><p>如果运行正确，你应该看到类似如下的输出</p><pre><code>Parent started
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  
+  <title>Programming with PTRACE, Part2 - 系统调用入门 | RECURSIVE LAND</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="Second part of serial of tutorial: Programming with PTRACE" />
+  
+  <meta name="keywords" content="ptrace,ABI,syscall,register,signal" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <meta property="og:title" content="Programming with PTRACE, Part2 - 系统调用入门"/>
+  <meta property="og:site_name" content="RECURSIVE LAND"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">RECURSIVE LAND</a></h1>
+  <h2><a href="/">A Blog of Recursive G</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-04-20T12:00:19.000Z"><a href="/2014/04/programming-with-ptrace-part2/">Apr 20 2014</a></time>
+      
+      
+  
+    <h1 class="title">Programming with PTRACE, Part2 - 系统调用入门</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后<code>给32位系统的Tip</code>手动修改源代码）<br><figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</div><div class="line">  <span class="keyword">pid_t</span> pid;</div><div class="line">  pid=fork();</div><div class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</div><div class="line">    <span class="keyword">return</span>(<span class="number">-1</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</div><div class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</div><div class="line">    sleep(<span class="number">1</span>);</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</div><div class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</div><div class="line">  &#125;<span class="keyword">else</span>&#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</div><div class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</div><div class="line">    <span class="keyword">struct</span> rusage ru;</div><div class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</div><div class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</div><div class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</div><div class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</div><div class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</div><div class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</div><div class="line">      <span class="keyword">if</span> (intocall)&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld .... "</span>,_ORIG_RAX);</div><div class="line">        intocall=<span class="number">0</span>;</div><div class="line">      &#125;<span class="keyword">else</span>&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</div><div class="line">        intocall=<span class="number">1</span>;</div><div class="line">      &#125;</div><div class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h2 id="运行我们的程序"><a href="#运行我们的程序" class="headerlink" title="运行我们的程序"></a>运行我们的程序</h2><p>当然，如果你试图直接编译并运行上面这段程序肯定是失败的，因为你缺少一个用于被执行的“target”（就是execlp里的那个）。在这里，我们的第一个target是最经典的“Hello World!”程序：<br><figure class="highlight c"><figcaption><span>target.c</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Hello World!"</span>);</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>然后，我建议你静态方式进行链接：</p>
+<pre><code>gcc -static target.c -o target
+</code></pre><p>注意到我这里使用了<code>-static</code>参数，它的作用是将c运行时库静态链接入可执行文件中。你可以比较一下用两种方式编译的文件大小（几K和几百K的区别）。虽然用动态链接也可以，但是会和我之后的输出有一点点出入（因为动态链接文件需要根据环境变量搜索动态库）。现在把<code>target</code>和<code>demo4.c</code>放在同一目录下，然后</p>
+<pre><code>gcc demo4.c -o demo4 &amp;&amp; ./demo4
+</code></pre><p>如果运行正确，你应该看到类似如下的输出</p>
+<pre><code>Parent started
 Child PiD == 9702
 Child sleeping...
 Child exec...
@@ -17,6 +106,191 @@ Entering SYSCALL 9 .... Exited with 140378408579072
 Hello World!
 Entering SYSCALL 1 .... Exited with 13
 Entering SYSCALL 231 .... Child Exited
-</code></pre><h2 id="深入这段代码"><a href="# 深入这段代码" class="headerlink" title="深入这段代码"></a>深入这段代码</h2><p>我先介绍一下各个头文件的用途：</p><ul><li><code>stdio.h</code>：（如果你不知道这个文件是干嘛的请重学 C 语言）</li><li><code>unistd.h</code>：提供 <code>fork()</code>、<code>pid_t</code>、<code>execlp()</code>、<code>sleep()</code> 等</li><li><code>sys/ptrace.h</code>：提供 ptrace 相关函数和宏定义</li><li><code>sys/wait.h</code>：提供<code>wait4()</code> 和<code>WIFEXITED</code>宏</li><li><code>sys/resource.h</code>：提供<code>rusage</code> 结构定义</li><li><code>sys/reg.h</code>：提供寄存器系列宏定义（<code>ORIG_RAX</code> 等）</li></ul><p>看到代码的第 15 行，一个巨大的 <code>if...else...</code> 将代码清晰地分成了父子进程两个部分，16 行的 <code>ptrace(PTRACE_TRACEME,0,0,0);</code> 首先吸引了我们的注意力。（为什么有一种在写春游作文的感觉）这个调用使得子进程被标记为 <code>TRACED</code> 并且使系统内核在子进程调用 exec 族函数 <em>之后 </em>通知父进程，这也是为什么 17 到 19 行的系统调用没有被追踪到的原因。<br>再看父进程部分，由于系统调用是一个从用户态到内核态再到用户态的过程，所以每进行一次系统调用都会触发两次 <code>syscall_stop</code>, 分别是进入时的<code>syscall_enter_stop</code> 和离开内核时的 <code>syscall_exit_stop</code>。这种子进程的状态的变化可以在父进程中使用<code>wait()</code>、<code>waitpid()</code>、<code>wait4()</code> 等一票函数完成（还记得 part1 课后阅读中的僵尸进程么？）。值得注意的是，第一次的状态变化是由 <code>execve()</code> 调用返回导致的 <code>syscall_exit_stop</code>，所以我在 25 到 29 行单独做了处理。我喜欢使用<code>wait4()</code> 的原因是它还可以获得子进程的当前资源占用情况（就是那个 <code>rusage</code> 结构），这对于了解进程资源使用情况非常有用，只不过现在还用不到（我应该会在之后专门开几个 part 来讲系统资源的限制），所以我们只要关注那个 <code>sta</code> 就可以了。<br>注意下面那个大的 <code>while</code> 循环，在每次循环的开头等待，一旦 <code>wait4()</code> 返回，子进程就已经进入了暂停的状态（其实是内核给子进程发送了 <code>SIGTRAP</code> 信号，但因为子进程处于 <code>TRACED</code> 状态，所以这个信号被转交给了父进程，使父进程的 <code>wait4()</code> 返回，但这也意味着由其他方式引起的信号 (比如<code>kill</code> 命令)也会引起 wait4 的返回）。接着在 32 行使用 <code>WIFEXITED</code> 宏加上 wait4 收集的状态信息 <code>sta</code> 判断子进程是否已经退出，如果已退出，那么父进程也从循环中退出。当然这是一个非常粗糙的处理方式，更具完整的处理流程将在之后的 part 里介绍。接着，我们就可以使用各种各样的命令来调戏子进程了，这里我们只是简单的取得系统调用号和返回值。最后，在 45 行，让子进程继续执行，并要求子进程在下一个系统调用（进入或返回）停住，然后父进程开始等待下一次的 <code>syscall_stop</code>。因为一次系统调用会导致两次<code>syscall_stop</code>，所以我使用变量<code>intocall</code> 来分辨，并且在 38 到 44 行打印出不同的提示信息。顺带提一下，在输出中，<code>Hello World!</code>应该输出在 <code>Entering SYSCALL 1</code> 和<code>Exited with 13</code>中间，但因为缓冲区刷新的问题所以被输出到了前面。</p><p>终于到最激动人心的部分了！36、37 两行代码是最重要的部分，可以看出，他们做的工作是差不多的，都是从子进程的内存空间中取一些数据。为了解释好这两行，我要讲一讲系统调用的调用过程。系统调用和普通的函数调用差不多，函数调用是将参数以约定好的顺序压入栈中，而系统调用则发生了一个类似上下文切换的过程：程序将需要调用的系统调用的调用号以及参数存入寄存器中，然后将所有寄存器存入栈中，进入内核态后，内核从栈中取得调用号和调用参数，并将返回值写入栈中对应寄存器的位置，最后还原寄存器的值并返回用户态，于是返回值就这样被“还原”到了寄存器里。在 x86-64 平台上，负责传递系统调用号和返回值的都是 <code>RAX</code> 寄存器，也就是说返回值会覆盖调用号，为了在系统调用返回时也能知道调用号，<code>RAX</code>寄存器在保存时被入栈两遍，一个是用于保存返回值的 <code>RAX</code>，另一个是负责保存调用号的<code>ORIG_RAX</code>。现在，我们要获得寄存器的值，只要访问栈中的对应位置就可以了。而系统内核又会在系统调用时将栈中的这些信息复制一遍到一个叫做<code>u-area</code>(USER Area) 的内存区域。在 <code>sys/reg.h</code> 头文件中定义了各寄存器保存时在 <code>u-area</code> 中的顺序，乘以每个寄存器的长度（64 位系统自然就是 8 了嘛~~）就得到了我们所要访问的字节偏移量，<code>PTRACE_PEEKUSER</code>要求 ptrace 从指定偏移取出一个寄存器长度的数据（也就是 8 字节）作为返回值，于是 <code>ptrace(PTRACE_PEEKUSER,pid,8*ORIG_RAX,0)</code> 就能获得系统调用号啦！</p><h2 id="给 32 位系统的 Tip"><a href="# 给 32 位系统的 Tip" class="headerlink" title="给 32 位系统的 Tip"></a>给 32 位系统的 Tip</h2><p>要让程序通过编译，需要做两个改动：</p><ol><li><p>在 <code>int main()</code> 之前加入这两个预处理命令：</p><pre><code>#define RAX EAX
+</code></pre><h2 id="深入这段代码"><a href="#深入这段代码" class="headerlink" title="深入这段代码"></a>深入这段代码</h2><p>我先介绍一下各个头文件的用途：</p>
+<ul>
+<li><code>stdio.h</code>：（如果你不知道这个文件是干嘛的请重学C语言）</li>
+<li><code>unistd.h</code>：提供<code>fork()</code>、<code>pid_t</code>、<code>execlp()</code>、<code>sleep()</code>等</li>
+<li><code>sys/ptrace.h</code>：提供ptrace相关函数和宏定义</li>
+<li><code>sys/wait.h</code>：提供<code>wait4()</code>和<code>WIFEXITED</code>宏</li>
+<li><code>sys/resource.h</code>：提供<code>rusage</code>结构定义</li>
+<li><code>sys/reg.h</code>：提供寄存器系列宏定义（<code>ORIG_RAX</code>等）</li>
+</ul>
+<p>看到代码的第15行，一个巨大的<code>if...else...</code>将代码清晰地分成了父子进程两个部分，16行的<code>ptrace(PTRACE_TRACEME,0,0,0);</code>首先吸引了我们的注意力。（为什么有一种在写春游作文的感觉）这个调用使得子进程被标记为<code>TRACED</code>并且使系统内核在子进程调用exec族函数<em>之后</em>通知父进程，这也是为什么17到19行的系统调用没有被追踪到的原因。<br>再看父进程部分，由于系统调用是一个从用户态到内核态再到用户态的过程，所以每进行一次系统调用都会触发两次<code>syscall_stop</code>,分别是进入时的<code>syscall_enter_stop</code>和离开内核时的<code>syscall_exit_stop</code>。这种子进程的状态的变化可以在父进程中使用<code>wait()</code>、<code>waitpid()</code>、<code>wait4()</code>等一票函数完成（还记得part1课后阅读中的僵尸进程么？）。值得注意的是，第一次的状态变化是由<code>execve()</code>调用返回导致的<code>syscall_exit_stop</code>，所以我在25到29行单独做了处理。我喜欢使用<code>wait4()</code>的原因是它还可以获得子进程的当前资源占用情况（就是那个<code>rusage</code>结构），这对于了解进程资源使用情况非常有用，只不过现在还用不到（我应该会在之后专门开几个part来讲系统资源的限制），所以我们只要关注那个<code>sta</code>就可以了。<br>注意下面那个大的<code>while</code>循环，在每次循环的开头等待，一旦<code>wait4()</code>返回，子进程就已经进入了暂停的状态（其实是内核给子进程发送了<code>SIGTRAP</code>信号，但因为子进程处于<code>TRACED</code>状态，所以这个信号被转交给了父进程，使父进程的<code>wait4()</code>返回，但这也意味着由其他方式引起的信号(比如<code>kill</code>命令)也会引起wait4的返回）。接着在32行使用<code>WIFEXITED</code>宏加上wait4收集的状态信息<code>sta</code>判断子进程是否已经退出，如果已退出，那么父进程也从循环中退出。当然这是一个非常粗糙的处理方式，更具完整的处理流程将在之后的part里介绍。接着，我们就可以使用各种各样的命令来调戏子进程了，这里我们只是简单的取得系统调用号和返回值。最后，在45行，让子进程继续执行，并要求子进程在下一个系统调用（进入或返回）停住，然后父进程开始等待下一次的<code>syscall_stop</code>。因为一次系统调用会导致两次<code>syscall_stop</code>，所以我使用变量<code>intocall</code>来分辨，并且在38到44行打印出不同的提示信息。顺带提一下，在输出中，<code>Hello World!</code>应该输出在<code>Entering SYSCALL 1</code>和<code>Exited with 13</code>中间，但因为缓冲区刷新的问题所以被输出到了前面。</p>
+<p>终于到最激动人心的部分了！36、37两行代码是最重要的部分，可以看出，他们做的工作是差不多的，都是从子进程的内存空间中取一些数据。为了解释好这两行，我要讲一讲系统调用的调用过程。系统调用和普通的函数调用差不多，函数调用是将参数以约定好的顺序压入栈中，而系统调用则发生了一个类似上下文切换的过程：程序将需要调用的系统调用的调用号以及参数存入寄存器中，然后将所有寄存器存入栈中，进入内核态后，内核从栈中取得调用号和调用参数，并将返回值写入栈中对应寄存器的位置，最后还原寄存器的值并返回用户态，于是返回值就这样被“还原”到了寄存器里。在x86-64平台上，负责传递系统调用号和返回值的都是<code>RAX</code>寄存器，也就是说返回值会覆盖调用号，为了在系统调用返回时也能知道调用号，<code>RAX</code>寄存器在保存时被入栈两遍，一个是用于保存返回值的<code>RAX</code>，另一个是负责保存调用号的<code>ORIG_RAX</code>。现在，我们要获得寄存器的值，只要访问栈中的对应位置就可以了。而系统内核又会在系统调用时将栈中的这些信息复制一遍到一个叫做<code>u-area</code>(USER Area)的内存区域。在<code>sys/reg.h</code>头文件中定义了各寄存器保存时在<code>u-area</code>中的顺序，乘以每个寄存器的长度（64位系统自然就是8了嘛~~）就得到了我们所要访问的字节偏移量，<code>PTRACE_PEEKUSER</code>要求ptrace从指定偏移取出一个寄存器长度的数据（也就是8字节）作为返回值，于是<code>ptrace(PTRACE_PEEKUSER,pid,8*ORIG_RAX,0)</code>就能获得系统调用号啦！</p>
+<h2 id="给32位系统的Tip"><a href="#给32位系统的Tip" class="headerlink" title="给32位系统的Tip"></a>给32位系统的Tip</h2><p>要让程序通过编译，需要做两个改动：</p>
+<ol>
+<li><p>在<code>int main()</code>之前加入这两个预处理命令：</p>
+<pre><code>#define RAX EAX
 #define ORIG_RAX ORIG_EAX
-</code></pre></li><li>把 26、36、37 行 ptrace 第三个参数中的 8 全部改成 4</li></ol><p>这是因为 32 位系统的寄存器长度是 4 字节，而且负责传递系统调用号和返回值的是 <code>EAX</code> 寄存器。</p><h2 id="其他资料"><a href="# 其他资料" class="headerlink" title="其他资料"></a>其他资料</h2><ul><li><a href="http://sourceforge.net/projects/strace/" target="_blank" rel="external">strace</a> 是一个用于监视并输出某程序系统调用情况的工具，比如 <code>strace ./target</code></li><li><a href="http://man7.org/linux/man-pages/man7/signal.7.html" target="_blank" rel="external">Linux 信号代码</a>：也可以通过查 man 手册得到<code>man 7 signal</code></li><li><a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace</a>：Pradeep Padala 的关于 ptrace 的文章。</li><li><a href="http://blog.rchapman.org/post/36801038863/linux-system-call-table-for-x86-64" target="_blank" rel="external">x86_64 系统调用号列表</a>：也可以在<code>asm/unistd_64.h</code> 头文件中找到，<code>asm/unistd_32.h</code>就是 32 位的</li><li><a href="http://www.hep.wisc.edu/~pinghc/Process_Memory.htm" target="_blank" rel="external">Process and Process Memory</a></li><li><strong>有问题或意见请务必留言啊啊啊啊~</strong>没人留言都不知道评论系统是否工作正常</li></ul></div><footer><div class="categories"><a href="/categories/Informatics/">Informatics</a></div><div class="tags"><a href="/tags/Linux/">Linux</a>, <a href="/tags/PTRACE/">PTRACE</a>, <a href="/tags/教程/">教程</a></div><div class="clearfix"></div></footer></div></article><section id="comment"><h1 class="title">留言</h1><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div></section></div></div><aside id="sidebar" class="alignright"><div class="search"><form action="//google.com/search" method="get" accept-charset="utf-8"><input type="search" name="q" results="0" placeholder="搜索"> <input type="hidden" name="q" value="site:recursiveg.me"></form></div><div class="widget tag"><h3 class="title">最新文章</h3><ul class="entry"><li><a href="/2015/12/linux-socket-epoll-demo/">Linux 环境 TCP Socket 与 Epoll 使用备忘</a></li><li><a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux 下建立 GRE 隧道并获取 IPv6 地址</a></li><li><a href="/2014/12/setup-forge-workspace-with-idea/">IDEA 下建立 Forge 开发环境的正确姿势</a></li><li><a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod 开发杂事记</a></li><li><a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a></li></ul></div><div class="widget tag"><h3 class="title">分类</h3><ul class="entry"><li><a href="/categories/ACG/">ACG</a><small>1</small></li><li><a href="/categories/Informatics/">Informatics</a><small>17</small></li><li><a href="/categories/Programming/">Programming</a><small>1</small></li><li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li><li><a href="/categories/uncategorized/">uncategorized</a><small>0</small></li></ul></div><div class="widget tagcloud"><h3 class="title">标签云</h3><div class="entry"><a href="/tags/ACM/" style="font-size:10px">ACM</a> <a href="/tags/Black-Technology/" style="font-size:14px">Black Technology</a> <a href="/tags/Epoll/" style="font-size:10px">Epoll</a> <a href="/tags/GFW/" style="font-size:10px">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size:10px">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size:10px">Hello World!</a> <a href="/tags/Hexo/" style="font-size:10px">Hexo</a> <a href="/tags/IPv6/" style="font-size:10px">IPv6</a> <a href="/tags/Java/" style="font-size:12px">Java</a> <a href="/tags/Linux/" style="font-size:20px">Linux</a> <a href="/tags/MinGW/" style="font-size:10px">MinGW</a> <a href="/tags/Minecraft/" style="font-size:12px">Minecraft</a> <a href="/tags/PTRACE/" style="font-size:16px">PTRACE</a> <a href="/tags/Pascal/" style="font-size:10px">Pascal</a> <a href="/tags/Python/" style="font-size:10px">Python</a> <a href="/tags/RSA/" style="font-size:10px">RSA</a> <a href="/tags/Site-Management/" style="font-size:12px">Site Management</a> <a href="/tags/Socket/" style="font-size:10px">Socket</a> <a href="/tags/TCP/" style="font-size:10px">TCP</a> <a href="/tags/Written-In-English/" style="font-size:12px">Written In English</a> <a href="/tags/iDevice/" style="font-size:10px">iDevice</a> <a href="/tags/东方Project/" style="font-size:10px">东方Project</a> <a href="/tags/乱码/" style="font-size:10px">乱码</a> <a href="/tags/交叉编译/" style="font-size:10px">交叉编译</a> <a href="/tags/加密/" style="font-size:10px">加密</a> <a href="/tags/技术宅/" style="font-size:10px">技术宅</a> <a href="/tags/教程/" style="font-size:18px">教程</a> <a href="/tags/编程/" style="font-size:10px">编程</a> <a href="/tags/网盘/" style="font-size:12px">网盘</a></div></div><div class="widget blogroll"><h3 class="title">友情链接</h3><ul class="entry"><li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li></ul></div><div class="widget copyleft"><h3 class="title">原创声明</h3><div class="entry"><center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png"></a></center>除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。</div></div></aside><div class="clearfix"></div></div><footer id="footer" class="inner"><div class="alignleft">&copy; 2016 RecursiveG</div><div class="clearfix"></div></footer><script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script><script src="/js/jquery.imagesloaded.min.js"></script><script src="/js/gallery.js"></script><script type="text/javascript">if(-1==window.location.origin.indexOf("localhost")&&-1==window.location.origin.indexOf("127.0.0.1")){var disqus_shortname="developmentinprogress";!function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src="//"+disqus_shortname+".disqus.com/embed.js",(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(e)}()}</script><link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css"><script src="/fancybox/jquery.fancybox.pack.js"></script><script type="text/javascript">!function(n){n(".fancybox").fancybox()}(jQuery)</script></body>
+</code></pre></li>
+<li>把26、36、37行ptrace第三个参数中的8全部改成4</li>
+</ol>
+<p>这是因为32位系统的寄存器长度是4字节，而且负责传递系统调用号和返回值的是<code>EAX</code>寄存器。</p>
+<h2 id="其他资料"><a href="#其他资料" class="headerlink" title="其他资料"></a>其他资料</h2><ul>
+<li><a href="http://sourceforge.net/projects/strace/" target="_blank" rel="external">strace</a>是一个用于监视并输出某程序系统调用情况的工具，比如<code>strace ./target</code></li>
+<li><a href="http://man7.org/linux/man-pages/man7/signal.7.html" target="_blank" rel="external">Linux信号代码</a>：也可以通过查man手册得到<code>man 7 signal</code></li>
+<li><a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace</a>：Pradeep Padala 的关于ptrace的文章。</li>
+<li><a href="http://blog.rchapman.org/post/36801038863/linux-system-call-table-for-x86-64" target="_blank" rel="external">x86_64 系统调用号列表</a>：也可以在<code>asm/unistd_64.h</code>头文件中找到，<code>asm/unistd_32.h</code>就是32位的</li>
+<li><a href="http://www.hep.wisc.edu/~pinghc/Process_Memory.htm" target="_blank" rel="external">Process and Process Memory</a></li>
+<li><strong>有问题或意见请务必留言啊啊啊啊~</strong>没人留言都不知道评论系统是否工作正常</li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Informatics/">Informatics</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/Linux/">Linux</a>, <a href="/tags/PTRACE/">PTRACE</a>, <a href="/tags/教程/">教程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:recursiveg.me">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
+      </li>
+    
+      <li>
+        <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
+      </li>
+    
+      <li>
+        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
+  
+    <li><a href="/categories/Informatics/">Informatics</a><small>18</small></li>
+  
+    <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
+  
+    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明</h3>
+    <div class="entry">
+        <center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+        </a></center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+</body>
+</html>

@@ -1,1 +1,255 @@
-<!DOCTYPE HTML><html><head><meta charset="UTF-8"><title>Linux 环境 TCP Socket 与 Epoll 使用备忘 | RECURSIVE LAND</title><meta name="author" content="RecursiveG"><meta name="description" content="流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。"><meta name="keywords" content="TCP通信,epoll"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta property="og:title" content="Linux 环境 TCP Socket 与 Epoll 使用备忘"><meta property="og:site_name" content="RECURSIVE LAND"><meta property="og:image" content="undefined"><link href="/favicon.png" rel="icon"><link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml"><link rel="stylesheet" href="/css/style.css" media="screen" type="text/css"><script type="text/javascript">top.location!=self.location&&(alert("No iFrame Allowed!"),top.location=self.location)</script><!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]--><script>-1==window.location.origin.indexOf("localhost")&&-1==window.location.origin.indexOf("127.0.0.1")&&(!function(e,n,o,a,t,i,c){e.GoogleAnalyticsObject=t,e[t]=e[t]||function(){(e[t].q=e[t].q||[]).push(arguments)},e[t].l=1*new Date,i=n.createElement(o),c=n.getElementsByTagName(o)[0],i.async=1,i.src=a,c.parentNode.insertBefore(i,c)}(window,document,"script","//www.google-analytics.com/analytics.js","ga"),ga("create","UA-37331447-3","auto"),ga("send","pageview"))</script></head></html><body><header id="header" class="inner"><div class="alignleft"><h1><a href="/">RECURSIVE LAND</a></h1><h2><a href="/">A Blog of Recursive G</a></h2></div><nav id="main-nav" class="alignright"><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li><li><a href="/archives">Archives</a></li><li><a href="https://github.com/RecursiveG">Github</a></li><li><a href="/atom.xml">RSS</a></li></ul><div class="clearfix"></div></nav><div class="clearfix"></div></header><div id="content" class="inner"><div id="main-col" class="alignleft"><div id="wrapper"><article class="post"><div class="post-content"><header><div class="icon"></div><time datetime="2015-12-25T11:15:13.000Z"><a href="/2015/12/linux-socket-epoll-demo/">Dec 25 2015</a></time><h1 class="title">Linux 环境 TCP Socket 与 Epoll 使用备忘</h1></header><div class="entry"><p>流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。<br>没有错误处理。</p><h2 id="地址解析"><a href="# 地址解析" class="headerlink" title="地址解析"></a>地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> addrinfo *listen_addr; <span class="comment">// 存放解析结果。参见 `man getaddrinfo`</span></span><br><span class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">freeaddrinfo(listen_addr); <span class="comment">// 释放资源，返回 void</span></span><br></pre></td></tr></table></figure><h2 id="监听"><a href="# 监听" class="headerlink" title="监听"></a> 监听</h2><p>这种方式只能同时处理一个连接<br></p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见 `man 3 socket` 创建文件描述符， 出错返回 -1</span></span><br><span class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</span><br><span class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></span><br><span class="line">    <span class="comment">// 绑定地址，出错返回 -1，参见 `man 3 bind`</span></span><br><span class="line">listen(fd, SOMAXCONN);</span><br><span class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></span><br><span class="line">    <span class="comment">// 开始监听，出错返回 -1</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第 2，3 个参数同 bind()</span></span><br><span class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是 EAGAIN, 取决于你需要什么)</span></span><br><span class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符, 出错返回 -1</span></span><br><span class="line">    <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">    close(new_fd); <span class="comment">// 关闭文件描述符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><a id="more"></a><h2 id="发起连接"><a href="# 发起连接" class="headerlink" title="发起连接"></a> 发起连接</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> addrinfo *server_addr;</span><br><span class="line">getaddrinfo(<span class="string">"127.0.0.1"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;server_addr);</span><br><span class="line"><span class="keyword">int</span> server_socket = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">connect(server_socket, server_addr-&gt;ai_addr, server_addr-&gt;ai_addrlen)</span><br><span class="line">    <span class="comment">// 基本同 bind() 参见 man 3 connect</span></span><br><span class="line">    <span class="comment">// 成功后可用 server_socket 与服务器通信</span></span><br><span class="line"><span class="comment">// ... send(...)</span></span><br><span class="line"><span class="comment">// ... recv(...)</span></span><br><span class="line">close(server_socket);</span><br><span class="line">freeaddrinfo(server_addr);</span><br></pre></td></tr></table></figure><h2 id="传送数据"><a href="# 传送数据" class="headerlink" title="传送数据"></a> 传送数据</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *payload = <span class="string">"hello"</span></span><br><span class="line">send(new_fd, payload, <span class="built_in">strlen</span>(payload), <span class="number">0</span>); <span class="comment">// send([fd], [buffer], [需发送消息长度], [flag]) 返回实际发送的消息长度</span></span><br><span class="line"><span class="keyword">char</span> buf[<span class="number">255</span>];</span><br><span class="line">recv(new_fd, buf, <span class="keyword">sizeof</span>(buf), <span class="number">0</span>); <span class="comment">// send([fd], [buffer], [最大接收消息长度], [flag]) 返回实际接收的消息长度。阻塞模式下，若无消息则阻塞</span></span><br></pre></td></tr></table></figure><h2 id="多进程请求处理"><a href="# 多进程请求处理" class="headerlink" title="多进程请求处理"></a> 多进程请求处理</h2><p>对于每一个请求 fork()一个新的进程进行处理。<br></p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123; <span class="comment">// fork()返回 0 说明是子进程 </span></span><br><span class="line">        <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">        close(new_fd);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><h2 id="Epoll"><a href="#Epoll" class="headerlink" title="Epoll"></a>Epoll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> epollfd = epoll_create(<span class="number">1024</span>);</span><br><span class="line">    <span class="comment">// 创建 epoll 文件描述符，出错返回 -1</span></span><br><span class="line">    <span class="comment">// int epoll_create(int size) 从 Linux2.6.8 开始，size 值被忽略，不过为保持兼容需要设定为一个正整数</span></span><br><span class="line"><span class="keyword">struct</span> epoll_event ev; <span class="comment">// 记录套接字相关信息</span></span><br><span class="line">ev.events = EPOLLIN; <span class="comment">// 监视有数据可读事件</span></span><br><span class="line">ev.data.fd = fd; <span class="comment">// 文件描述符数据，其实这里可以放任何数据。</span></span><br><span class="line">epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &amp;ev);</span><br><span class="line">    <span class="comment">// int epoll_ctl([Epoll FD], [Operation], [fd], [epoll_event]);</span></span><br><span class="line">    <span class="comment">// 加入监听列表，当 fd 上有对应事件产生时，epoll_wait 会将 epoll_event 填充到 events_in 数组里</span></span><br><span class="line">    <span class="comment">// 出错返回 -1</span></span><br><span class="line"><span class="keyword">struct</span> epoll_event events_in[<span class="number">16</span>];</span><br><span class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> event_count = epoll_wait(epollfd, events_in, <span class="number">16</span>, <span class="number">-1</span>);</span><br><span class="line">        <span class="comment">// 等待事件，epoll_wait 会将事件填充至 events_in 内</span></span><br><span class="line">        <span class="comment">// int epoll_wait([epoll fd], struct epoll_event *events, [最大事件数量], int timeout);</span></span><br><span class="line">        <span class="comment">// 返回 获得的事件数量，若超时且没有任何事件返回 0，出错返回 -1。timeout 设置为 -1 表示无限等待。</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i&lt;event_count; i++) &#123; <span class="comment">// 遍历所有事件</span></span><br><span class="line">        <span class="keyword">if</span> (events_in[i].data.fd == fd) &#123; <span class="comment">// 新连接请求</span></span><br><span class="line">            <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">            ev.events = EPOLLIN; <span class="comment">// 参见 man 7 epoll 如果要使用 Edge Trigger 还需将 new_fd 设为非阻塞</span></span><br><span class="line">            ev.data.fd = new_fd;</span><br><span class="line">            epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &amp;ev); <span class="comment">// 将新连接加入监视列表</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> new_fd = events_in[i].data.fd;</span><br><span class="line">            <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">            epoll_ctl(epollfd, EPOLL_CTL_DEL, new_fd, <span class="literal">NULL</span>); <span class="comment">// 不再监听 fd，最后一个参数被忽略</span></span><br><span class="line">            close(new_fd);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="拓展阅读"><a href="# 拓展阅读" class="headerlink" title="拓展阅读"></a> 拓展阅读</h2><ul><li><a href="http://www.linux-mag.com/id/308/" target="_blank" rel="external">Blocking 与 Non-Blocking I/O</a></li><li><a href="http://www.ccvita.com/515.html" target="_blank" rel="external">Epoll 的 Edge-Trigger 与 Level-Trigger</a></li></ul></div><footer><div class="categories"><a href="/categories/Programming/">Programming</a></div><div class="tags"><a href="/tags/Linux/">Linux</a>, <a href="/tags/教程/">教程</a>, <a href="/tags/Epoll/">Epoll</a>, <a href="/tags/Socket/">Socket</a>, <a href="/tags/TCP/">TCP</a></div><div class="clearfix"></div></footer></div></article><section id="comment"><h1 class="title">留言</h1><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div></section></div></div><aside id="sidebar" class="alignright"><div class="search"><form action="//google.com/search" method="get" accept-charset="utf-8"><input type="search" name="q" results="0" placeholder="搜索"> <input type="hidden" name="q" value="site:recursiveg.me"></form></div><div class="widget tag"><h3 class="title">最新文章</h3><ul class="entry"><li><a href="/2015/12/linux-socket-epoll-demo/">Linux 环境 TCP Socket 与 Epoll 使用备忘</a></li><li><a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux 下建立 GRE 隧道并获取 IPv6 地址</a></li><li><a href="/2014/12/setup-forge-workspace-with-idea/">IDEA 下建立 Forge 开发环境的正确姿势</a></li><li><a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod 开发杂事记</a></li><li><a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a></li></ul></div><div class="widget tag"><h3 class="title">分类</h3><ul class="entry"><li><a href="/categories/ACG/">ACG</a><small>1</small></li><li><a href="/categories/Informatics/">Informatics</a><small>17</small></li><li><a href="/categories/Programming/">Programming</a><small>1</small></li><li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li><li><a href="/categories/uncategorized/">uncategorized</a><small>0</small></li></ul></div><div class="widget tagcloud"><h3 class="title">标签云</h3><div class="entry"><a href="/tags/ACM/" style="font-size:10px">ACM</a> <a href="/tags/Black-Technology/" style="font-size:14px">Black Technology</a> <a href="/tags/Epoll/" style="font-size:10px">Epoll</a> <a href="/tags/GFW/" style="font-size:10px">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size:10px">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size:10px">Hello World!</a> <a href="/tags/Hexo/" style="font-size:10px">Hexo</a> <a href="/tags/IPv6/" style="font-size:10px">IPv6</a> <a href="/tags/Java/" style="font-size:12px">Java</a> <a href="/tags/Linux/" style="font-size:20px">Linux</a> <a href="/tags/MinGW/" style="font-size:10px">MinGW</a> <a href="/tags/Minecraft/" style="font-size:12px">Minecraft</a> <a href="/tags/PTRACE/" style="font-size:16px">PTRACE</a> <a href="/tags/Pascal/" style="font-size:10px">Pascal</a> <a href="/tags/Python/" style="font-size:10px">Python</a> <a href="/tags/RSA/" style="font-size:10px">RSA</a> <a href="/tags/Site-Management/" style="font-size:12px">Site Management</a> <a href="/tags/Socket/" style="font-size:10px">Socket</a> <a href="/tags/TCP/" style="font-size:10px">TCP</a> <a href="/tags/Written-In-English/" style="font-size:12px">Written In English</a> <a href="/tags/iDevice/" style="font-size:10px">iDevice</a> <a href="/tags/东方Project/" style="font-size:10px">东方Project</a> <a href="/tags/乱码/" style="font-size:10px">乱码</a> <a href="/tags/交叉编译/" style="font-size:10px">交叉编译</a> <a href="/tags/加密/" style="font-size:10px">加密</a> <a href="/tags/技术宅/" style="font-size:10px">技术宅</a> <a href="/tags/教程/" style="font-size:18px">教程</a> <a href="/tags/编程/" style="font-size:10px">编程</a> <a href="/tags/网盘/" style="font-size:12px">网盘</a></div></div><div class="widget blogroll"><h3 class="title">友情链接</h3><ul class="entry"><li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li></ul></div><div class="widget copyleft"><h3 class="title">原创声明</h3><div class="entry"><center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png"></a></center>除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。</div></div></aside><div class="clearfix"></div></div><footer id="footer" class="inner"><div class="alignleft">&copy; 2016 RecursiveG</div><div class="clearfix"></div></footer><script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script><script src="/js/jquery.imagesloaded.min.js"></script><script src="/js/gallery.js"></script><script type="text/javascript">if(-1==window.location.origin.indexOf("localhost")&&-1==window.location.origin.indexOf("127.0.0.1")){var disqus_shortname="developmentinprogress";!function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src="//"+disqus_shortname+".disqus.com/embed.js",(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(e)}()}</script><link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css"><script src="/fancybox/jquery.fancybox.pack.js"></script><script type="text/javascript">!function(n){n(".fancybox").fancybox()}(jQuery)</script></body>
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  
+  <title>Linux环境TCP Socket与Epoll使用备忘 | RECURSIVE LAND</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。" />
+  
+  <meta name="keywords" content="TCP通信,epoll" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <meta property="og:title" content="Linux环境TCP Socket与Epoll使用备忘"/>
+  <meta property="og:site_name" content="RECURSIVE LAND"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">RECURSIVE LAND</a></h1>
+  <h2><a href="/">A Blog of Recursive G</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-12-25T11:15:13.000Z"><a href="/2015/12/linux-socket-epoll-demo/">Dec 25 2015</a></time>
+      
+      
+  
+    <h1 class="title">Linux环境TCP Socket与Epoll使用备忘</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。<br>没有错误处理。</p>
+<h2 id="地址解析"><a href="#地址解析" class="headerlink" title="地址解析"></a>地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">struct</span> addrinfo *listen_addr; <span class="comment">//存放解析结果。参见`man getaddrinfo`</span></div><div class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></div><div class="line"><span class="comment">// ...</span></div><div class="line">freeaddrinfo(listen_addr); <span class="comment">//释放资源，返回void</span></div></pre></td></tr></table></figure>
+<h2 id="监听"><a href="#监听" class="headerlink" title="监听"></a>监听</h2><p>这种方式只能同时处理一个连接<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见`man 3 socket` 创建文件描述符， 出错返回-1</span></div><div class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</div><div class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></div><div class="line">    <span class="comment">// 绑定地址，出错返回-1，参见`man 3 bind`</span></div><div class="line">listen(fd, SOMAXCONN);</div><div class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></div><div class="line">    <span class="comment">// 开始监听，出错返回-1</span></div><div class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</div><div class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第2，3个参数同bind()</span></div><div class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是EAGAIN,取决于你需要什么)</span></div><div class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符,出错返回-1</span></div><div class="line">    <span class="comment">// ... handle(new_fd);</span></div><div class="line">    close(new_fd); <span class="comment">// 关闭文件描述符</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h2 id="发起连接"><a href="#发起连接" class="headerlink" title="发起连接"></a>发起连接</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">struct</span> addrinfo *server_addr;</div><div class="line">getaddrinfo(<span class="string">"127.0.0.1"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;server_addr);</div><div class="line"><span class="keyword">int</span> server_socket = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</div><div class="line">connect(server_socket, server_addr-&gt;ai_addr, server_addr-&gt;ai_addrlen)</div><div class="line">    <span class="comment">// 基本同bind() 参见 man 3 connect</span></div><div class="line">    <span class="comment">// 成功后可用server_socket与服务器通信</span></div><div class="line"><span class="comment">// ... send(...)</span></div><div class="line"><span class="comment">// ... recv(...)</span></div><div class="line">close(server_socket);</div><div class="line">freeaddrinfo(server_addr);</div></pre></td></tr></table></figure>
+<h2 id="传送数据"><a href="#传送数据" class="headerlink" title="传送数据"></a>传送数据</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> *payload = <span class="string">"hello"</span></div><div class="line">send(new_fd, payload, <span class="built_in">strlen</span>(payload), <span class="number">0</span>); <span class="comment">// send([fd], [buffer], [需发送消息长度], [flag]) 返回实际发送的消息长度</span></div><div class="line"><span class="keyword">char</span> buf[<span class="number">255</span>];</div><div class="line">recv(new_fd, buf, <span class="keyword">sizeof</span>(buf), <span class="number">0</span>); <span class="comment">// send([fd], [buffer], [最大接收消息长度], [flag]) 返回实际接收的消息长度。阻塞模式下，若无消息则阻塞</span></div></pre></td></tr></table></figure>
+<h2 id="多进程请求处理"><a href="#多进程请求处理" class="headerlink" title="多进程请求处理"></a>多进程请求处理</h2><p>对于每一个请求fork()一个新的进程进行处理。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</div><div class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</div><div class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123; <span class="comment">// fork()返回0说明是子进程</span></div><div class="line">        <span class="comment">// ... handle(new_fd);</span></div><div class="line">        close(new_fd);</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="Epoll"><a href="#Epoll" class="headerlink" title="Epoll"></a>Epoll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> epollfd = epoll_create(<span class="number">1024</span>);</div><div class="line">    <span class="comment">// 创建epoll文件描述符，出错返回-1</span></div><div class="line">    <span class="comment">// int epoll_create(int size) 从Linux2.6.8开始，size值被忽略，不过为保持兼容需要设定为一个正整数</span></div><div class="line"><span class="keyword">struct</span> epoll_event ev; <span class="comment">// 记录套接字相关信息</span></div><div class="line">ev.events = EPOLLIN; <span class="comment">// 监视有数据可读事件</span></div><div class="line">ev.data.fd = fd; <span class="comment">// 文件描述符数据，其实这里可以放任何数据。</span></div><div class="line">epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &amp;ev);</div><div class="line">    <span class="comment">// int epoll_ctl([Epoll FD], [Operation], [fd], [epoll_event]);</span></div><div class="line">    <span class="comment">// 加入监听列表，当fd上有对应事件产生时，epoll_wait会将epoll_event填充到events_in数组里</span></div><div class="line">    <span class="comment">// 出错返回-1</span></div><div class="line"><span class="keyword">struct</span> epoll_event events_in[<span class="number">16</span>];</div><div class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</div><div class="line">    <span class="keyword">int</span> event_count = epoll_wait(epollfd, events_in, <span class="number">16</span>, <span class="number">-1</span>);</div><div class="line">        <span class="comment">// 等待事件，epoll_wait会将事件填充至events_in内</span></div><div class="line">        <span class="comment">// int epoll_wait([epoll fd], struct epoll_event *events, [最大事件数量], int timeout);</span></div><div class="line">        <span class="comment">// 返回 获得的事件数量，若超时且没有任何事件返回0，出错返回-1。timeout设置为-1表示无限等待。</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i&lt;event_count; i++) &#123; <span class="comment">// 遍历所有事件</span></div><div class="line">        <span class="keyword">if</span> (events_in[i].data.fd == fd) &#123; <span class="comment">// 新连接请求</span></div><div class="line">            <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</div><div class="line">            ev.events = EPOLLIN; <span class="comment">// 参见man 7 epoll 如果要使用Edge Trigger还需将new_fd设为非阻塞</span></div><div class="line">            ev.data.fd = new_fd;</div><div class="line">            epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &amp;ev); <span class="comment">// 将新连接加入监视列表</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">int</span> new_fd = events_in[i].data.fd;</div><div class="line">            <span class="comment">// ... handle(new_fd);</span></div><div class="line">            epoll_ctl(epollfd, EPOLL_CTL_DEL, new_fd, <span class="literal">NULL</span>); <span class="comment">// 不再监听fd，最后一个参数被忽略</span></div><div class="line">            close(new_fd);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="拓展阅读"><a href="#拓展阅读" class="headerlink" title="拓展阅读"></a>拓展阅读</h2><ul>
+<li><a href="http://www.linux-mag.com/id/308/" target="_blank" rel="external">Blocking 与 Non-Blocking I/O</a></li>
+<li><a href="http://www.ccvita.com/515.html" target="_blank" rel="external">Epoll 的 Edge-Trigger 与 Level-Trigger</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Programming/">Programming</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/Linux/">Linux</a>, <a href="/tags/教程/">教程</a>, <a href="/tags/Epoll/">Epoll</a>, <a href="/tags/Socket/">Socket</a>, <a href="/tags/TCP/">TCP</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:recursiveg.me">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
+      </li>
+    
+      <li>
+        <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
+      </li>
+    
+      <li>
+        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
+  
+    <li><a href="/categories/Informatics/">Informatics</a><small>18</small></li>
+  
+    <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
+  
+    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明</h3>
+    <div class="entry">
+        <center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+        </a></center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+</body>
+</html>

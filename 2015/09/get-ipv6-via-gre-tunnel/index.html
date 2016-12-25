@@ -1,4 +1,272 @@
-<!DOCTYPE HTML><html><head><meta charset="UTF-8"><title>Linux 下建立 GRE 隧道并获取 IPv6 地址 | RECURSIVE LAND</title><meta name="author" content="RecursiveG"><meta name="description" content="如何在Linux服务器上建立隧道并获得IPv6地址"><meta name="keywords" content="GRE Tunnel,IPv6,隧道,邻居发现,6to4,6in4"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta property="og:title" content="Linux 下建立 GRE 隧道并获取 IPv6 地址"><meta property="og:site_name" content="RECURSIVE LAND"><meta property="og:image" content="undefined"><link href="/favicon.png" rel="icon"><link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml"><link rel="stylesheet" href="/css/style.css" media="screen" type="text/css"><script type="text/javascript">top.location!=self.location&&(alert("No iFrame Allowed!"),top.location=self.location)</script><!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]--><script>-1==window.location.origin.indexOf("localhost")&&-1==window.location.origin.indexOf("127.0.0.1")&&(!function(e,n,o,a,t,i,c){e.GoogleAnalyticsObject=t,e[t]=e[t]||function(){(e[t].q=e[t].q||[]).push(arguments)},e[t].l=1*new Date,i=n.createElement(o),c=n.getElementsByTagName(o)[0],i.async=1,i.src=a,c.parentNode.insertBefore(i,c)}(window,document,"script","//www.google-analytics.com/analytics.js","ga"),ga("create","UA-37331447-3","auto"),ga("send","pageview"))</script></head></html><body><header id="header" class="inner"><div class="alignleft"><h1><a href="/">RECURSIVE LAND</a></h1><h2><a href="/">A Blog of Recursive G</a></h2></div><nav id="main-nav" class="alignright"><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li><li><a href="/archives">Archives</a></li><li><a href="https://github.com/RecursiveG">Github</a></li><li><a href="/atom.xml">RSS</a></li></ul><div class="clearfix"></div></nav><div class="clearfix"></div></header><div id="content" class="inner"><div id="main-col" class="alignleft"><div id="wrapper"><article class="post"><div class="post-content"><header><div class="icon"></div><time datetime="2015-09-19T06:35:10.000Z"><a href="/2015/09/get-ipv6-via-gre-tunnel/">Sep 19 2015</a></time><h1 class="title">Linux 下建立 GRE 隧道并获取 IPv6 地址</h1></header><div class="entry"><p>虽然 HE 有提供免费的 Tunnelbroker，不过那速度实在不怎么样。于是考虑在有 IPv6 地址托管主机上建立一个 GRE Tunnel。<br>GRE Tunnel 需要有内核模块 <code>ip_gre</code> 支持。远程主机有一段 /64 的 IPv6，我将其中的一段 /80 分配给自己的机器。<br>使用 iproute2 工具。当然，你自己的机器需要有一个公网 IPv4 地址。</p><ol><li>服务器的公网 IPv4 是 <code>$server_ipv4</code></li><li>自己电脑（或者路由器）的公网 IPv4 是 <code>$client_ipv4</code>。</li><li>服务器的 IPv6 段是 <code>a:b:c:d::/64</code></li><li>要分配下去的 IPv6 段是 <code>a:b:c:d:e::/80</code></li></ol><h2 id="服务器配置"><a href="# 服务器配置" class="headerlink" title="服务器配置"></a> 服务器配置</h2><p>脚本如下，需要 root，建议用 <code>sudo -i</code>：<br></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</span><br></pre></td></tr></table></figure><p></p><ul><li>第一行建立隧道，<code>gre-tunnel</code>是隧道名称，可以按自己喜欢的来，记得其他的也要一起改</li><li>第二行激活隧道</li><li>第三行分配 IP 地址</li></ul><a id="more"></a><h2 id="本地配置"><a href="# 本地配置" class="headerlink" title="本地配置"></a> 本地配置</h2><p>脚本如下，和服务端配置几乎一样，同样需要 root：<br></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$server_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::2/80 dev gre-tunnel</span><br><span class="line">ip -6 route add default dev gre-tunnel</span><br></pre></td></tr></table></figure><p></p><ul><li>第一行建立隧道，隧道名称不必和服务器的一样</li><li>第二行激活隧道</li><li>第三行分配 IP 地址，注意不要和服务器的冲突，这个 IP 也是将要暴露在网络上的 IP</li><li>第四行设定路由，让 IPv6 流量都走隧道</li></ul><h2 id="访问网络"><a href="# 访问网络" class="headerlink" title="访问网络"></a> 访问网络</h2><p>现在，两台机器应该可以互 ping 了。有的比较奇葩的情况可能需要手动 <code>ip link set gre0 up</code> 一下，gre0 似乎是内核模块自动加入的玩意儿，具体怎么回事我也不清楚–_–|<br>但是现在还不能访问外网，还需要在服务器执行以下命令：<br></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv6.conf.all.forwarding=1</span><br><span class="line">sysctl net.ipv6.conf.all.proxy_ndp=1</span><br><span class="line">ip -6 neigh add proxy a:b:c:d:e::2 dev eth0</span><br></pre></td></tr></table></figure><p></p><p>第一行开启 forward<br>二三行和 IPv6 的 NDP(邻居发现)有关，又是个没搞明白的东西真是残念……<br>eth0 是服务器实际连接网络的接口。</p><h2 id="删除 -amp- 修改"><a href="# 删除 -amp- 修改" class="headerlink" title="删除 &amp; 修改"></a>删除 &amp; 修改</h2><p>要删除 Tunnel，在两端均执行:</p><pre><code>ip link set gre-tunnel down
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  
+  <title>Linux下建立GRE隧道并获取IPv6地址 | RECURSIVE LAND</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="如何在Linux服务器上建立隧道并获得IPv6地址" />
+  
+  <meta name="keywords" content="GRE Tunnel,IPv6,隧道,邻居发现,6to4,6in4" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <meta property="og:title" content="Linux下建立GRE隧道并获取IPv6地址"/>
+  <meta property="og:site_name" content="RECURSIVE LAND"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">RECURSIVE LAND</a></h1>
+  <h2><a href="/">A Blog of Recursive G</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-09-19T06:35:10.000Z"><a href="/2015/09/get-ipv6-via-gre-tunnel/">Sep 19 2015</a></time>
+      
+      
+  
+    <h1 class="title">Linux下建立GRE隧道并获取IPv6地址</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>虽然HE有提供免费的Tunnelbroker，不过那速度实在不怎么样。于是考虑在有IPv6地址托管主机上建立一个GRE Tunnel。<br>GRE Tunnel需要有内核模块<code>ip_gre</code>支持。远程主机有一段/64的IPv6，我将其中的一段/80分配给自己的机器。<br>使用iproute2工具。当然，你自己的机器需要有一个公网IPv4地址。</p>
+<ol>
+<li>服务器的公网IPv4是<code>$server_ipv4</code></li>
+<li>自己电脑（或者路由器）的公网IPv4是<code>$client_ipv4</code>。</li>
+<li>服务器的IPv6段是<code>a:b:c:d::/64</code></li>
+<li>要分配下去的IPv6段是<code>a:b:c:d:e::/80</code></li>
+</ol>
+<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</div><div class="line">ip link <span class="built_in">set</span> gre-tunnel up</div><div class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</div></pre></td></tr></table></figure></p>
+<ul>
+<li>第一行建立隧道，<code>gre-tunnel</code>是隧道名称，可以按自己喜欢的来，记得其他的也要一起改</li>
+<li>第二行激活隧道</li>
+<li>第三行分配IP地址</li>
+</ul>
+<a id="more"></a>
+<h2 id="本地配置"><a href="#本地配置" class="headerlink" title="本地配置"></a>本地配置</h2><p>脚本如下，和服务端配置几乎一样，同样需要root：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$server_ipv4</span> ttl 64</div><div class="line">ip link <span class="built_in">set</span> gre-tunnel up</div><div class="line">ip addr add a:b:c:d:e::2/80 dev gre-tunnel</div><div class="line">ip -6 route add default dev gre-tunnel</div></pre></td></tr></table></figure></p>
+<ul>
+<li>第一行建立隧道，隧道名称不必和服务器的一样</li>
+<li>第二行激活隧道</li>
+<li>第三行分配IP地址，注意不要和服务器的冲突，这个IP也是将要暴露在网络上的IP</li>
+<li>第四行设定路由，让IPv6流量都走隧道</li>
+</ul>
+<h2 id="访问网络"><a href="#访问网络" class="headerlink" title="访问网络"></a>访问网络</h2><p>现在，两台机器应该可以互ping了。有的比较奇葩的情况可能需要手动<code>ip link set gre0 up</code>一下，gre0似乎是内核模块自动加入的玩意儿，具体怎么回事我也不清楚–_–|<br>但是现在还不能访问外网，还需要在服务器执行以下命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">sysctl net.ipv6.conf.all.forwarding=1</div><div class="line">sysctl net.ipv6.conf.all.proxy_ndp=1</div><div class="line">ip -6 neigh add proxy a:b:c:d:e::2 dev eth0</div></pre></td></tr></table></figure></p>
+<p>第一行开启forward<br>二三行和IPv6的NDP(邻居发现)有关，又是个没搞明白的东西真是残念……<br>eth0是服务器实际连接网络的接口。</p>
+<h2 id="删除-amp-修改"><a href="#删除-amp-修改" class="headerlink" title="删除 &amp; 修改"></a>删除 &amp; 修改</h2><p>要删除Tunnel，在两端均执行:</p>
+<pre><code>ip link set gre-tunnel down
 ip tunnel del gre-tunnel
-</code></pre><p>如果客户端 IP 变化:</p><pre><code>ip tunnel change gre-tunnel remote $new_client_ipv4
-</code></pre><h2 id="注意事项"><a href="# 注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>虽然叫做“隧道”，但是内容依然是 <em>明文 </em>，对保密要求高的同学们要注意了。<br>另外直接用命令建立的隧道在重启后会没有，所以可以考虑用 networkd 之类的东西来管理。<br>Linux 在访问有 IPv6 地址的域名时会优先使用 IPv6，所以要当心服务器流量爆炸。当然配置成 IPv4 优先也是可以的。<br>如果你的本地 IPv4 经常变动的话，你可能需要些脚本之类的东西自动更新服务器的 Remote IP。<br>对于每一个新的 IP(新的设备)，都需要在服务端执行<code>ip -6 neigh add</code>，有知道怎么解决这个问题的请务必留言…</p></div><footer><div class="categories"><a href="/categories/Informatics/">Informatics</a></div><div class="tags"><a href="/tags/Linux/">Linux</a>, <a href="/tags/GRE-Tunnel/">GRE Tunnel</a>, <a href="/tags/IPv6/">IPv6</a></div><div class="clearfix"></div></footer></div></article><section id="comment"><h1 class="title">留言</h1><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div></section></div></div><aside id="sidebar" class="alignright"><div class="search"><form action="//google.com/search" method="get" accept-charset="utf-8"><input type="search" name="q" results="0" placeholder="搜索"> <input type="hidden" name="q" value="site:recursiveg.me"></form></div><div class="widget tag"><h3 class="title">最新文章</h3><ul class="entry"><li><a href="/2015/12/linux-socket-epoll-demo/">Linux 环境 TCP Socket 与 Epoll 使用备忘</a></li><li><a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux 下建立 GRE 隧道并获取 IPv6 地址</a></li><li><a href="/2014/12/setup-forge-workspace-with-idea/">IDEA 下建立 Forge 开发环境的正确姿势</a></li><li><a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod 开发杂事记</a></li><li><a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a></li></ul></div><div class="widget tag"><h3 class="title">分类</h3><ul class="entry"><li><a href="/categories/ACG/">ACG</a><small>1</small></li><li><a href="/categories/Informatics/">Informatics</a><small>17</small></li><li><a href="/categories/Programming/">Programming</a><small>1</small></li><li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li><li><a href="/categories/uncategorized/">uncategorized</a><small>0</small></li></ul></div><div class="widget tagcloud"><h3 class="title">标签云</h3><div class="entry"><a href="/tags/ACM/" style="font-size:10px">ACM</a> <a href="/tags/Black-Technology/" style="font-size:14px">Black Technology</a> <a href="/tags/Epoll/" style="font-size:10px">Epoll</a> <a href="/tags/GFW/" style="font-size:10px">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size:10px">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size:10px">Hello World!</a> <a href="/tags/Hexo/" style="font-size:10px">Hexo</a> <a href="/tags/IPv6/" style="font-size:10px">IPv6</a> <a href="/tags/Java/" style="font-size:12px">Java</a> <a href="/tags/Linux/" style="font-size:20px">Linux</a> <a href="/tags/MinGW/" style="font-size:10px">MinGW</a> <a href="/tags/Minecraft/" style="font-size:12px">Minecraft</a> <a href="/tags/PTRACE/" style="font-size:16px">PTRACE</a> <a href="/tags/Pascal/" style="font-size:10px">Pascal</a> <a href="/tags/Python/" style="font-size:10px">Python</a> <a href="/tags/RSA/" style="font-size:10px">RSA</a> <a href="/tags/Site-Management/" style="font-size:12px">Site Management</a> <a href="/tags/Socket/" style="font-size:10px">Socket</a> <a href="/tags/TCP/" style="font-size:10px">TCP</a> <a href="/tags/Written-In-English/" style="font-size:12px">Written In English</a> <a href="/tags/iDevice/" style="font-size:10px">iDevice</a> <a href="/tags/东方Project/" style="font-size:10px">东方Project</a> <a href="/tags/乱码/" style="font-size:10px">乱码</a> <a href="/tags/交叉编译/" style="font-size:10px">交叉编译</a> <a href="/tags/加密/" style="font-size:10px">加密</a> <a href="/tags/技术宅/" style="font-size:10px">技术宅</a> <a href="/tags/教程/" style="font-size:18px">教程</a> <a href="/tags/编程/" style="font-size:10px">编程</a> <a href="/tags/网盘/" style="font-size:12px">网盘</a></div></div><div class="widget blogroll"><h3 class="title">友情链接</h3><ul class="entry"><li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li></ul></div><div class="widget copyleft"><h3 class="title">原创声明</h3><div class="entry"><center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png"></a></center>除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。</div></div></aside><div class="clearfix"></div></div><footer id="footer" class="inner"><div class="alignleft">&copy; 2016 RecursiveG</div><div class="clearfix"></div></footer><script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script><script src="/js/jquery.imagesloaded.min.js"></script><script src="/js/gallery.js"></script><script type="text/javascript">if(-1==window.location.origin.indexOf("localhost")&&-1==window.location.origin.indexOf("127.0.0.1")){var disqus_shortname="developmentinprogress";!function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src="//"+disqus_shortname+".disqus.com/embed.js",(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(e)}()}</script><link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css"><script src="/fancybox/jquery.fancybox.pack.js"></script><script type="text/javascript">!function(n){n(".fancybox").fancybox()}(jQuery)</script></body>
+</code></pre><p>如果客户端IP变化:</p>
+<pre><code>ip tunnel change gre-tunnel remote $new_client_ipv4
+</code></pre><h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>虽然叫做“隧道”，但是内容依然是<em>明文</em>，对保密要求高的同学们要注意了。<br>另外直接用命令建立的隧道在重启后会没有，所以可以考虑用networkd之类的东西来管理。<br>Linux在访问有IPv6地址的域名时会优先使用IPv6，所以要当心服务器流量爆炸。当然配置成IPv4优先也是可以的。<br>如果你的本地IPv4经常变动的话，你可能需要些脚本之类的东西自动更新服务器的Remote IP。<br>对于每一个新的IP(新的设备)，都需要在服务端执行<code>ip -6 neigh add</code>，有知道怎么解决这个问题的请务必留言…</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Informatics/">Informatics</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/Linux/">Linux</a>, <a href="/tags/GRE-Tunnel/">GRE Tunnel</a>, <a href="/tags/IPv6/">IPv6</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:recursiveg.me">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
+      </li>
+    
+      <li>
+        <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
+      </li>
+    
+      <li>
+        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
+      </li>
+    
+      <li>
+        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
+  
+    <li><a href="/categories/Informatics/">Informatics</a><small>18</small></li>
+  
+    <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
+  
+    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="http://exz.me/" title="Epix Sphere">Epix Sphere</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明</h3>
+    <div class="entry">
+        <center><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img class="nofancybox nolightbox" alt="CC-BY-SA 3.0" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+        </a></center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+</body>
+</html>

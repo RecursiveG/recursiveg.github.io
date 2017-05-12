@@ -72,6 +72,50 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-07-07T08:51:03.000Z"><a href="/2014/07/programming-with-ptrace-part6/">Jul 7 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/07/programming-with-ptrace-part6/">Programming with PTRACE, Part6 - 时间控制</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h1 id="不同的时间计算方法"><a href="#不同的时间计算方法" class="headerlink" title="不同的时间计算方法"></a>不同的时间计算方法</h1><p>程序运行会占用一小段时间（废话），事实上，我们有不止一种方法来表示一个程序运行了多长时间。最直观的应该是“墙上时间”，也就是说，你掐个秒表，看看程序从开始到结束用了多长时间。除此之外，还有“用户态时间”和“内核态时间”，这两个时间都是以CPU实际运算的时间，也就是CPU周期，来计数的。“用户态时间”就是程序在用户态执行的时间，包括程序所引用的库中的代码（比如STL），“内核态时间”就是指程序在内核态执行的时间，一般是各种系统调用（比如各种IO操作）。这两种时间和墙上时间的区别在于，因为CPU其实是在多个程序中快速切换的，所以在运行某个程序的时间里，CPU也处理了属于其他进程的任务，而且CPU切换任务也需要一定的时间（真的很短）。如果处于被调试状态，tracer的运行时间也会被计算在内，这些不属于这个进程的时间片也会被计算在这个进程的“墙上时间”里。所以一般以用户态时间和内核态时间的总和作为进程的运行时间。</p>
+<p>在Linux系统里有一个叫<code>time</code>的命令可以查看一个命令执行了多长时间。这个命令有两个版本，一个是shell内置的，另一个是独立的可执行文件，可以用<code>type time</code>命令查看。虽然可执行版本功能更强一点，但内置的功能足够，这一点区别可以不管。用法是： <code>time [命令] &lt;参数&gt;</code>。给个例子：</p>
+<pre><code>time ffmpeg -i sample.mp4 target.mp3
+...
+5.42s user
+0.10s system
+100% cpu
+5.520 total
+</code></pre>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/07/programming-with-ptrace-part6/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2014-05-26T02:00:32.000Z"><a href="/2014/05/programming-with-ptrace-part5/">May 25 2014</a></time>
       
       
@@ -83,7 +127,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>这个part主要讲解Linux的内存管理机制，以及如何查看并限制子进程的内存使用。</p>
-<h1 id="内存的划分"><a href="#内存的划分" class="headerlink" title="内存的划分"></a>内存的划分</h1><p>（嘛。。。这一部分也算是现学现卖的，如果大家觉得有什么讲的不到位的请翻下方的拓展阅读部分）<br>大家都知道，32位系统最大可以寻址4GB的地址空间（不考虑<a href="http://zh.wikipedia.org/wiki/%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E6%89%A9%E5%B1%95">物理地址扩展</a>），那么这个“地址”究竟指的是哪儿的地址呢？你可以写一个小程序，malloc一点内存，然后把地址打印出来，重复几次，你会发现，分配的内存几乎都在同一个位置。这是因为，对于程序来说，这些地址都是虚拟地址，虚拟地址空间对于每个进程都是独立的，也就是说，对于不同的进程，同样虚拟地址上的数据是不同的。<br>当然，数据肯定是存放在内存条上的，我们把可以直接读写内存条的地址叫做物理地址。物理地址以一定的方式映射到虚拟地址上，所以当程序试图访问虚拟地址时，系统要以一定方式把虚拟地址变成物理地址，这项工作通常是由<a href="http://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83">MMU(内存管理单元)</a>来完成的。内存的映射不是大块大块的，而是一小片一小片分别映射的，所以在虚拟地址上连续的地址可能在物理地址上相差十万八千里，这些一小片一小片的内存被称为“页”。<br>页的存在给内存分配带来了极大的灵活性，页可以存储在内存里，也可以存储在交换分区里，可以将同一块物理内存映射到不同进程的虚拟空间里（动态库经常这么干），甚至可以映射到磁盘上的某个文件。光说可能有点抽象，于是给幅图(来自Wikipedia)<br><img src="http://upload.wikimedia.org/wikipedia/commons/3/32/Virtual_address_space_and_physical_address_space_relationship.svg" alt="内存页映射是不连续的"><br>虚拟地址被分成多个段，数据有序存放于其中。这是32位Linux的新内存布局(Linux 2.6.7之后):<br><img src="http://static.duartes.org/img/blogPosts/linuxFlexibleAddressSpaceLayout.png" alt="Linux新内存布局"><br>如果你研究过可执行文件的结构，你就会发现，虚拟地址的段就是按可执行文件的段来填充的。另外，由于代码段的起点地址是固定的(0x08048000)，所以编译器就可以预先算出函数的地址了。顺带一提，因为动态库加载时的虚拟地址是不固定的，不能预先计算出函数地址，所以要在编译时使用<code>-fPIC</code>选项生成位置无关代码，否则每次被一个新进程使用时都要进行重定位(可以理解为重新计算函数地址)，并生成该动态库的一个副本，这样压根没有起到节约内存的作用。<br>扯远了，回来。尽管每个进程的虚拟地址空间时互相独立的，但并不意味着进程想访问哪儿就能访问的，比如3GB以上的区域，那儿是内核的领地。即使是堆段，也只能访问已申请的内存部分，非法的内存访问将会引发段错误(Segmentation Fault)。回到<code>malloc()</code>函数上，malloc最终会调用<code>brk</code>或<code>mmap</code>系统调用，brk用于在堆中分配小块内存，mmap则用于在Memory Mapping Segment中分配大块内存。但是并不是每次malloc都会调用brk，这是因为分配的内存实在是太小了，而brk只能分配大一点的内存，所以C运行库(比如glibc)在收到一个malloc时会先用brk向系统“批发”一块大一点的内存，而收到后续分配请求时则把这块大内存“零售”给程序，直到售完再次brk。<br>如果有一个程序死循环单纯malloc内存，内存会不会被吃光呢？答案是不会(我不清楚是不是真的有如此单纯的系统真的会挂掉)，因为系统发现，你只是分配了内存，却没有使用，于是它很机智地将那片内存设置为“可访问”，却没有把它映射到任何一个实际的内存页上！<br>
+<h1 id="内存的划分"><a href="#内存的划分" class="headerlink" title="内存的划分"></a>内存的划分</h1><p>（嘛。。。这一部分也算是现学现卖的，如果大家觉得有什么讲的不到位的请翻下方的拓展阅读部分）<br>大家都知道，32位系统最大可以寻址4GB的地址空间（不考虑<a href="http://zh.wikipedia.org/wiki/%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E6%89%A9%E5%B1%95" target="_blank" rel="external">物理地址扩展</a>），那么这个“地址”究竟指的是哪儿的地址呢？你可以写一个小程序，malloc一点内存，然后把地址打印出来，重复几次，你会发现，分配的内存几乎都在同一个位置。这是因为，对于程序来说，这些地址都是虚拟地址，虚拟地址空间对于每个进程都是独立的，也就是说，对于不同的进程，同样虚拟地址上的数据是不同的。<br>当然，数据肯定是存放在内存条上的，我们把可以直接读写内存条的地址叫做物理地址。物理地址以一定的方式映射到虚拟地址上，所以当程序试图访问虚拟地址时，系统要以一定方式把虚拟地址变成物理地址，这项工作通常是由<a href="http://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83" target="_blank" rel="external">MMU(内存管理单元)</a>来完成的。内存的映射不是大块大块的，而是一小片一小片分别映射的，所以在虚拟地址上连续的地址可能在物理地址上相差十万八千里，这些一小片一小片的内存被称为“页”。<br>页的存在给内存分配带来了极大的灵活性，页可以存储在内存里，也可以存储在交换分区里，可以将同一块物理内存映射到不同进程的虚拟空间里（动态库经常这么干），甚至可以映射到磁盘上的某个文件。光说可能有点抽象，于是给幅图(来自Wikipedia)<br><img src="http://upload.wikimedia.org/wikipedia/commons/3/32/Virtual_address_space_and_physical_address_space_relationship.svg" alt="内存页映射是不连续的"><br>虚拟地址被分成多个段，数据有序存放于其中。这是32位Linux的新内存布局(Linux 2.6.7之后):<br><img src="http://static.duartes.org/img/blogPosts/linuxFlexibleAddressSpaceLayout.png" alt="Linux新内存布局"><br>如果你研究过可执行文件的结构，你就会发现，虚拟地址的段就是按可执行文件的段来填充的。另外，由于代码段的起点地址是固定的(0x08048000)，所以编译器就可以预先算出函数的地址了。顺带一提，因为动态库加载时的虚拟地址是不固定的，不能预先计算出函数地址，所以要在编译时使用<code>-fPIC</code>选项生成位置无关代码，否则每次被一个新进程使用时都要进行重定位(可以理解为重新计算函数地址)，并生成该动态库的一个副本，这样压根没有起到节约内存的作用。<br>扯远了，回来。尽管每个进程的虚拟地址空间时互相独立的，但并不意味着进程想访问哪儿就能访问的，比如3GB以上的区域，那儿是内核的领地。即使是堆段，也只能访问已申请的内存部分，非法的内存访问将会引发段错误(Segmentation Fault)。回到<code>malloc()</code>函数上，malloc最终会调用<code>brk</code>或<code>mmap</code>系统调用，brk用于在堆中分配小块内存，mmap则用于在Memory Mapping Segment中分配大块内存。但是并不是每次malloc都会调用brk，这是因为分配的内存实在是太小了，而brk只能分配大一点的内存，所以C运行库(比如glibc)在收到一个malloc时会先用brk向系统“批发”一块大一点的内存，而收到后续分配请求时则把这块大内存“零售”给程序，直到售完再次brk。<br>如果有一个程序死循环单纯malloc内存，内存会不会被吃光呢？答案是不会(我不清楚是不是真的有如此单纯的系统真的会挂掉)，因为系统发现，你只是分配了内存，却没有使用，于是它很机智地将那片内存设置为“可访问”，却没有把它映射到任何一个实际的内存页上！<br>
       
     </div>
     <footer>
@@ -120,7 +164,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>这个part是<a href="/2014/04/programming-with-ptrace-part2/">Part2</a>的延续，所以我强烈建议你弄明白Part2中的内容后再来看本part。那么进入正题，我将在这个部分讲解系统调用的参数传递顺序以及如何利用ptrace系统调用获得用户空间的数据。</p>
-<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
+<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="external">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
 <center>
 
 <table>
@@ -338,7 +382,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </tr>
 </tbody>
 </table>
-<p></center><br>
+<p></p></center><br>
       
     </div>
     <footer>
@@ -375,7 +419,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>在Part2中，我们粗略了解了如何使用<code>ptrace</code>获得系统调用信息，即在一个大循环里不断获取程序信息，如果程序退出则停止循环。当然，那个判断异常简陋，几乎无法处理任何特殊情况。我将在本Part中详细解说各种异常情况的处理，同时讲解各种信号相关的问题。</p>
-<h2 id="一些重要的宏"><a href="#一些重要的宏" class="headerlink" title="一些重要的宏"></a>一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html">这个</a>页面</p>
+<h2 id="一些重要的宏"><a href="#一些重要的宏" class="headerlink" title="一些重要的宏"></a>一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html" target="_blank" rel="external">这个</a>页面</p>
 <pre><code>WIFEXITED   如果进程正常退出，返回一个非0值(通常是进程调用了`exit()`或是`_exit()`)
 WIFSIGNALED 如果进程由于一个未被捕获的信号而被终止，返回一个非0值
 WIFSTOPPED  当进程被停止(非终止)时，返回一个非0值(通常发生在当进程处于`traced`状态时)
@@ -455,7 +499,7 @@ WSTOPSIG    如果`WIFSTOPPED`为非0值，获得引起进程停止的信号代�
     </header>
     <div class="entry">
       
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本人作为一个信息学竞赛的参与者，在很久之前曾经试图自己写过一个Online Judge系统（允许用户上传源代码并在服务器上编译运行），考虑到安全因素，必须要对程序的行为进行限制，因此对ptrace进行了一番研究。网上有一份关于ptrace的很好的教程（<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/">Playing with ptrace</a>）,但是时间有点久了，而且没有涉及64位操作系统。因此，我决定写这份教程，基于64位Linux，尽力介绍一些新加入的功能，同时兼顾一下32位系统。另外，由于一开始的目的是“对程序的行为进行<em>限制</em>”，所以不会涉及到诸如设置断点之类的内容，相反，可能会涉及到其他关于系统资源管理的内容。<br><code>ptrace()</code>是一个由Linux内核提供的系统调用。它允许一个用户态进程检查、修改另一个进程的内存和寄存器。这种技术被广泛用于<code>gdb</code>等调试器中。尽管这系列文章的标题叫做“Programming with PTRACE”，但在第一部分中，我将着重介绍Linux的进程和相关的几个重要函数。</p>
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本人作为一个信息学竞赛的参与者，在很久之前曾经试图自己写过一个Online Judge系统（允许用户上传源代码并在服务器上编译运行），考虑到安全因素，必须要对程序的行为进行限制，因此对ptrace进行了一番研究。网上有一份关于ptrace的很好的教程（<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace</a>）,但是时间有点久了，而且没有涉及64位操作系统。因此，我决定写这份教程，基于64位Linux，尽力介绍一些新加入的功能，同时兼顾一下32位系统。另外，由于一开始的目的是“对程序的行为进行<em>限制</em>”，所以不会涉及到诸如设置断点之类的内容，相反，可能会涉及到其他关于系统资源管理的内容。<br><code>ptrace()</code>是一个由Linux内核提供的系统调用。它允许一个用户态进程检查、修改另一个进程的内存和寄存器。这种技术被广泛用于<code>gdb</code>等调试器中。尽管这系列文章的标题叫做“Programming with PTRACE”，但在第一部分中，我将着重介绍Linux的进程和相关的几个重要函数。</p>
 <h2 id="fork-vfork-与-clone"><a href="#fork-vfork-与-clone" class="headerlink" title="fork(), vfork() 与 clone()"></a>fork(), vfork() 与 clone()</h2><p>在Linux中，每一个进程都有一个唯一的编号，被称作<code>pid</code>(Process ID)。在Linux中，进程不能凭空产生（<code>init</code>进程是个例外），只能从一个已有进程衍生出来。原来的进程被称做父进程，衍生出来的进程叫子进程。一个系统中所有进程以父子关系相连接，形成一棵树，这棵“树”的树根就是<code>init</code>进程，它是在系统启动时被直接启动的，因此它没有父进程。并且系统中所有其他进程都直接或间接地是它的子进程。在Linux系统中，实现“把一个进程变成两个”这一功能的有三个系统调用，即<code>fork()</code>、<code>vfork()</code>和<code>clone()</code>。</p>
 <p><code>fork()</code>的工作流程的确和叉子有几分相似之处，它将当前进程所有数据复制一份，产生一个和父进程一模一样的子进程。并在两个进程中返回不同的返回值。比如这段代码：<br><figure class="highlight c"><figcaption><span>demo1.c</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span>&#123;</div><div class="line">    <span class="keyword">int</span> return_val;</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Program started."</span>);</div><div class="line">    return_val=fork();</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"fork() returned %d\n"</span>,return_val);</div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p>将会输出</p>
@@ -505,7 +549,7 @@ if (pid==0){
     </header>
     <div class="entry">
       
-        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
+        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="external">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
 <p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br>
       
     </div>
@@ -514,51 +558,6 @@ if (pid==0){
         
           <div class="alignleft">
             <a href="/2014/03/bad-apple-character-player/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-02-28T13:17:41.000Z"><a href="/2014/02/how-to-cross-compile-libcurl-on-linux/">Feb 28 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/02/how-to-cross-compile-libcurl-on-linux/">在Linux下使用MinGW静态交叉编译带有zlib的libcurl</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p><a href="http://curl.haxx.se/">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
-<h3 id="STEP1-安装MinGW编译器"><a href="#STEP1-安装MinGW编译器" class="headerlink" title="STEP1 安装MinGW编译器"></a>STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
-<pre><code>~# pacman -S mingw-w64
-</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
-<pre><code>~# pacman -Ql mingw-w64-gcc| grep &apos;/usr/bin/.*gcc$&apos;
-mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
-mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
-</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/">Hello World代码</a> ^_^），然后编译试试：</p>
-<pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe
-</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。<br>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2014/02/how-to-cross-compile-libcurl-on-linux/#more" class="more-link">Read More</a>
           </div>
         
         
@@ -596,6 +595,10 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
   <ul class="entry">
     
       <li>
+        <a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a>
+      </li>
+    
+      <li>
         <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
       </li>
     
@@ -611,10 +614,6 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
         <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
       </li>
     
-      <li>
-        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -626,7 +625,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
   
     <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
   
-    <li><a href="/categories/Informatics/">Informatics</a><small>18</small></li>
+    <li><a href="/categories/Informatics/">Informatics</a><small>19</small></li>
   
     <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
   
@@ -640,7 +639,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 12.5px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a>
   </div>
 </div>
 
@@ -670,7 +669,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2016 RecursiveG
+  &copy; 2017 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

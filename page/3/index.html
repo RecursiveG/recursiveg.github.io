@@ -72,6 +72,51 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-02-28T13:17:41.000Z"><a href="/2014/02/how-to-cross-compile-libcurl-on-linux/">Feb 28 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/02/how-to-cross-compile-libcurl-on-linux/">在Linux下使用MinGW静态交叉编译带有zlib的libcurl</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="http://curl.haxx.se/" target="_blank" rel="external">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
+<h3 id="STEP1-安装MinGW编译器"><a href="#STEP1-安装MinGW编译器" class="headerlink" title="STEP1 安装MinGW编译器"></a>STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
+<pre><code>~# pacman -S mingw-w64
+</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
+<pre><code>~# pacman -Ql mingw-w64-gcc| grep &apos;/usr/bin/.*gcc$&apos;
+mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
+mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
+</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/" target="_blank" rel="external">Hello World代码</a> ^_^），然后编译试试：</p>
+<pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe
+</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。<br>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/02/how-to-cross-compile-libcurl-on-linux/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2014-02-08T06:12:59.000Z"><a href="/2014/02/clear-a-special-kind-of-messy-code/">Feb 8 2014</a></time>
       
       
@@ -227,7 +272,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p><em>注意!这个是<a href="http://vdisk.weibo.com">微盘</a>而不是<a href="http://www.vdisk.cn">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。<br>
+        <p><em>注意!这个是<a href="http://vdisk.weibo.com" target="_blank" rel="external">微盘</a>而不是<a href="http://www.vdisk.cn" target="_blank" rel="external">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。<br>
       
     </div>
     <footer>
@@ -285,43 +330,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2012-12-31T13:01:00.000Z"><a href="/2012/12/sync-with-idevice-on-linux/">Dec 31 2012</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2012/12/sync-with-idevice-on-linux/">Sync with iDevice on Linux</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>It’s a bit hard to connect an iDevice with Linux because Apple is not so open and we have to use iTunes to sync with our iDevice for a long time. Luckily we now have a set of tool so that we can control our device on linux. The most important two library are <a href="http://www.libimobiledevice.org/" target="_blank" rel="external">libimobiledevice</a>(libiphone) and libgpod.</p>
-<p>libimobiledevice, like it’s name, is a library who provides the interface to access the iDevice. It provides a higher level of access such as photo, bookmark, install/uninstall softwares and even sync music. And it doesn’t need jailbreak.</p>
-<p>What I want to mention is how musics synchronized with an iDevice. Under the iTunes folder (You may never seen that before. That’s ordinary.), there’s a file called iTunesDB. That’s the file which libgpod really works with. This file contains the name of songs, singers’ names, your play lists and so on. Unfortunately, because Apple don’t want it be modified by any programs except iTunes, they add some hash info into the file. If iPod found the hash is incorrect, it refused to display the songs. There was once a project called iPodHash, but it seems to be die due to a DMCA notice. Apple engineers have changed the hash algorithm for several times and the latest version haven’t been reverse-engineering, as a result, now we can only sync with a old version of iOS.</p>
-<p>If your iDevice is jailbreaked, you can change a key called DBVersion(Sorry, I forgot where it is.). It tells iPod which version of hash algorithm it should use so we could use a known hash on new iOS. This process depends on libimobiledevice too. It only support to sync with iOS 4 or older. That means it’s useless even if you changed DBVersion on your iOS5 device. By the way, you may will not find a iTunesDB file but a iTunesCDB instead. It’s a compressed version of iTunesDB using zlib.</p>
-<p>I feel so sad that such a project is closed and now I can only sync with my iPod on Windows.</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -347,6 +355,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   <ul class="entry">
     
       <li>
+        <a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a>
+      </li>
+    
+      <li>
         <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
       </li>
     
@@ -362,10 +374,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
       </li>
     
-      <li>
-        <a href="/2014/11/minecraft-modding-with-asm/">Minecraft Coremod开发杂事记</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -377,7 +385,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   
     <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
   
-    <li><a href="/categories/Informatics/">Informatics</a><small>18</small></li>
+    <li><a href="/categories/Informatics/">Informatics</a><small>19</small></li>
   
     <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
   
@@ -391,7 +399,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 10px;">技术宅</a> <a href="/tags/教程/" style="font-size: 18px;">教程</a> <a href="/tags/编程/" style="font-size: 10px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 12.5px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a>
   </div>
 </div>
 
@@ -421,7 +429,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2016 RecursiveG
+  &copy; 2017 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://recursiveg.me/"/>
-  <updated>2016-12-25T00:36:26.391Z</updated>
+  <updated>2017-05-12T23:52:52.139Z</updated>
   <id>http://recursiveg.me/</id>
   
   <author>
@@ -14,6 +14,56 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>编写一个简易的Chrome扩展</title>
+    <link href="http://recursiveg.me/2017/05/simple-chrome-extension/"/>
+    <id>http://recursiveg.me/2017/05/simple-chrome-extension/</id>
+    <published>2017-05-12T09:30:00.000Z</published>
+    <updated>2017-05-12T23:52:52.139Z</updated>
+    
+    <content type="html"><![CDATA[<p>时隔半年的毫无诚心的流水帐作品。<br>假设读者有基础的Javascript能力。</p>
+<h1 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h1><p>常去的某资源站的某资源发布者喜欢把重要的内容加上花里胡哨的特殊效果并藏在页面的角落里。<br>虽说要尊重资源的发布者，不过这种给人添堵的行为实在令我感到不爽，于是研究了一下Chrome的扩展程序（Extension）。</p>
+<h1 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h1><p>要干的事情有两件：</p>
+<ol>
+<li><del>去掉特殊效果</del> 好吧，其实这条并不重要，毕竟内容已经被提取出来了</li>
+<li>将内容移到页面的显著位置</li>
+</ol>
+<p>很自然的，直接用Javascript操纵DOM树即可实现希望的效果。<br>那么要怎么自动载入脚本呢？<br><a id="more"></a></p>
+<h1 id="编写扩展"><a href="#编写扩展" class="headerlink" title="编写扩展"></a>编写扩展</h1><p>感谢Chrome提供了强大的扩展系统。自动载入脚本这种功能自然是小菜一碟啦。<br>首先编写一个脚本<code>content_script.js</code>操纵页面元素：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (page_require_modification()) &#123;</div><div class="line">    <span class="keyword">var</span> content = <span class="built_in">document</span>.getElementById(<span class="string">"hidden-div"</span>).innerHTML;</div><div class="line">    <span class="keyword">var</span> clean_content = <span class="built_in">document</span>.createElement(<span class="string">"p"</span>);</div><div class="line">    clean_content.append(<span class="built_in">document</span>.createTextNode(content));</div><div class="line">    <span class="built_in">document</span>.getElementById(<span class="string">"main-div"</span>).append(clean_content);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>没有魔法，想干啥就写啥，就像是HTML本身引用了一个JS文件一样。也不需要考虑<code>document.ready</code>的问题，因为Chrome默认会在文档加载完成后再加载自定义的JS。</p>
+<p>接着需要一个<code>manifest.json</code>文件，这样Chrome才能将其作为一个Extension加载。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">  <span class="attr">"manifest_version"</span>: <span class="number">2</span>,</div><div class="line"></div><div class="line">  <span class="attr">"name"</span>: <span class="string">"在这里填上扩展的名称"</span>,</div><div class="line">  <span class="attr">"description"</span>: <span class="string">"这里填一些描述"</span>,</div><div class="line">  <span class="attr">"version"</span>: <span class="string">"1.0"</span>,</div><div class="line"></div><div class="line">  <span class="attr">"content_scripts"</span>: [</div><div class="line">      &#123;</div><div class="line">          <span class="attr">"matches"</span>: [<span class="string">"https://www.google.com/*"</span>],</div><div class="line">          <span class="attr">"js"</span>: [<span class="string">"content_script.js"</span>]</div><div class="line">      &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><del>你觉得我会把实际的URL写出来嘛？肯定不会啦！</del><br>Chrome把这种注入到页面中的脚本称做<code>content_scripts</code>。当页面的URL符合<code>matches</code>中的pattern时，就自动加载<code>js</code>中指定的脚本。当然，脚本的文件名可以自由决定，只要前后一致即可。</p>
+<p>最后一步，将<code>manifest.json</code>和<code>content_script.js</code>放入同一个文件夹。然后在<code>chrome://extensions</code>选择<code>加载已解压的扩展程序</code>即可加载扩展啦。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li><code>manifest.json</code>文件指示了一个Chrome扩展</li>
+<li>Chrome扩展能将自定义脚本注入到符合指定URL的页面中</li>
+<li>这种单纯的脚本注入任务可能Greasemonkey更适合一些，不过这次就先研究Chrome扩展啦~ 有机会再研究油猴脚本。</li>
+<li>Chrome扩展可以和浏览器本身做到更紧密的结合，比如提供菜单项或者是GUI之类的，不过这篇文章完全没有涉及。</li>
+<li><a href="https://developer.chrome.com/extensions" target="_blank" rel="external">Google的官方扩展指南</a>永远是你的好伙伴</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      编写一个简易的Chrome扩展以修改页面内容
+    
+    </summary>
+    
+      <category term="Informatics" scheme="http://recursiveg.me/categories/Informatics/"/>
+    
+    
+      <category term="编程" scheme="http://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
+    
+      <category term="技术宅" scheme="http://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
+    
+      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Chrome" scheme="http://recursiveg.me/tags/Chrome/"/>
+    
+  </entry>
   
   <entry>
     <title>借助IPsec和strongSwan建立隧道并分配IPv6地址</title>
@@ -1353,7 +1403,7 @@ average(A[1..5]);
     
     <summary type="html">
     
-      &lt;p&gt;&lt;em&gt;注意!这个是&lt;a href=&quot;http://vdisk.weibo.com&quot;&gt;微盘&lt;/a&gt;而不是&lt;a href=&quot;http://www.vdisk.cn&quot;&gt;威盘&lt;/a&gt;&lt;/em&gt;&lt;br&gt;研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。&lt;br&gt;
+      &lt;p&gt;&lt;em&gt;注意!这个是&lt;a href=&quot;http://vdisk.weibo.com&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;微盘&lt;/a&gt;而不是&lt;a href=&quot;http://www.vdisk.cn&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;威盘&lt;/a&gt;&lt;/em&gt;&lt;br&gt;研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。&lt;br&gt;
     
     </summary>
     
@@ -1363,38 +1413,6 @@ average(A[1..5]);
       <category term="Black Technology" scheme="http://recursiveg.me/tags/Black-Technology/"/>
     
       <category term="网盘" scheme="http://recursiveg.me/tags/%E7%BD%91%E7%9B%98/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>公钥加密</title>
-    <link href="http://recursiveg.me/2012/12/public-key-cryptography/"/>
-    <id>http://recursiveg.me/2012/12/public-key-cryptography/</id>
-    <published>2012-12-31T13:02:00.000Z</published>
-    <updated>2016-01-14T02:33:05.839Z</updated>
-    
-    <content type="html"><![CDATA[<p>各种加密方法大体可以分成两类，一类是对称加密，另一类是非对称加密。</p>
-<p>凯撒密码是对称加密中的一种，他的加密方法是把A变成B，把B变成C，于是解密的时候只要把字母替换回来就行了。也就是说，任何知道加密方法的人就可以解密。</p>
-<p>RSA是一种非对称加密算法，他的特点是任何人都可以加密，但只有我可以解密。做个比喻，人人都可以把锁头扣上，但只有拥有钥匙的人可以开锁。这个分发出去的用于加密的东西叫做公钥，也被称作证书。而留在自己身边的“钥匙”就是私钥，是绝对不能被第二个人拿到的。</p>
-<p>于是乎，你可以把公钥发给别人，别人把数据用你的公钥加密后传给你，你用私钥解密后阅读。在这个过程中，任何人截取到数据都是无效的，因为它没有你的私钥。</p>
-<p>RSA还有一个特点，就是可以用私钥加密，用公钥解密。你会问，公钥人人都能拿到，相当于人人都能解密，那这样加密有什么意义呢？意义在于，它可以作为身份验证。用私钥加密的过程叫签名，而验证签名就是用对应的公钥解密。因为为只有用对应的私钥签名的文件才能用公钥解密，既然它可以用公钥解密，就一定是由对应私钥签署的，而私钥只有你有，于是这份文件就一定是你发布的。网络上的HTTPS就是依靠着个。一般来说，用私钥加密的都是MD5、SHA1 之类的，加密原文太耗系统资源。</p>
-<p>对付这种非对称的加密方式，有一种叫做“中间人攻击”的攻击方法，它会使双方之间的通信完全暴露。我就偷懒不写了，大家自己找资料。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;各种加密方法大体可以分成两类，一类是对称加密，另一类是非对称加密。&lt;/p&gt;
-&lt;p&gt;凯撒密码是对称加密中的一种，他的加密方法是把A变成B，把B变成C，于是解密的时候只要把字母替换回来就行了。也就是说，任何知道加密方法的人就可以解密。&lt;/p&gt;
-&lt;p&gt;RSA是一种非对称加密算法，
-    
-    </summary>
-    
-      <category term="Informatics" scheme="http://recursiveg.me/categories/Informatics/"/>
-    
-    
-      <category term="加密" scheme="http://recursiveg.me/tags/%E5%8A%A0%E5%AF%86/"/>
-    
-      <category term="RSA" scheme="http://recursiveg.me/tags/RSA/"/>
     
   </entry>
   

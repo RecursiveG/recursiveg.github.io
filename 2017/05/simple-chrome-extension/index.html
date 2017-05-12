@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>归档：2013/3 | RECURSIVE LAND</title>
+  <title>编写一个简易的Chrome扩展 | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
-  <meta name="description" content="Recursive G&#39;s personal blog" />
+  <meta name="description" content="编写一个简易的Chrome扩展以修改页面内容" />
   
-  
+  <meta name="keywords" content="Chrome Extension,编写Chrome扩展,Content Scripts" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  
+  <meta property="og:title" content="编写一个简易的Chrome扩展"/>
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
@@ -65,25 +65,79 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper">
-<h2 class="archive-title">2013/3</h2>
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2017-05-12T09:30:00.000Z"><a href="/2017/05/simple-chrome-extension/">May 12 2017</a></time>
+      
+      
+  
+    <h1 class="title">编写一个简易的Chrome扩展</h1>
+  
 
+    </header>
+    <div class="entry">
+      
+        <p>时隔半年的毫无诚心的流水帐作品。<br>假设读者有基础的Javascript能力。</p>
+<h1 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h1><p>常去的某资源站的某资源发布者喜欢把重要的内容加上花里胡哨的特殊效果并藏在页面的角落里。<br>虽说要尊重资源的发布者，不过这种给人添堵的行为实在令我感到不爽，于是研究了一下Chrome的扩展程序（Extension）。</p>
+<h1 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h1><p>要干的事情有两件：</p>
+<ol>
+<li><del>去掉特殊效果</del> 好吧，其实这条并不重要，毕竟内容已经被提取出来了</li>
+<li>将内容移到页面的显著位置</li>
+</ol>
+<p>很自然的，直接用Javascript操纵DOM树即可实现希望的效果。<br>那么要怎么自动载入脚本呢？<br><a id="more"></a></p>
+<h1 id="编写扩展"><a href="#编写扩展" class="headerlink" title="编写扩展"></a>编写扩展</h1><p>感谢Chrome提供了强大的扩展系统。自动载入脚本这种功能自然是小菜一碟啦。<br>首先编写一个脚本<code>content_script.js</code>操纵页面元素：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (page_require_modification()) &#123;</div><div class="line">    <span class="keyword">var</span> content = <span class="built_in">document</span>.getElementById(<span class="string">"hidden-div"</span>).innerHTML;</div><div class="line">    <span class="keyword">var</span> clean_content = <span class="built_in">document</span>.createElement(<span class="string">"p"</span>);</div><div class="line">    clean_content.append(<span class="built_in">document</span>.createTextNode(content));</div><div class="line">    <span class="built_in">document</span>.getElementById(<span class="string">"main-div"</span>).append(clean_content);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>没有魔法，想干啥就写啥，就像是HTML本身引用了一个JS文件一样。也不需要考虑<code>document.ready</code>的问题，因为Chrome默认会在文档加载完成后再加载自定义的JS。</p>
+<p>接着需要一个<code>manifest.json</code>文件，这样Chrome才能将其作为一个Extension加载。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">  <span class="attr">"manifest_version"</span>: <span class="number">2</span>,</div><div class="line"></div><div class="line">  <span class="attr">"name"</span>: <span class="string">"在这里填上扩展的名称"</span>,</div><div class="line">  <span class="attr">"description"</span>: <span class="string">"这里填一些描述"</span>,</div><div class="line">  <span class="attr">"version"</span>: <span class="string">"1.0"</span>,</div><div class="line"></div><div class="line">  <span class="attr">"content_scripts"</span>: [</div><div class="line">      &#123;</div><div class="line">          <span class="attr">"matches"</span>: [<span class="string">"https://www.google.com/*"</span>],</div><div class="line">          <span class="attr">"js"</span>: [<span class="string">"content_script.js"</span>]</div><div class="line">      &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><del>你觉得我会把实际的URL写出来嘛？肯定不会啦！</del><br>Chrome把这种注入到页面中的脚本称做<code>content_scripts</code>。当页面的URL符合<code>matches</code>中的pattern时，就自动加载<code>js</code>中指定的脚本。当然，脚本的文件名可以自由决定，只要前后一致即可。</p>
+<p>最后一步，将<code>manifest.json</code>和<code>content_script.js</code>放入同一个文件夹。然后在<code>chrome://extensions</code>选择<code>加载已解压的扩展程序</code>即可加载扩展啦。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li><code>manifest.json</code>文件指示了一个Chrome扩展</li>
+<li>Chrome扩展能将自定义脚本注入到符合指定URL的页面中</li>
+<li>这种单纯的脚本注入任务可能Greasemonkey更适合一些，不过这次就先研究Chrome扩展啦~ 有机会再研究油猴脚本。</li>
+<li>Chrome扩展可以和浏览器本身做到更紧密的结合，比如提供菜单项或者是GUI之类的，不过这篇文章完全没有涉及。</li>
+<li><a href="https://developer.chrome.com/extensions" target="_blank" rel="external">Google的官方扩展指南</a>永远是你的好伙伴</li>
+</ul>
 
-  <div class="archive">
-    
-      <article class="post">
-        <div class="post-content">
-          <header>
-            <div class="icon"></div>
-            <time datetime="2013-03-30T12:02:00.000Z"><a href="/2013/03/universal-storge/">Mar 30 2013</a></time>
-            
-              <h1 class="title"><a href="/2013/03/universal-storge/">通用存储及分布式文件共享系统的设想</a></h1>
-            
-          </header>
-        </div>
-      </article>
-    
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Informatics/">Informatics</a>
   </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>, <a href="/tags/技术宅/">技术宅</a>, <a href="/tags/教程/">教程</a>, <a href="/tags/Chrome/">Chrome</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
 </div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
@@ -190,7 +244,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     var dsq = document.createElement('script');
     dsq.type = 'text/javascript';
     dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
   }());
 }

@@ -15,7 +15,7 @@
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
-    <meta property="og:image" content="undefined"/>
+    <meta property="og:image" content=""/>
   
 
   <link href="/favicon.png" rel="icon" />
@@ -312,7 +312,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </code></pre><p>即从子进程（由pid标识）的addr内存地址处取出对应字长(64位为8字节，32位4字节)的数据，做为返回值。也就是说，读取一次能得到八个字符。现在如果我们要取得从<code>base_addr</code>地址开始的一个字符串，那么我们只要8个字节8个字节读取，直到碰到<code>\0</code>为止。把这个功能写成函数就是这样：（32位系统不要忘记改那个define）</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> WORD_LEN 8</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">peek_str</span><span class="params">(<span class="keyword">pid_t</span> pid,<span class="keyword">long</span> base_addr,<span class="keyword">char</span> target[])</span></span>&#123;</div><div class="line">  <span class="keyword">union</span>&#123;</div><div class="line">    <span class="keyword">long</span> word;</div><div class="line">    <span class="keyword">char</span> str[WORD_LEN];</div><div class="line">  &#125; data;<span class="comment">/*利用union把WORD_LEN字节的整数变为字符数组*/</span></div><div class="line">  <span class="keyword">long</span> offset=<span class="number">0</span>;</div><div class="line">  <span class="keyword">int</span> done=<span class="number">0</span>,i;</div><div class="line">  target[<span class="number">0</span>]=<span class="string">'\0'</span>;</div><div class="line">  <span class="keyword">while</span>(!done)&#123;<span class="comment">/*循环读取*/</span></div><div class="line">    data.word=ptrace(PTRACE_PEEKTEXT,pid,base_addr+offset,<span class="number">0</span>);</div><div class="line">    <span class="built_in">strncat</span>(target,data.str,WORD_LEN);<span class="comment">/*追加至多WORD_LEN个字符*/</span></div><div class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;WORD_LEN;i++)<span class="comment">/*检查是否有'\0'*/</span></div><div class="line">      <span class="keyword">if</span>(data.str[i]==<span class="string">'\0'</span>)</div><div class="line">        done=<span class="number">1</span>;</div><div class="line">    offset+=WORD_LEN;<span class="comment">/*准备读取下一个WORD_LEN字节*/</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>主程序的大<code>while()</code>循环里的代码是这样的（我已经设置了<code>PTRACE_O_TRACESYSGOOD</code>标记）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">int</span> sig_no;<span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);<span class="keyword">else</span>&#123;<span class="built_in">puts</span>(<span class="string">"Unknown Status"</span>);<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(sig_no!=(SIGTRAP|<span class="number">0x80</span>))&#123;ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);<span class="keyword">continue</span>;&#125;</div><div class="line"><span class="keyword">if</span> (intocall)&#123;</div><div class="line">  <span class="keyword">struct</span> user_regs_struct reg;</div><div class="line">  ptrace(PTRACE_GETREGS,pid,<span class="number">0</span>,&amp;reg);</div><div class="line">  <span class="keyword">if</span> (reg.orig_rax==SYS_open)&#123;</div><div class="line">    <span class="keyword">char</span> file[<span class="number">255</span>];</div><div class="line">    peek_str(pid,reg.rdi,file);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"open() opened: %s\n"</span>,file);</div><div class="line">  &#125;      </div><div class="line">&#125;</div><div class="line">intocall^=<span class="number">1</span>;</div><div class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">int</span> sig_no;<span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);<span class="keyword">else</span>&#123;<span class="built_in">puts</span>(<span class="string">"Unknown Status"</span>);<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(sig_no!=(SIGTRAP|<span class="number">0x80</span>))&#123;ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);<span class="keyword">continue</span>;&#125;</div><div class="line"><span class="keyword">if</span> (intocall)&#123;</div><div class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">reg</span>;</span></div><div class="line">  ptrace(PTRACE_GETREGS,pid,<span class="number">0</span>,&amp;reg);</div><div class="line">  <span class="keyword">if</span> (reg.orig_rax==SYS_open)&#123;</div><div class="line">    <span class="keyword">char</span> file[<span class="number">255</span>];</div><div class="line">    peek_str(pid,reg.rdi,file);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"open() opened: %s\n"</span>,file);</div><div class="line">  &#125;      </div><div class="line">&#125;</div><div class="line">intocall^=<span class="number">1</span>;</div><div class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div></pre></td></tr></table></figure>
 <p>在这里我使用的<code>PTRACE_GETREGS</code>和<code>user_regs_struct</code>结构来一次性获得所有寄存器的值，该结构定义于<code>sys/user.h</code>头文件中。另外，我还使用了<code>SYS_open</code>来判断系统调用号，避免了Magic Number。<code>SYS_*</code>宏定义于<code>sys/syscall.h</code>头文件中。传递RDI寄存器也很容易理解，查询<code>man 2 open</code>可知open系统调用的路径是第一个参数。现在，重新编译你的<code>target</code>，不要加<code>-static</code>,然后运行，你应该能看到类似这样的输出。</p>
 <pre><code>Parent started
 Child PiD == 4717
@@ -381,6 +381,10 @@ Exited with code 0
   <ul class="entry">
     
       <li>
+        <a href="/2019/03/haskell-intro/">Haskell 简易指南</a>
+      </li>
+    
+      <li>
         <a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a>
       </li>
     
@@ -396,10 +400,6 @@ Exited with code 0
         <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
       </li>
     
-      <li>
-        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -411,7 +411,9 @@ Exited with code 0
   
     <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
   
-    <li><a href="/categories/Informatics/">Informatics</a><small>19</small></li>
+    <li><a href="/categories/Informatics/">Informatics</a><small>20</small></li>
+  
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>0</small></li>
   
     <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
   
@@ -425,7 +427,7 @@ Exited with code 0
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 12.5px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 18px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 14px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
   </div>
 </div>
 
@@ -455,7 +457,7 @@ Exited with code 0
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 RecursiveG
+  &copy; 2019 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>
@@ -488,5 +490,20 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </script>
 
 
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

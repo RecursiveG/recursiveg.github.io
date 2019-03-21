@@ -2,191 +2,198 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://recursiveg.me/2017/05/simple-chrome-extension/</loc>
+    <loc>http://recursiveg.me/2019/03/haskell-intro/</loc>
     
-    <lastmod>2017-05-12T23:52:52.139Z</lastmod>
+    <lastmod>2019-03-21T20:26:08.597Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/</loc>
+    <loc>http://recursiveg.me/2017/05/simple-chrome-extension/</loc>
     
-    <lastmod>2016-12-25T00:36:26.391Z</lastmod>
+    <lastmod>2017-08-25T04:27:51.435Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/about/index.html</loc>
     
-    <lastmod>2016-12-24T21:52:21.574Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.232Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://recursiveg.me/404.html</loc>
+    <loc>http://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/</loc>
     
-    <lastmod>2016-06-15T15:24:56.256Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
-    
-    <lastmod>2016-01-14T03:23:30.452Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/03/universal-storge/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/12/site-migration-complete/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/11/minecraft-modding-with-asm/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/07/domain-name-registrar-switched/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/07/programming-with-ptrace-part6/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
-    
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.229Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/2012/12/helloworld/</loc>
     
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
     
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
     
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
     
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/12/site-migration-complete/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/03/universal-storge/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
     
-    <lastmod>2016-01-14T02:33:05.839Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/07/domain-name-registrar-switched/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/07/programming-with-ptrace-part6/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/11/minecraft-modding-with-asm/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/google9ce4763fb612caec.html</loc>
     
-    <lastmod>2015-12-28T09:28:12.986Z</lastmod>
+    <lastmod>2017-08-13T04:55:25.219Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/404.html</loc>
+    
+    <lastmod>2017-08-13T04:55:25.209Z</lastmod>
     
   </url>
   

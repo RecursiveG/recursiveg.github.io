@@ -15,7 +15,7 @@
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
-    <meta property="og:image" content="undefined"/>
+    <meta property="og:image" content=""/>
   
 
   <link href="/favicon.png" rel="icon" />
@@ -66,6 +66,39 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-07-16T05:43:25.000Z"><a href="/2014/07/domain-name-registrar-switched/">Jul 16 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>昨天折腾了一天，把域名从Godaddy转移到了Name.com<br>表示基本没遇到什么麻烦，信用卡借用了家长的，付款也很方便。<br>关键是便宜啊。转入9美刀，续期11美刀,比Godaddy坑爹的18刀便宜太多了啊~~<br>而且还有免费的WHOIS保护啊~~~~优惠码<code>PRIVACYPLEASE</code>超好记有木有！<br>虽然不是最便宜的但是Name.com的控制台相当美观呐~<br>结尾吐槽一句：在万网注册的都是真的勇士。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
   <article class="post">
   
   <div class="post-content">
@@ -463,7 +496,7 @@ WSTOPSIG    如果`WIFSTOPPED`为非0值，获得引起进程停止的信号代�
     </header>
     <div class="entry">
       
-        <p>在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后<code>给32位系统的Tip</code>手动修改源代码）<br><figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</div><div class="line">  <span class="keyword">pid_t</span> pid;</div><div class="line">  pid=fork();</div><div class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</div><div class="line">    <span class="keyword">return</span>(<span class="number">-1</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</div><div class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</div><div class="line">    sleep(<span class="number">1</span>);</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</div><div class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</div><div class="line">  &#125;<span class="keyword">else</span>&#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</div><div class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</div><div class="line">    <span class="keyword">struct</span> rusage ru;</div><div class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</div><div class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</div><div class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</div><div class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</div><div class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</div><div class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</div><div class="line">      <span class="keyword">if</span> (intocall)&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld .... "</span>,_ORIG_RAX);</div><div class="line">        intocall=<span class="number">0</span>;</div><div class="line">      &#125;<span class="keyword">else</span>&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</div><div class="line">        intocall=<span class="number">1</span>;</div><div class="line">      &#125;</div><div class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+        <p>在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后<code>给32位系统的Tip</code>手动修改源代码）<br><figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</div><div class="line">  <span class="keyword">pid_t</span> pid;</div><div class="line">  pid=fork();</div><div class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</div><div class="line">    <span class="keyword">return</span>(<span class="number">-1</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</div><div class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</div><div class="line">    sleep(<span class="number">1</span>);</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</div><div class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</div><div class="line">  &#125;<span class="keyword">else</span>&#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</div><div class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rusage</span> <span class="title">ru</span>;</span></div><div class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</div><div class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</div><div class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</div><div class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</div><div class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</div><div class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</div><div class="line">      <span class="keyword">if</span> (intocall)&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld .... "</span>,_ORIG_RAX);</div><div class="line">        intocall=<span class="number">0</span>;</div><div class="line">      &#125;<span class="keyword">else</span>&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</div><div class="line">        intocall=<span class="number">1</span>;</div><div class="line">      &#125;</div><div class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
       
     </div>
     <footer>
@@ -533,43 +566,6 @@ if (pid==0){
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-03-19T11:55:49.000Z"><a href="/2014/03/bad-apple-character-player/">Mar 19 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/03/bad-apple-character-player/">有屏幕的地方就有烂苹果</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="external">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
-<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2014/03/bad-apple-character-player/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -595,6 +591,10 @@ if (pid==0){
   <ul class="entry">
     
       <li>
+        <a href="/2019/03/haskell-intro/">Haskell 简易指南</a>
+      </li>
+    
+      <li>
         <a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a>
       </li>
     
@@ -610,10 +610,6 @@ if (pid==0){
         <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
       </li>
     
-      <li>
-        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -625,7 +621,9 @@ if (pid==0){
   
     <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
   
-    <li><a href="/categories/Informatics/">Informatics</a><small>19</small></li>
+    <li><a href="/categories/Informatics/">Informatics</a><small>20</small></li>
+  
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>0</small></li>
   
     <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
   
@@ -639,7 +637,7 @@ if (pid==0){
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 12.5px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 18px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 14px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
   </div>
 </div>
 
@@ -669,7 +667,7 @@ if (pid==0){
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 RecursiveG
+  &copy; 2019 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>
@@ -702,5 +700,20 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </script>
 
 
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

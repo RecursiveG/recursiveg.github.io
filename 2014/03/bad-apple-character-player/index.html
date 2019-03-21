@@ -15,7 +15,7 @@
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
-    <meta property="og:image" content="undefined"/>
+    <meta property="og:image" content=""/>
   
 
   <link href="/favicon.png" rel="icon" />
@@ -85,7 +85,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br><a id="more"></a><br>第二步要把视频变成一帧一帧的图片，请出FFmpeg来帮忙:</p>
 <pre><code>ffmpeg -i BadApple.mkv -s 80x60 -r 15 Ba%d.png
 </code></pre><p>然后你就会得到<code>Ba1.png Ba2.png Ba3.png</code>等一大堆文件，这就是各帧了。注意我在这一步同时把大小缩小到了80*60和把帧速率调到了15帧每秒。</p>
-<p>第三步用ImageMagick将图像转换成黑白图，然后再转换成<code>xpm</code>格式。XPM格式本质上是一个文本文档，可以直接被<code>#include</code>。我们这一步要用到一点点脚本技巧。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> x <span class="keyword">in</span> *.png</div><div class="line"><span class="keyword">do</span></div><div class="line">  convert <span class="variable">$x</span> -monochrome `basename <span class="_">-s</span> .png <span class="variable">$x</span>`.xpm</div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure></p>
+<p>第三步用ImageMagick将图像转换成黑白图，然后再转换成<code>xpm</code>格式。XPM格式本质上是一个文本文档，可以直接被<code>#include</code>。我们这一步要用到一点点脚本技巧。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> x <span class="keyword">in</span> *.png</div><div class="line"><span class="keyword">do</span></div><div class="line">  convert <span class="variable">$x</span> -monochrome `basename -s .png <span class="variable">$x</span>`.xpm</div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure></p>
 <p>最后写一段C语言小程序，利用游程编码进一步缩小文件体积。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">#include &lt;stdio.h&gt;</div><div class="line">#include &quot;xpm.h&quot;</div><div class="line">void main()&#123;</div><div class="line">  FILE *f=fopen(&quot;BA.dat&quot;,&quot;a&quot;);</div><div class="line">  char count;</div><div class="line">  int t=ARR[0][6]==&apos;1&apos;?1:2;</div><div class="line">  for(int i=1+t;i&lt;61+t;i++)&#123;</div><div class="line">    count=1;</div><div class="line">    for(int j=1;j&lt;80;j++)&#123;</div><div class="line">      if(ARR[i][j]==ARR[i][j-1])&#123;</div><div class="line">        count++;</div><div class="line">      &#125;else&#123;</div><div class="line">        if(ARR[i][j]==&apos;.&apos;)count=-count;</div><div class="line">        fprintf(f,&quot;%c&quot;,count);</div><div class="line">        count=1;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    if(ARR[i][79]==&apos; &apos;)count=-count;</div><div class="line">    fprintf(f,&quot;%c&quot;,count);</div><div class="line">    fprintf(f,&quot;%c&quot;,0);</div><div class="line">  &#125;</div><div class="line">  fclose(f);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>当然，离不了脚本和编译器的帮助，我这里使用了<code>tcc</code>进行编译<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (( i=1; i&lt;=3288; i++))</div><div class="line"><span class="keyword">do</span></div><div class="line">  cp Ba<span class="variable">$i</span>.xpm xpm.h</div><div class="line">  tcc -DARR=Ba<span class="variable">$i</span> bad_apple.c &amp;&amp; ./a.out</div><div class="line">  rm xpm.h</div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure></p>
@@ -142,6 +142,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   <ul class="entry">
     
       <li>
+        <a href="/2019/03/haskell-intro/">Haskell 简易指南</a>
+      </li>
+    
+      <li>
         <a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a>
       </li>
     
@@ -157,10 +161,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
       </li>
     
-      <li>
-        <a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -172,7 +172,9 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   
     <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
   
-    <li><a href="/categories/Informatics/">Informatics</a><small>19</small></li>
+    <li><a href="/categories/Informatics/">Informatics</a><small>20</small></li>
+  
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>0</small></li>
   
     <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
   
@@ -186,7 +188,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 12.5px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 18px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 14px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
   </div>
 </div>
 
@@ -216,7 +218,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 RecursiveG
+  &copy; 2019 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>
@@ -249,5 +251,20 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </script>
 
 
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://recursiveg.me/README.html</loc>
+    
+    <lastmod>2019-03-21T20:33:50.178Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://recursiveg.me/2019/03/haskell-intro/</loc>
     
     <lastmod>2019-03-21T20:26:08.597Z</lastmod>
@@ -58,7 +65,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
+    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -72,14 +79,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
+    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -100,6 +100,13 @@
   </url>
   
   <url>
+    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
@@ -108,13 +115,6 @@
   
   <url>
     <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -135,14 +135,14 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
+    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -156,7 +156,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
+    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -164,6 +164,13 @@
   
   <url>
     <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     

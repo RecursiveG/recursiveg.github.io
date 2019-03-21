@@ -2,13 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://recursiveg.me/README.html</loc>
-    
-    <lastmod>2019-03-21T20:33:50.178Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://recursiveg.me/2019/03/haskell-intro/</loc>
     
     <lastmod>2019-03-21T20:26:08.597Z</lastmod>
@@ -37,6 +30,13 @@
   </url>
   
   <url>
+    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://recursiveg.me/2012/12/helloworld/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
@@ -51,21 +51,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
+    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -79,7 +65,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
+    <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -87,6 +73,20 @@
   
   <url>
     <loc>http://recursiveg.me/2013/03/universal-storge/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -107,7 +107,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -135,21 +135,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -163,7 +149,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
+    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -171,6 +157,13 @@
   
   <url>
     <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     

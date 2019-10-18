@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>How to solve the &#34;Connection Reset&#34; problem | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Recursive G&#39;s personal blog" />
+  <meta name="description" content="Recursive G&#39;s personal blog">
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="How to solve the &#34;Connection Reset&#34; problem"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="How to solve the &#34;Connection Reset&#34; problem">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -84,10 +84,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         <p>考虑到安全原因，这篇文章用英语写成。如果你没有足够的勇气读完它，请自觉退出。</p>
 <p>This article is written mainly for those people in China. Be sure you are enough familiar with what you are reading and what you try to do.</p>
 <p>================================================================</p>
-<p>As we all known, in China mainland, we cannot visit sites like YouTube Facebook Twitter. And the Google sites are out of service frequently. It’s because the Chinese government used some technical methods to prevent us from visiting them. The government has setup a system to do this. It’s called the <a href="https://en.wikipedia.org/wiki/Great_Firewall" target="_blank" rel="external">Great Firewall of China</a> (GFW). This system keeps look on the gateway export. And if it finds something unusual. It will stop the connection.</p>
-<p>The system usually inject a RESET into the TCP connection. To prevent this, we can use HTTPS(The S means Secure) instead of HTTP. So the system can not inject the RESET any more. It’s easy to perform. You just need to replace the “http://“ part of a URL with “https://“. And the URL will look like this “<a href="https://www.facebook.com" target="_blank" rel="external">https://www.facebook.com</a>“. Most of the sites support a HTTPS connection.</p>
+<p>As we all known, in China mainland, we cannot visit sites like YouTube Facebook Twitter. And the Google sites are out of service frequently. It’s because the Chinese government used some technical methods to prevent us from visiting them. The government has setup a system to do this. It’s called the <a href="https://en.wikipedia.org/wiki/Great_Firewall" target="_blank" rel="noopener">Great Firewall of China</a> (GFW). This system keeps look on the gateway export. And if it finds something unusual. It will stop the connection.</p>
+<p>The system usually inject a RESET into the TCP connection. To prevent this, we can use HTTPS(The S means Secure) instead of HTTP. So the system can not inject the RESET any more. It’s easy to perform. You just need to replace the “http://“ part of a URL with “https://“. And the URL will look like this “<a href="https://www.facebook.com&quot;" target="_blank" rel="noopener">https://www.facebook.com&quot;</a>. Most of the sites support a HTTPS connection.</p>
 <p>Unfortunately, this will not always works. Because the system also used another method called “DNS Redirection”. As we all known, the computers on the Internet are identified by IP address. But human can’t remember them easily. So we use some meaningful phases called “Domain”. Some computers on the Internet provide the kind of service to translate the domains to IP address which is the only form computers can recognize. They are called the “DNS Server”. DNS Redirection is that the DNS servers won’t return the correct IP address (usually were instructed to do so) so that we can’t visit the particular sites.</p>
-<p>Luckily, we can assign an IP to a domain manually. That’s the function of a file called <a href="https://en.wikipedia.org/wiki/Hosts_(file" target="_blank" rel="external">hosts</a>). There’s a project called <a href="https://code.google.com/p/smarthosts/" target="_blank" rel="external">smarthosts</a> on Google Code. It provided a set of IP address you may use. Paste them to your local hosts file and enjoy the Internet.</p>
+<p>Luckily, we can assign an IP to a domain manually. That’s the function of a file called <a href="https://en.wikipedia.org/wiki/Hosts_(file)" target="_blank" rel="noopener">hosts</a>. There’s a project called <a href="https://code.google.com/p/smarthosts/" target="_blank" rel="noopener">smarthosts</a> on Google Code. It provided a set of IP address you may use. Paste them to your local hosts file and enjoy the Internet.</p>
 <p>I will write more about the Internet censorship and how to avoid it. Check back later.</p>
 
       

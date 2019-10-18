@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>IDEA下建立Forge开发环境的正确姿势 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Minecraft mod developing in seperated folders under linux with IDEA." />
+  <meta name="description" content="Minecraft mod developing in seperated folders under linux with IDEA.">
   
-  <meta name="keywords" content="Minecraft,Modding,Forge,ForgeGradle,IDEA,IntellijIDEA" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="Minecraft,Modding,Forge,ForgeGradle,IDEA,IntellijIDEA">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="IDEA下建立Forge开发环境的正确姿势"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="IDEA下建立Forge开发环境的正确姿势">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -82,7 +82,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>见过不少教程都是基于Eclipse的，而基于IDEA的文章少得可怜，遂决定写此文。<br>本文通篇基于Linux/IntellijIDEA进行讲解，Windows/MAC/Eclipse用户请自行依葫芦画瓢。</p>
-<h1 id="设置Forge工作区"><a href="#设置Forge工作区" class="headerlink" title="设置Forge工作区"></a>设置Forge工作区</h1><p>当然，你得首先去<a href="http://files.minecraftforge.net/" target="_blank" rel="external">MinecraftForge</a>下载一份源代码。我这里用的是最新的<code>forge-1.7.10-10.13.2.1258-src.zip</code><br>接着，找个地方建立一个文件夹，这将是你的工程目录，我的叫做<code>Forge1.7.10-1258</code>。然后再在里面建立一个目录，比方说就叫<code>forge-1.7.10-10.13.2.1258-src</code>，把你的Forge源码解压进去。<br>现在，你的文件夹层次应该看起来是这样的：</p>
+<h1 id="设置Forge工作区"><a href="#设置Forge工作区" class="headerlink" title="设置Forge工作区"></a>设置Forge工作区</h1><p>当然，你得首先去<a href="http://files.minecraftforge.net/" target="_blank" rel="noopener">MinecraftForge</a>下载一份源代码。我这里用的是最新的<code>forge-1.7.10-10.13.2.1258-src.zip</code><br>接着，找个地方建立一个文件夹，这将是你的工程目录，我的叫做<code>Forge1.7.10-1258</code>。然后再在里面建立一个目录，比方说就叫<code>forge-1.7.10-10.13.2.1258-src</code>，把你的Forge源码解压进去。<br>现在，你的文件夹层次应该看起来是这样的：</p>
 <pre><code>Forge1.7.10-1258
 └── forge-1.7.10-10.13.2.1258-src
      ├── build.gradle
@@ -96,16 +96,19 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
      ├── MinecraftForge-Credits.txt
      ├── MinecraftForge-License.txt
      ├── README.txt
-     └── src
-</code></pre><p>你可以先按自己喜好改动一下<code>build.gradle</code>。比如，我喜欢手动指定一下mappings的版本：</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">minecraft &#123;</div><div class="line">    version = <span class="string">"1.7.10-10.13.2.1258"</span></div><div class="line">    runDir = <span class="string">"eclipse"</span></div><div class="line">    mappings = <span class="string">"stable_12"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+     └── src</code></pre><p>你可以先按自己喜好改动一下<code>build.gradle</code>。比如，我喜欢手动指定一下mappings的版本：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">minecraft &#123;</span><br><span class="line">    version = <span class="string">"1.7.10-10.13.2.1258"</span></span><br><span class="line">    runDir = <span class="string">"eclipse"</span></span><br><span class="line">    mappings = <span class="string">"stable_12"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>接着，cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下两条命令：</p>
 <pre><code>gradle -i setupDecompWorkspace
-gradle -i ideaModule
-</code></pre><p>然后请耐心等待指令完成，可以去喝杯牛奶睡个觉什么的。<br><a id="more"></a></p>
-<h1 id="导入到IDEA"><a href="#导入到IDEA" class="headerlink" title="导入到IDEA"></a>导入到IDEA</h1><p>等以上操作完成后，就可以打开IDEA，选“Create New Project”，注意要建立一个<strong>空工程</strong>（Empty Project）<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/1.png" alt="Create New Project"><br>“Project Name”自然可以随意填写，”Project Location”则是之前创建的目录，下方的”Project Format”推荐选”Directory Based”<br>点”Finish”之后应该会自动打开”Project Structure”窗口，如果没有的话可以按Ctrl+Alt+Shift+S或是从菜单栏”File –&gt; Project Structure”<br>打开窗口之后我们首先要选择SDK版本：先点左边的”Project”，然后在右边”Project SDK”里选一个，我是选了Java8，你当然可以选择任何版本（不要低于Java6）<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/2.png" alt="Select Project SDK"><br>接着点左边的”Modules”,再点那个绿色的“+”号，接着选”Import Module”<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/3.png" alt="Location of &quot;Import Module&quot;"><br>然后选forge-1.7.10-10.13.2.1258-src目录下的<code>forge-1.7.10-10.13.2.1258-src.iml</code>文件就好。<br>Import完了之后检查下有没有报错，如果没问题就可以点右下角OK。</p>
+gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以去喝杯牛奶睡个觉什么的。</p>
+<a id="more"></a>
+<h1 id="导入到IDEA"><a href="#导入到IDEA" class="headerlink" title="导入到IDEA"></a>导入到IDEA</h1><p>等以上操作完成后，就可以打开IDEA，选“Create New Project”，注意要建立一个<strong>空工程</strong>（Empty Project）</p>
+
+<p><img src="/images/setup-forge-workspace-with-idea-1.png" alt="Create New Project"><br>“Project Name”自然可以随意填写，”Project Location”则是之前创建的目录，下方的”Project Format”推荐选”Directory Based”<br>点”Finish”之后应该会自动打开”Project Structure”窗口，如果没有的话可以按Ctrl+Alt+Shift+S或是从菜单栏”File –&gt; Project Structure”<br>打开窗口之后我们首先要选择SDK版本：先点左边的”Project”，然后在右边”Project SDK”里选一个，我是选了Java8，你当然可以选择任何版本（不要低于Java6）<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/2.png" alt="Select Project SDK"><br>接着点左边的”Modules”,再点那个绿色的“+”号，接着选”Import Module”<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/3.png" alt="Location of &quot;Import Module&quot;"><br>然后选forge-1.7.10-10.13.2.1258-src目录下的<code>forge-1.7.10-10.13.2.1258-src.iml</code>文件就好。<br>Import完了之后检查下有没有报错，如果没问题就可以点右下角OK。</p>
 <p>重新cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下三条命令让gradle自动建立运行配置。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ln -s ../.idea .</div><div class="line">gradle -i genIntellijRun</div><div class="line">rm .idea</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ln -s ../.idea .</span><br><span class="line">gradle -i genIntellijRun</span><br><span class="line">rm .idea</span><br></pre></td></tr></table></figure>
+
 <p>回到IDEA，然后有必要的话重新加载一下Project。继续选菜单栏”Run –&gt; Edit Configurations”,点左侧的”Minecraft Client”，修改”Working Directory”到<code>forge-1.7.10-10.13.2.1258-src/eclipse</code>。<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/4.png" alt="Edit Configuration"><br>你也可以像我一样指定一个username。接着对”Minecraft Server”也如法炮制。然后右下角”OK”退出。</p>
 <p>现在Forge应该就可以运行了，在IDEA的主界面右上角有这么一片区域，选”Minecraft Client”然后点右侧那个绿色的三角箭头即可<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/5.png" alt="Execution Control Bar"></p>
 <h1 id="一个Mod！"><a href="#一个Mod！" class="headerlink" title="一个Mod！"></a>一个Mod！</h1><p>如果之前的步骤都没有问题，你就可以继续了<br>为了更好地演示运行配置以及发布流程，我决定写一个Mod，添加一种矿石：“Xp Ore”,顾名思义，挖掉后能得到大量经验。</p>
@@ -128,13 +131,11 @@ gradle -i ideaModule
 │           │           └── blocks
 │           │               └── xp_ore.png
 │           └── mcmod.info
-└── XpOre.iml
-</code></pre><p>要想让这个Mod在IDEA里运行起来，有两种方式。第一种比较简单，直接菜单栏”Run –&gt; Edit Configurations –&gt; ‘Minecraft Client’ –&gt; Use classpath of mod …”下拉列表里选”XpOre”，保存退出运行即可。这种方式比较适合只开发一个Mod的情况。<br>当有N个Module互相依赖的时候，我推荐创建另一个Module，比方说，叫”Run”。然后令其依赖<code>forge-1.7.10-10.13.2.1258-src</code>和你需要加载的其他Module，然后”Use classpath of mod”选择”Run”即可。</p>
+└── XpOre.iml</code></pre><p>要想让这个Mod在IDEA里运行起来，有两种方式。第一种比较简单，直接菜单栏”Run –&gt; Edit Configurations –&gt; ‘Minecraft Client’ –&gt; Use classpath of mod …”下拉列表里选”XpOre”，保存退出运行即可。这种方式比较适合只开发一个Mod的情况。<br>当有N个Module互相依赖的时候，我推荐创建另一个Module，比方说，叫”Run”。然后令其依赖<code>forge-1.7.10-10.13.2.1258-src</code>和你需要加载的其他Module，然后”Use classpath of mod”选择”Run”即可。</p>
 <h1 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h1><p>发布其实相当方便，把forge-1.7.10-10.13.2.1258-src文件夹里的<code>build.gradle</code>复制到<code>XpOre</code>文件夹下面<br>按自己喜好修改其中的<code>version</code>,<code>group</code>和<code>archivesBaseName</code>即可。比方说我的是：</p>
 <pre><code>version = &quot;v0.1&quot;
 group= &quot;org.devinprogress.xpore&quot;
-archivesBaseName = &quot;XpOre-1.7.10&quot;
-</code></pre><p>然后在XpOre文件夹下<code>gradle build</code>即可。运行完成后，就能在<code>XpOre/build/libs/</code>文件夹下找到编译好的jar了。</p>
+archivesBaseName = &quot;XpOre-1.7.10&quot;</code></pre><p>然后在XpOre文件夹下<code>gradle build</code>即可。运行完成后，就能在<code>XpOre/build/libs/</code>文件夹下找到编译好的jar了。</p>
 <p>最后来一张Mod的效果图<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/blog/setup-forge-idea/8.png" alt="XpOre Mod"></p>
 
       

@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>第 3 页 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Recursive G&#39;s personal blog" />
+  <meta name="description" content="Recursive G&#39;s personal blog">
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -82,8 +82,8 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="external">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
-<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br>
+        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="noopener">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
+<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。</p>
       
     </div>
     <footer>
@@ -119,16 +119,13 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p><a href="http://curl.haxx.se/" target="_blank" rel="external">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
+        <p><a href="http://curl.haxx.se/" target="_blank" rel="noopener">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
 <h3 id="STEP1-安装MinGW编译器"><a href="#STEP1-安装MinGW编译器" class="headerlink" title="STEP1 安装MinGW编译器"></a>STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
-<pre><code>~# pacman -S mingw-w64
-</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
+<pre><code>~# pacman -S mingw-w64</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
 <pre><code>~# pacman -Ql mingw-w64-gcc| grep &apos;/usr/bin/.*gcc$&apos;
 mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
-mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
-</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/" target="_blank" rel="external">Hello World代码</a> ^_^），然后编译试试：</p>
-<pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe
-</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。<br>
+mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/" target="_blank" rel="noopener">Hello World代码</a> ^_^），然后编译试试：</p>
+<pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。</p>
       
     </div>
     <footer>
@@ -164,7 +161,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
     </header>
     <div class="entry">
       
-        <p>某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/messy-code.png" alt="An Example of the Messy Code"><br>
+        <p>某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：<br><img src="http://0f4529-files.oss-cn-hangzhou.aliyuncs.com/messy-code.png" alt="An Example of the Messy Code"></p>
       
     </div>
     <footer>
@@ -234,7 +231,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
     <div class="entry">
       
         <p><strong>Update: 本计划已无限期暂停，在可预见的未来没有重启计划，如有需要资料的欢迎发邮件索取</strong></p>
-<p>众所周知，网盘这东西对大众来说不可或缺，国内的在线存储服务也欣欣向荣。但是，由于各种原因，我们仍感到这些不能完全满足我们的要求。<br>比如各种限制、各种暂停分享、还有各种必须付钱才能用的VIP服务等。各大公司想挣钱无可非议，毕竟网络存储绝对是烧钱的主，但作为一个搞技术的人，决不能整天写登陆界面，对吧？<br>动机在<a href="/2013/01/data-structure-of-vdisk/">新浪微盘数据结构解析</a>中说了，在那之后我又研究了其他的网盘，萌生了这么一个设想。<br>简要的说，这个系统可以大大方便文件的传播与获取，延长资源的存活时间。<br>
+<p>众所周知，网盘这东西对大众来说不可或缺，国内的在线存储服务也欣欣向荣。但是，由于各种原因，我们仍感到这些不能完全满足我们的要求。<br>比如各种限制、各种暂停分享、还有各种必须付钱才能用的VIP服务等。各大公司想挣钱无可非议，毕竟网络存储绝对是烧钱的主，但作为一个搞技术的人，决不能整天写登陆界面，对吧？<br>动机在<a href="/2013/01/data-structure-of-vdisk/">新浪微盘数据结构解析</a>中说了，在那之后我又研究了其他的网盘，萌生了这么一个设想。<br>简要的说，这个系统可以大大方便文件的传播与获取，延长资源的存活时间。</p>
       
     </div>
     <footer>
@@ -272,8 +269,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
       
         <p>做为一个搞信息学竞赛这么长时间的人，再加上估计很快就要转C++了，我觉得我有必要留下一些关于Pascal语言的资料，于是就有了这篇文章。我只负责解释用法，对基础概念不了解的请自行Google。所有这篇文章里的东西应该都能在Free Pascal自带的文档里找到，我写出来是为了众多不喜欢看英文的同学们，如果你愿意自己去看一下，一定会收益匪浅。</p>
 <h3 id="不同进制的表示"><a href="#不同进制的表示" class="headerlink" title="不同进制的表示"></a>不同进制的表示</h3><p>平时我们写的常量都是十进制数，但我们有时需要写一个比如十六进制数怎么办呢？我们当然可以手动计算一下，但还有更优雅的方法。</p>
-<pre><code>writeln($Ff,#32,&amp;10,#32,%100);
-</code></pre><p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。<br>
+<pre><code>writeln($Ff,#32,&amp;10,#32,%100);</code></pre><p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。</p>
       
     </div>
     <footer>
@@ -309,7 +305,7 @@ mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
     </header>
     <div class="entry">
       
-        <p><em>注意!这个是<a href="http://vdisk.weibo.com" target="_blank" rel="external">微盘</a>而不是<a href="http://www.vdisk.cn" target="_blank" rel="external">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。<br>
+        <p><em>注意!这个是<a href="http://vdisk.weibo.com" target="_blank" rel="noopener">微盘</a>而不是<a href="http://www.vdisk.cn" target="_blank" rel="noopener">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。</p>
       
     </div>
     <footer>

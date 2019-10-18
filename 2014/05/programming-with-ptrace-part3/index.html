@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>Programming with PTRACE, Part3 - 进程的终止与信号 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Third part of serial of tutorial: Programming with PTRACE" />
+  <meta name="description" content="Third part of serial of tutorial: Programming with PTRACE">
   
-  <meta name="keywords" content="ptrace,signal,return-value" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="ptrace,signal,return-value">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="Programming with PTRACE, Part3 - 进程的终止与信号"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="Programming with PTRACE, Part3 - 进程的终止与信号">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -82,17 +82,19 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>在Part2中，我们粗略了解了如何使用<code>ptrace</code>获得系统调用信息，即在一个大循环里不断获取程序信息，如果程序退出则停止循环。当然，那个判断异常简陋，几乎无法处理任何特殊情况。我将在本Part中详细解说各种异常情况的处理，同时讲解各种信号相关的问题。</p>
-<h2 id="一些重要的宏"><a href="#一些重要的宏" class="headerlink" title="一些重要的宏"></a>一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html" target="_blank" rel="external">这个</a>页面</p>
+<h2 id="一些重要的宏"><a href="#一些重要的宏" class="headerlink" title="一些重要的宏"></a>一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html" target="_blank" rel="noopener">这个</a>页面</p>
 <pre><code>WIFEXITED   如果进程正常退出，返回一个非0值(通常是进程调用了`exit()`或是`_exit()`)
 WIFSIGNALED 如果进程由于一个未被捕获的信号而被终止，返回一个非0值
 WIFSTOPPED  当进程被停止(非终止)时，返回一个非0值(通常发生在当进程处于`traced`状态时)
 
 WEXITSTATUS 当`WIFEXITED`为非0值，获得进程`main()`函数的返回值
 WTERMSIG    如果`WIFSIGNALED`为非0值，获得引起进程终止的信号代码
-WSTOPSIG    如果`WIFSTOPPED`为非0值，获得引起进程停止的信号代码
-</code></pre><p>除了这六个，还有<code>WIFCONTINUED</code>和<code>WCOREDUMP</code>两个宏，不过我们用不到，我也没仔细研究，就不说了。<br>当进程自行终止时，<code>WIFEXITED</code>即为<code>true</code>，配套使用<code>WEXITSTATUS</code>获得返回值，不做过多解释。当子进程进行系统调用时，<code>WIFSTOPPED</code>为<code>true</code>,同时<code>WSTOPSIG</code>等于<code>SIGTRAP</code>(信号代码为7),我们可以用这种方法区分<code>syscall-stop</code>和<code>signal-delivery-stop</code>。当有一个外部信号要发送给子进程，这个信号会先到达父进程，使<code>WIFSTOPPED</code>为<code>true</code>，同时<code>WSTOPSIG</code>等于该信号的信号代码。父进程可以选择将这个信号继续传递或是不传递，甚至传递另一个信号给子进程。一旦信号真正到达子进程，就进入子进程自己的处理流程或是系统默认动作，可能触发<code>WIFSIGNALED</code>，比如<code>SIGINT</code>。<br>在所有信号中，<code>SIGKILL</code>是一个例外，它不会经过父进程引发<code>WIFSTOPPED</code>，而是直接传递到子进程，引发<code>WIFSIGNALED</code>。<br><a id="more"></a></p>
+WSTOPSIG    如果`WIFSTOPPED`为非0值，获得引起进程停止的信号代码</code></pre><p>除了这六个，还有<code>WIFCONTINUED</code>和<code>WCOREDUMP</code>两个宏，不过我们用不到，我也没仔细研究，就不说了。<br>当进程自行终止时，<code>WIFEXITED</code>即为<code>true</code>，配套使用<code>WEXITSTATUS</code>获得返回值，不做过多解释。当子进程进行系统调用时，<code>WIFSTOPPED</code>为<code>true</code>,同时<code>WSTOPSIG</code>等于<code>SIGTRAP</code>(信号代码为7),我们可以用这种方法区分<code>syscall-stop</code>和<code>signal-delivery-stop</code>。当有一个外部信号要发送给子进程，这个信号会先到达父进程，使<code>WIFSTOPPED</code>为<code>true</code>，同时<code>WSTOPSIG</code>等于该信号的信号代码。父进程可以选择将这个信号继续传递或是不传递，甚至传递另一个信号给子进程。一旦信号真正到达子进程，就进入子进程自己的处理流程或是系统默认动作，可能触发<code>WIFSIGNALED</code>，比如<code>SIGINT</code>。<br>在所有信号中，<code>SIGKILL</code>是一个例外，它不会经过父进程引发<code>WIFSTOPPED</code>，而是直接传递到子进程，引发<code>WIFSIGNALED</code>。</p>
+<a id="more"></a>
 <h2 id="信号的传递与修改"><a href="#信号的传递与修改" class="headerlink" title="信号的传递与修改"></a>信号的传递与修改</h2><p>之前提到，父进程需要将信号传递给子进程，这是由<code>ptrace(PTRACE_SYSCALL,pid,0,0)</code>的第四个参数决定的。如果为0,就不传递信号，否则传递对应代码的信号，比如<code>ptrace(PTRACE_SYSCALL,pid,0,9)</code>就将信号9(SIGKILL)传递给了子进程。<br>修改信号简直信手拈来，传一个你想要传的信号即可。</p>
-<h2 id="strsignal-和代码"><a href="#strsignal-和代码" class="headerlink" title="strsignal()和代码"></a>strsignal()和代码</h2><p><code>strsignal()</code>接受一个整数参数，返回<code>const char*</code>，用于把信号代码变为对应的、人类可读的字符串描述，定义于<code>string.h</code>。下面给出判断程序退出的代码：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">int</span> sig_no;</div><div class="line"><span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);</div><div class="line"><span class="keyword">if</span>(sig_no==SIGTRAP)sig_no=<span class="number">0</span>;</div><div class="line">......</div><div class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);</div></pre></td></tr></table></figure></p>
+<h2 id="strsignal-和代码"><a href="#strsignal-和代码" class="headerlink" title="strsignal()和代码"></a>strsignal()和代码</h2><p><code>strsignal()</code>接受一个整数参数，返回<code>const char*</code>，用于把信号代码变为对应的、人类可读的字符串描述，定义于<code>string.h</code>。下面给出判断程序退出的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">int</span> sig_no;</span><br><span class="line"><span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);</span><br><span class="line"><span class="keyword">if</span>(sig_no==SIGTRAP)sig_no=<span class="number">0</span>;</span><br><span class="line">......</span><br><span class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);</span><br></pre></td></tr></table></figure>
+
 <h2 id="来自ptrace的高级选项"><a href="#来自ptrace的高级选项" class="headerlink" title="来自ptrace的高级选项"></a>来自ptrace的高级选项</h2><p>你也许会纠结，如果外部传递了一个<code>SIGTRAP</code>信号，那么如何分辨呢？答案是使用<code>PTRACE_SETOPTIONS</code>设置<code>PTRACE_O_TRACESYSGOOD</code>标记，即在while之前，第一个wait之后，第一个<code>PTRACE_SYSCALL</code>之前，使用<code>ptrace(PTRACE_SETOPTIONS,pid,0,PTRACE_O_TRACESYSGOOD)</code>。这会使得<code>syscall-stop</code>导致的<code>WSTOPSIG</code>从<code>SIGTRAP</code>变为<code>SIGTRAP|0x80</code>，而普通的来自外部的<code>SIGTRAP</code>依然是<code>SIGTRAP</code>。</p>
 
       

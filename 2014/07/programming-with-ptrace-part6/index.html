@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>Programming with PTRACE, Part6 - 时间控制 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Sixth part of serial of tutorial: Programming with PTRACE" />
+  <meta name="description" content="Sixth part of serial of tutorial: Programming with PTRACE">
   
-  <meta name="keywords" content="ptrace,time,signal,setrlimit,getrlimit,RLIMIT_CPU,gettimeofday,timeval" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="ptrace,time,signal,setrlimit,getrlimit,RLIMIT_CPU,gettimeofday,timeval">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="Programming with PTRACE, Part6 - 时间控制"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="Programming with PTRACE, Part6 - 时间控制">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -88,21 +88,17 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 5.42s user
 0.10s system
 100% cpu
-5.520 total
-</code></pre><a id="more"></a>
+5.520 total</code></pre><a id="more"></a>
 <h1 id="动手写个带时限的time"><a href="#动手写个带时限的time" class="headerlink" title="动手写个带时限的time"></a>动手写个带时限的time</h1><p>还在对上个PART的<code>setrlimit</code>耿耿于怀么？我们现在就来用它！相关的定义位于<code>sys/resource.h</code>头文件里。我们这次要用到<code>RLIMIT_CPU</code>,这个选项限制进程所能占用的CPU时间，以秒为单位，可以把它理解为用户态时间和内核态时间的和。我们首先要使用<code>getrlimit</code>获得当前的限制：</p>
 <pre><code>struct rlimit TimeL;
-getrlimit(RLIMIT_CPU,&amp;TimeL);
-</code></pre><p><code>rlimit</code>结构有两个成员:</p>
+getrlimit(RLIMIT_CPU,&amp;TimeL);</code></pre><p><code>rlimit</code>结构有两个成员:</p>
 <ul>
 <li><code>rlim_cur</code> 软限制</li>
 <li><code>rlim_max</code> 硬限制</li>
 </ul>
 <p>系统一般会用比较平和的方式对待那些达到软限制的进程，比如发个SIGSEGV什么的。而那些达到硬限制的进程会被直接SIGKILL。我们接下来要修改软限制，注意单位是秒。</p>
-<pre><code>TimeL.rlim_cur=Timeout;
-</code></pre><p>以上工作都要在<code>fork()</code>之前完成，之后要在<em>子进程</em>里应用这个限制（没错就是exec那里）</p>
-<pre><code>setrlimit(RLIMIT_CPU,&amp;TimeL);
-</code></pre><p>这样，如果子进程超过软限制，系统就会发送<code>SIGXCPU</code>信号给子进程。当然，因为ptrace的原因，信号会被先发送给父进程，这样就可以用part3里介绍的方法进行处理。这样子进程是要清蒸还是油炸就都由父进程决定了。<br>当然，我们还有别的方法获取时间信息。一是用<code>gettimeofday()</code>函数配合<code>timeval</code>结构，可以获得当前时间，精确到微秒（百万分之一秒）。在程序开始时调用下，结束时调用下，相减即可得到墙上时间。另一种方法是利用<code>wait4</code>里的<code>ru</code>参数，它其实是个<code>rusage</code>结构,成员<a href="http://man7.org/linux/man-pages/man2/getrusage.2.html" target="_blank" rel="external">见此</a>。其中的<code>ru_utime</code>和<code>ru_stime</code>成员是<code>timeval</code>结构，分别记录了用户态时间和内核态时间，同样精确到微秒。</p>
+<pre><code>TimeL.rlim_cur=Timeout;</code></pre><p>以上工作都要在<code>fork()</code>之前完成，之后要在<em>子进程</em>里应用这个限制（没错就是exec那里）</p>
+<pre><code>setrlimit(RLIMIT_CPU,&amp;TimeL);</code></pre><p>这样，如果子进程超过软限制，系统就会发送<code>SIGXCPU</code>信号给子进程。当然，因为ptrace的原因，信号会被先发送给父进程，这样就可以用part3里介绍的方法进行处理。这样子进程是要清蒸还是油炸就都由父进程决定了。<br>当然，我们还有别的方法获取时间信息。一是用<code>gettimeofday()</code>函数配合<code>timeval</code>结构，可以获得当前时间，精确到微秒（百万分之一秒）。在程序开始时调用下，结束时调用下，相减即可得到墙上时间。另一种方法是利用<code>wait4</code>里的<code>ru</code>参数，它其实是个<code>rusage</code>结构,成员<a href="http://man7.org/linux/man-pages/man2/getrusage.2.html" target="_blank" rel="noopener">见此</a>。其中的<code>ru_utime</code>和<code>ru_stime</code>成员是<code>timeval</code>结构，分别记录了用户态时间和内核态时间，同样精确到微秒。</p>
 <h1 id="程序睡着了"><a href="#程序睡着了" class="headerlink" title="程序睡着了"></a>程序睡着了</h1><p><code>RLIMIT_CPU</code>大多数情况下都能正常工作，配合<code>timeval</code>结构甚至能进一步提高精度。但是有两个例外（如果有更多请务必告诉我）：</p>
 <ol>
 <li>程序主动调用<code>sleep()</code></li>
@@ -112,18 +108,15 @@ getrlimit(RLIMIT_CPU,&amp;TimeL);
 <pre><code>void AlarmIn(int sig){
     if(sig==SIGALRM)
     kill(pid,SIGUSR1);
-}
-</code></pre><p>然后在子程序开始执行的时候绑定信号并设置Alarm，我在这设置超时一秒:</p>
+}</code></pre><p>然后在子程序开始执行的时候绑定信号并设置Alarm，我在这设置超时一秒:</p>
 <pre><code>signal(SIGALRM,AlarmIn);
-alarm(1);
-</code></pre><p>然后请根据part3所讲的内容在while循环里正确处理<code>SIGUSR1</code>。最后记得取消Alarm，如果没超时的话：</p>
-<pre><code>alarm(0);
-</code></pre><h1 id="完整代码？"><a href="#完整代码？" class="headerlink" title="完整代码？"></a>完整代码？</h1><p>表示完整代码太长了，放这儿太不美观，<del>我会稍后贴到gist上去。</del>代码被幽幽子吃掉了大家自己写把。</p>
+alarm(1);</code></pre><p>然后请根据part3所讲的内容在while循环里正确处理<code>SIGUSR1</code>。最后记得取消Alarm，如果没超时的话：</p>
+<pre><code>alarm(0);</code></pre><h1 id="完整代码？"><a href="#完整代码？" class="headerlink" title="完整代码？"></a>完整代码？</h1><p>表示完整代码太长了，放这儿太不美观，<del>我会稍后贴到gist上去。</del>代码被幽幽子吃掉了大家自己写把。</p>
 <h1 id="拓展阅读"><a href="#拓展阅读" class="headerlink" title="拓展阅读"></a>拓展阅读</h1><ul>
-<li><a href="http://zh.wikipedia.org/wiki/%E6%95%B0%E9%87%8F%E7%BA%A7_%28%E6%97%B6%E9%97%B4%29" target="_blank" rel="external">Wikipedia - 数量级 (时间)</a> 我把这个链接放这儿是因为老有人把微秒缩写成<code>ms</code>然后和毫秒搞混</li>
-<li><a href="http://blog.csdn.net/xwdok/article/details/542109" target="_blank" rel="external">协同式多任务与抢占式多任务</a></li>
-<li><a href="http://www.cnblogs.com/iceocean/articles/1650929.html" target="_blank" rel="external">Linux时间管理</a></li>
-<li><a href="http://russelltao.iteye.com/blog/1405353" target="_blank" rel="external">浅谈时间函数gettimeofday的成本</a></li>
+<li><a href="http://zh.wikipedia.org/wiki/%E6%95%B0%E9%87%8F%E7%BA%A7_%28%E6%97%B6%E9%97%B4%29" target="_blank" rel="noopener">Wikipedia - 数量级 (时间)</a> 我把这个链接放这儿是因为老有人把微秒缩写成<code>ms</code>然后和毫秒搞混</li>
+<li><a href="http://blog.csdn.net/xwdok/article/details/542109" target="_blank" rel="noopener">协同式多任务与抢占式多任务</a></li>
+<li><a href="http://www.cnblogs.com/iceocean/articles/1650929.html" target="_blank" rel="noopener">Linux时间管理</a></li>
+<li><a href="http://russelltao.iteye.com/blog/1405353" target="_blank" rel="noopener">浅谈时间函数gettimeofday的成本</a></li>
 </ul>
 
       

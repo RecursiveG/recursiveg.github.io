@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>新浪微盘数据结构解析 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Recursive G&#39;s personal blog" />
+  <meta name="description" content="Recursive G&#39;s personal blog">
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="新浪微盘数据结构解析"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="新浪微盘数据结构解析">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -81,7 +81,8 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p><em>注意!这个是<a href="http://vdisk.weibo.com" target="_blank" rel="external">微盘</a>而不是<a href="http://www.vdisk.cn" target="_blank" rel="external">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。<br><a id="more"></a></p>
+        <p><em>注意!这个是<a href="http://vdisk.weibo.com" target="_blank" rel="noopener">微盘</a>而不是<a href="http://www.vdisk.cn" target="_blank" rel="noopener">威盘</a></em><br>研究这个问题的起因是有一次我需要从微盘上批量下载一堆文件。做为一个会写程序的人，我怎么能亲自做如此ugly的工作呢？这种事情当然要交给电脑做了！为了做到自动获取文件连接，于是就不得不研究这个问题了。</p>
+<a id="more"></a>
 <h3 id="用户的登录"><a href="#用户的登录" class="headerlink" title="用户的登录"></a>用户的登录</h3><p>微盘内部使用一个叫做<code>gsid</code>的值来识别用户。具体获取方法如下：</p>
 <ol>
 <li>URL:<code>http://vdisk.weibo.com/wap_auth</code>。</li>
@@ -97,7 +98,8 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <li>浏览器标识(UA):需要设置为移动设备</li>
 <li>返回数据：JSON字符串。    Example:</li>
 </ol>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&#123;<span class="attr">"id"</span>:<span class="string">"406458665"</span>,<span class="attr">"name"</span>:<span class="string">"\u5fae\u535a\u5c01\u9762\u80cc\u666f.zip"</span>,<span class="attr">"uid"</span>:<span class="string">"60999569"</span>,<span class="attr">"dir_id"</span>:<span class="string">"0"</span>,<span class="attr">"ctime"</span>:<span class="string">"1358820088"</span>,<span class="attr">"ltime"</span>:<span class="string">"1358820088"</span>,<span class="attr">"dtime"</span>:<span class="string">"0"</span>,<span class="attr">"size"</span>:<span class="string">"1662111"</span>,<span class="attr">"is_locked"</span>:<span class="string">"0"</span>,<span class="attr">"type"</span>:<span class="string">"application\/x-zip"</span>,<span class="attr">"md5"</span>:<span class="string">"9e8eec4a5d2d3ac5be41bb9f34dc3e40"</span>,<span class="attr">"sha1"</span>:<span class="string">"6e59853b198e3eae818d5b0756f47c34d4eae6df"</span>,<span class="attr">"w"</span>:<span class="string">"0"</span>,<span class="attr">"h"</span>:<span class="string">"0"</span>,<span class="attr">"hid"</span>:<span class="string">"0"</span>,<span class="attr">"status"</span>:<span class="string">"1"</span>,<span class="attr">"app_key"</span>:<span class="string">"139204333"</span>,<span class="attr">"source"</span>:<span class="string">"2"</span>,<span class="attr">"ip"</span>:<span class="string">"0"</span>,<span class="attr">"rev_id"</span>:<span class="string">"140316098"</span>,<span class="attr">"share_status"</span>:<span class="string">"0"</span>,<span class="attr">"share"</span>:<span class="number">-1</span>,<span class="attr">"s3_url"</span>:<span class="string">"http:\/\/file.data.vdisk.me\/61099569\/6e59853b198e3eae818d5b0756f47c34d4eae6df?ip=1358945643,10.75.7.27&amp;ssig=o9x4sQ9tz6&amp;Expires=1358944443&amp;KID=sae,l30zoo1wmz&amp;fn=%E5%BE%AE%E5%8D%9A%E5%B0%81%E9%9D%A2%E8%83%8C%E6%99%AF.zip"</span>,<span class="attr">"url"</span>:<span class="string">"http:\/\/vdisk.weibo.com\/s\/oex4F"</span>,<span class="attr">"byte"</span>:<span class="string">"1662111"</span>,<span class="attr">"length"</span>:<span class="string">"1662111"</span>&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">"id"</span>:<span class="string">"406458665"</span>,<span class="attr">"name"</span>:<span class="string">"\u5fae\u535a\u5c01\u9762\u80cc\u666f.zip"</span>,<span class="attr">"uid"</span>:<span class="string">"60999569"</span>,<span class="attr">"dir_id"</span>:<span class="string">"0"</span>,<span class="attr">"ctime"</span>:<span class="string">"1358820088"</span>,<span class="attr">"ltime"</span>:<span class="string">"1358820088"</span>,<span class="attr">"dtime"</span>:<span class="string">"0"</span>,<span class="attr">"size"</span>:<span class="string">"1662111"</span>,<span class="attr">"is_locked"</span>:<span class="string">"0"</span>,<span class="attr">"type"</span>:<span class="string">"application\/x-zip"</span>,<span class="attr">"md5"</span>:<span class="string">"9e8eec4a5d2d3ac5be41bb9f34dc3e40"</span>,<span class="attr">"sha1"</span>:<span class="string">"6e59853b198e3eae818d5b0756f47c34d4eae6df"</span>,<span class="attr">"w"</span>:<span class="string">"0"</span>,<span class="attr">"h"</span>:<span class="string">"0"</span>,<span class="attr">"hid"</span>:<span class="string">"0"</span>,<span class="attr">"status"</span>:<span class="string">"1"</span>,<span class="attr">"app_key"</span>:<span class="string">"139204333"</span>,<span class="attr">"source"</span>:<span class="string">"2"</span>,<span class="attr">"ip"</span>:<span class="string">"0"</span>,<span class="attr">"rev_id"</span>:<span class="string">"140316098"</span>,<span class="attr">"share_status"</span>:<span class="string">"0"</span>,<span class="attr">"share"</span>:<span class="number">-1</span>,<span class="attr">"s3_url"</span>:<span class="string">"http:\/\/file.data.vdisk.me\/61099569\/6e59853b198e3eae818d5b0756f47c34d4eae6df?ip=1358945643,10.75.7.27&amp;ssig=o9x4sQ9tz6&amp;Expires=1358944443&amp;KID=sae,l30zoo1wmz&amp;fn=%E5%BE%AE%E5%8D%9A%E5%B0%81%E9%9D%A2%E8%83%8C%E6%99%AF.zip"</span>,<span class="attr">"url"</span>:<span class="string">"http:\/\/vdisk.weibo.com\/s\/oex4F"</span>,<span class="attr">"byte"</span>:<span class="string">"1662111"</span>,<span class="attr">"length"</span>:<span class="string">"1662111"</span>&#125;</span><br></pre></td></tr></table></figure>
+
 <p>其中，<code>s3_url</code>就是下载地址了。顺带一提，从<code>http://vdisk.weibo.com/file/info?fid=...</code>也可以得到文件信息，需要Cookie:<code>gsid</code>，但似乎不是所有文件都能成功得到信息。</p>
 <h3 id="文件下载"><a href="#文件下载" class="headerlink" title="文件下载"></a>文件下载</h3><p>从上一步得到了URL就可以下载了。</p>
 <ol>
@@ -106,8 +108,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </ol>
 <p>需要注意的是，这个URL可能会有很多<code>302 Redirection</code>，可能是出于负载平衡的原因吧。</p>
 <h3 id="fid与fid64"><a href="#fid与fid64" class="headerlink" title="fid与fid64"></a>fid与fid64</h3><p>平时我们下载都是用<code>http://vdisk.weibo.com/s/aMVfa</code>这种形式的短链接，其中<code>aMVfa</code>就是fid64,说白了就是64进制表示的fid，其0～63对应如下：</p>
-<pre><code>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-
-</code></pre><p>因此，<code>aR_8-</code>解码后就是<code>181920319</code></p>
+<pre><code>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-</code></pre><p>因此，<code>aR_8-</code>解码后就是<code>181920319</code></p>
 <h3 id="文件列表的获取"><a href="#文件列表的获取" class="headerlink" title="文件列表的获取"></a>文件列表的获取</h3><p>研究完上文所提到的东西后，应该就可以进行文件批量下载了。但做为一个上进的好青年，我们不会止步与此。为了能够方便地管理自己的文件夹，当然要做进一步研究。</p>
 <ol>
 <li>URL：<code>http://vdisk.weibo.com/dir/list</code></li>

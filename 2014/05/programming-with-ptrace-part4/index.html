@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>Programming with PTRACE, Part4 - 系统调用进阶 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Fourth part of serial of tutorial: Programming with PTRACE" />
+  <meta name="description" content="Fourth part of serial of tutorial: Programming with PTRACE">
   
-  <meta name="keywords" content="ptrace,syscall,arguments,kernel,ABI" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="ptrace,syscall,arguments,kernel,ABI">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="Programming with PTRACE, Part4 - 系统调用进阶"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="Programming with PTRACE, Part4 - 系统调用进阶">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -82,237 +82,237 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>这个part是<a href="/2014/04/programming-with-ptrace-part2/">Part2</a>的延续，所以我强烈建议你弄明白Part2中的内容后再来看本part。那么进入正题，我将在这个部分讲解系统调用的参数传递顺序以及如何利用ptrace系统调用获得用户空间的数据。</p>
-<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="external">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
+<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="noopener">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
 <center>
 
 <table>
 <thead>
 <tr>
-<th style="text-align:left">arch/ABI</th>
-<th style="text-align:left">instruction</th>
-<th style="text-align:left">syscall #</th>
-<th style="text-align:left">retval</th>
-<th style="text-align:left">Notes</th>
+<th align="left">arch/ABI</th>
+<th align="left">instruction</th>
+<th align="left">syscall #</th>
+<th align="left">retval</th>
+<th align="left">Notes</th>
 </tr>
 </thead>
-<tbody>
-<tr>
-<td style="text-align:left">arm/OABI</td>
-<td style="text-align:left">swi NR</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">a1</td>
-<td style="text-align:left">NR is syscall #</td>
+<tbody><tr>
+<td align="left">arm/OABI</td>
+<td align="left">swi NR</td>
+<td align="left">-</td>
+<td align="left">a1</td>
+<td align="left">NR is syscall #</td>
 </tr>
 <tr>
-<td style="text-align:left">arm/EABI</td>
-<td style="text-align:left">swi 0x0</td>
-<td style="text-align:left">r7</td>
-<td style="text-align:left">r0</td>
-<td style="text-align:left"></td>
+<td align="left">arm/EABI</td>
+<td align="left">swi 0x0</td>
+<td align="left">r7</td>
+<td align="left">r0</td>
+<td align="left"></td>
 </tr>
 <tr>
-<td style="text-align:left">blackfin</td>
-<td style="text-align:left">excpt 0x0</td>
-<td style="text-align:left">P0</td>
-<td style="text-align:left">R0</td>
-<td style="text-align:left"></td>
+<td align="left">blackfin</td>
+<td align="left">excpt 0x0</td>
+<td align="left">P0</td>
+<td align="left">R0</td>
+<td align="left"></td>
 </tr>
 <tr>
-<td style="text-align:left">i386</td>
-<td style="text-align:left">int $0x80</td>
-<td style="text-align:left">eax</td>
-<td style="text-align:left">eax</td>
-<td style="text-align:left"></td>
+<td align="left">i386</td>
+<td align="left">int $0x80</td>
+<td align="left">eax</td>
+<td align="left">eax</td>
+<td align="left"></td>
 </tr>
 <tr>
-<td style="text-align:left">ia64</td>
-<td style="text-align:left">break 0x100000</td>
-<td style="text-align:left">r15</td>
-<td style="text-align:left">r10/r8</td>
-<td style="text-align:left">bool error/errno value</td>
+<td align="left">ia64</td>
+<td align="left">break 0x100000</td>
+<td align="left">r15</td>
+<td align="left">r10/r8</td>
+<td align="left">bool error/errno value</td>
 </tr>
 <tr>
-<td style="text-align:left">parisc</td>
-<td style="text-align:left">ble 0x100(%sr2, %r0)</td>
-<td style="text-align:left">r20</td>
-<td style="text-align:left">r28</td>
-<td style="text-align:left"></td>
+<td align="left">parisc</td>
+<td align="left">ble 0x100(%sr2, %r0)</td>
+<td align="left">r20</td>
+<td align="left">r28</td>
+<td align="left"></td>
 </tr>
 <tr>
-<td style="text-align:left">s390</td>
-<td style="text-align:left">svc 0</td>
-<td style="text-align:left">r1</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">See below</td>
+<td align="left">s390</td>
+<td align="left">svc 0</td>
+<td align="left">r1</td>
+<td align="left">r2</td>
+<td align="left">See below</td>
 </tr>
 <tr>
-<td style="text-align:left">s390x</td>
-<td style="text-align:left">svc 0</td>
-<td style="text-align:left">r1</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">See below</td>
+<td align="left">s390x</td>
+<td align="left">svc 0</td>
+<td align="left">r1</td>
+<td align="left">r2</td>
+<td align="left">See below</td>
 </tr>
 <tr>
-<td style="text-align:left">sparc/32</td>
-<td style="text-align:left">t 0x10</td>
-<td style="text-align:left">g1</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left"></td>
+<td align="left">sparc/32</td>
+<td align="left">t 0x10</td>
+<td align="left">g1</td>
+<td align="left">o0</td>
+<td align="left"></td>
 </tr>
 <tr>
-<td style="text-align:left">sparc/64</td>
-<td style="text-align:left">t 0x6d</td>
-<td style="text-align:left">g1</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left"></td>
+<td align="left">sparc/64</td>
+<td align="left">t 0x6d</td>
+<td align="left">g1</td>
+<td align="left">o0</td>
+<td align="left"></td>
 </tr>
 <tr>
-<td style="text-align:left">x86_64</td>
-<td style="text-align:left">syscall</td>
-<td style="text-align:left">rax</td>
-<td style="text-align:left">rax</td>
+<td align="left">x86_64</td>
+<td align="left">syscall</td>
+<td align="left">rax</td>
+<td align="left">rax</td>
+<td align="left"></td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <table>
 <thead>
 <tr>
-<th style="text-align:left">arch/ABI</th>
-<th style="text-align:left">arg1</th>
-<th style="text-align:left">arg2</th>
-<th style="text-align:left">arg3</th>
-<th style="text-align:left">arg4</th>
-<th style="text-align:left">arg5</th>
-<th style="text-align:left">arg6</th>
-<th style="text-align:left">arg7</th>
+<th align="left">arch/ABI</th>
+<th align="left">arg1</th>
+<th align="left">arg2</th>
+<th align="left">arg3</th>
+<th align="left">arg4</th>
+<th align="left">arg5</th>
+<th align="left">arg6</th>
+<th align="left">arg7</th>
 </tr>
 </thead>
-<tbody>
-<tr>
-<td style="text-align:left">arm/OABI</td>
-<td style="text-align:left">a1</td>
-<td style="text-align:left">a2</td>
-<td style="text-align:left">a3</td>
-<td style="text-align:left">a4</td>
-<td style="text-align:left">v1</td>
-<td style="text-align:left">v2</td>
-<td style="text-align:left">v3</td>
+<tbody><tr>
+<td align="left">arm/OABI</td>
+<td align="left">a1</td>
+<td align="left">a2</td>
+<td align="left">a3</td>
+<td align="left">a4</td>
+<td align="left">v1</td>
+<td align="left">v2</td>
+<td align="left">v3</td>
 </tr>
 <tr>
-<td style="text-align:left">arm/EABI</td>
-<td style="text-align:left">r0</td>
-<td style="text-align:left">r1</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">r3</td>
-<td style="text-align:left">r4</td>
-<td style="text-align:left">r5</td>
-<td style="text-align:left">r6</td>
+<td align="left">arm/EABI</td>
+<td align="left">r0</td>
+<td align="left">r1</td>
+<td align="left">r2</td>
+<td align="left">r3</td>
+<td align="left">r4</td>
+<td align="left">r5</td>
+<td align="left">r6</td>
 </tr>
 <tr>
-<td style="text-align:left">blackfin</td>
-<td style="text-align:left">R0</td>
-<td style="text-align:left">R1</td>
-<td style="text-align:left">R2</td>
-<td style="text-align:left">R3</td>
-<td style="text-align:left">R4</td>
-<td style="text-align:left">R5</td>
-<td style="text-align:left">-</td>
+<td align="left">blackfin</td>
+<td align="left">R0</td>
+<td align="left">R1</td>
+<td align="left">R2</td>
+<td align="left">R3</td>
+<td align="left">R4</td>
+<td align="left">R5</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">i386</td>
-<td style="text-align:left">ebx</td>
-<td style="text-align:left">ecx</td>
-<td style="text-align:left">edx</td>
-<td style="text-align:left">esi</td>
-<td style="text-align:left">edi</td>
-<td style="text-align:left">ebp</td>
-<td style="text-align:left">-</td>
+<td align="left">i386</td>
+<td align="left">ebx</td>
+<td align="left">ecx</td>
+<td align="left">edx</td>
+<td align="left">esi</td>
+<td align="left">edi</td>
+<td align="left">ebp</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">ia64</td>
-<td style="text-align:left">out0</td>
-<td style="text-align:left">out1</td>
-<td style="text-align:left">out2</td>
-<td style="text-align:left">out3</td>
-<td style="text-align:left">out4</td>
-<td style="text-align:left">out5</td>
-<td style="text-align:left">-</td>
+<td align="left">ia64</td>
+<td align="left">out0</td>
+<td align="left">out1</td>
+<td align="left">out2</td>
+<td align="left">out3</td>
+<td align="left">out4</td>
+<td align="left">out5</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">parisc</td>
-<td style="text-align:left">r26</td>
-<td style="text-align:left">r25</td>
-<td style="text-align:left">r24</td>
-<td style="text-align:left">r23</td>
-<td style="text-align:left">r22</td>
-<td style="text-align:left">r21</td>
-<td style="text-align:left">-</td>
+<td align="left">parisc</td>
+<td align="left">r26</td>
+<td align="left">r25</td>
+<td align="left">r24</td>
+<td align="left">r23</td>
+<td align="left">r22</td>
+<td align="left">r21</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">s390</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">r3</td>
-<td style="text-align:left">r4</td>
-<td style="text-align:left">r5</td>
-<td style="text-align:left">r6</td>
-<td style="text-align:left">r7</td>
-<td style="text-align:left">-</td>
+<td align="left">s390</td>
+<td align="left">r2</td>
+<td align="left">r3</td>
+<td align="left">r4</td>
+<td align="left">r5</td>
+<td align="left">r6</td>
+<td align="left">r7</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">s390x</td>
-<td style="text-align:left">r2</td>
-<td style="text-align:left">r3</td>
-<td style="text-align:left">r4</td>
-<td style="text-align:left">r5</td>
-<td style="text-align:left">r6</td>
-<td style="text-align:left">r7</td>
-<td style="text-align:left">-</td>
+<td align="left">s390x</td>
+<td align="left">r2</td>
+<td align="left">r3</td>
+<td align="left">r4</td>
+<td align="left">r5</td>
+<td align="left">r6</td>
+<td align="left">r7</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">sparc/32</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left">o1</td>
-<td style="text-align:left">o2</td>
-<td style="text-align:left">o3</td>
-<td style="text-align:left">o4</td>
-<td style="text-align:left">o5</td>
-<td style="text-align:left">-</td>
+<td align="left">sparc/32</td>
+<td align="left">o0</td>
+<td align="left">o1</td>
+<td align="left">o2</td>
+<td align="left">o3</td>
+<td align="left">o4</td>
+<td align="left">o5</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">sparc/64</td>
-<td style="text-align:left">o0</td>
-<td style="text-align:left">o1</td>
-<td style="text-align:left">o2</td>
-<td style="text-align:left">o3</td>
-<td style="text-align:left">o4</td>
-<td style="text-align:left">o5</td>
-<td style="text-align:left">-</td>
+<td align="left">sparc/64</td>
+<td align="left">o0</td>
+<td align="left">o1</td>
+<td align="left">o2</td>
+<td align="left">o3</td>
+<td align="left">o4</td>
+<td align="left">o5</td>
+<td align="left">-</td>
 </tr>
 <tr>
-<td style="text-align:left">x86_64</td>
-<td style="text-align:left">rdi</td>
-<td style="text-align:left">rsi</td>
-<td style="text-align:left">rdx</td>
-<td style="text-align:left">r10</td>
-<td style="text-align:left">r8</td>
-<td style="text-align:left">r9</td>
-<td style="text-align:left">-</td>
+<td align="left">x86_64</td>
+<td align="left">rdi</td>
+<td align="left">rsi</td>
+<td align="left">rdx</td>
+<td align="left">r10</td>
+<td align="left">r8</td>
+<td align="left">r9</td>
+<td align="left">-</td>
 </tr>
-</tbody>
-</table>
-<p></p></center><br><a id="more"></a><br>表格内容虽多，但其实我们关心的只有i386和x86_64（32位和64位）一共4行（因为有两张表格嘛）。精简提炼下，一共就两句话<p></p>
+</tbody></table>
+</center>
+<a id="more"></a>
+表格内容虽多，但其实我们关心的只有i386和x86_64（32位和64位）一共4行（因为有两张表格嘛）。精简提炼下，一共就两句话
+
 <blockquote>
 <p>对于32位系统，系统调用号存放在EAX寄存器，参数依次放入EBX、ECX、EDX、ESI … 返回值位于EAX寄存器<br>  对于64位系统，系统调用号存放在RAX寄存器，参数依次放入RDI、RSI、RDX、R10 … 返回值位于RAX寄存器</p>
 </blockquote>
 <p>以64位系统下的<code>write()</code>调用为例:</p>
-<pre><code>ssize_t write(int fd, const void *buf, size_t count);
-</code></pre><p>那么RAX是1(write的调用号)，RDI一般为1(stdout),RSI存储着指向用户空间中将要被输出的字符串的地址，RDX自然就是字符串长度啦。</p>
+<pre><code>ssize_t write(int fd, const void *buf, size_t count);</code></pre><p>那么RAX是1(write的调用号)，RDI一般为1(stdout),RSI存储着指向用户空间中将要被输出的字符串的地址，RDX自然就是字符串长度啦。</p>
 <h2 id="获取那个字符串"><a href="#获取那个字符串" class="headerlink" title="获取那个字符串"></a>获取那个字符串</h2><p>理论讲完了，进入实战。这次我们拿<code>open()</code>系统调用开刀，一是因为监视程序打开了什么文件比得知输出了什么更常用，二是因为传递给<code>open()</code>的字符串没有长度信息，只能自己通过<code>\0</code>判断，更有挑战性。我们这次要使用ptrace的一个新功能<code>PTRACE_PEEKTEXT</code>,其实还有另外一个叫做<code>PTRACE_PEEKDATA</code>的，不过根据man手册的描述，这两个的功能是一样的。它的用法是这样的</p>
-<pre><code>data = ptrace(PTRACE_PEEKTEXT,pid,addr,0);
-</code></pre><p>即从子进程（由pid标识）的addr内存地址处取出对应字长(64位为8字节，32位4字节)的数据，做为返回值。也就是说，读取一次能得到八个字符。现在如果我们要取得从<code>base_addr</code>地址开始的一个字符串，那么我们只要8个字节8个字节读取，直到碰到<code>\0</code>为止。把这个功能写成函数就是这样：（32位系统不要忘记改那个define）</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> WORD_LEN 8</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">peek_str</span><span class="params">(<span class="keyword">pid_t</span> pid,<span class="keyword">long</span> base_addr,<span class="keyword">char</span> target[])</span></span>&#123;</div><div class="line">  <span class="keyword">union</span>&#123;</div><div class="line">    <span class="keyword">long</span> word;</div><div class="line">    <span class="keyword">char</span> str[WORD_LEN];</div><div class="line">  &#125; data;<span class="comment">/*利用union把WORD_LEN字节的整数变为字符数组*/</span></div><div class="line">  <span class="keyword">long</span> offset=<span class="number">0</span>;</div><div class="line">  <span class="keyword">int</span> done=<span class="number">0</span>,i;</div><div class="line">  target[<span class="number">0</span>]=<span class="string">'\0'</span>;</div><div class="line">  <span class="keyword">while</span>(!done)&#123;<span class="comment">/*循环读取*/</span></div><div class="line">    data.word=ptrace(PTRACE_PEEKTEXT,pid,base_addr+offset,<span class="number">0</span>);</div><div class="line">    <span class="built_in">strncat</span>(target,data.str,WORD_LEN);<span class="comment">/*追加至多WORD_LEN个字符*/</span></div><div class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;WORD_LEN;i++)<span class="comment">/*检查是否有'\0'*/</span></div><div class="line">      <span class="keyword">if</span>(data.str[i]==<span class="string">'\0'</span>)</div><div class="line">        done=<span class="number">1</span>;</div><div class="line">    offset+=WORD_LEN;<span class="comment">/*准备读取下一个WORD_LEN字节*/</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<pre><code>data = ptrace(PTRACE_PEEKTEXT,pid,addr,0);</code></pre><p>即从子进程（由pid标识）的addr内存地址处取出对应字长(64位为8字节，32位4字节)的数据，做为返回值。也就是说，读取一次能得到八个字符。现在如果我们要取得从<code>base_addr</code>地址开始的一个字符串，那么我们只要8个字节8个字节读取，直到碰到<code>\0</code>为止。把这个功能写成函数就是这样：（32位系统不要忘记改那个define）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> WORD_LEN 8</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">peek_str</span><span class="params">(<span class="keyword">pid_t</span> pid,<span class="keyword">long</span> base_addr,<span class="keyword">char</span> target[])</span></span>&#123;</span><br><span class="line">  <span class="keyword">union</span>&#123;</span><br><span class="line">    <span class="keyword">long</span> word;</span><br><span class="line">    <span class="keyword">char</span> str[WORD_LEN];</span><br><span class="line">  &#125; data;<span class="comment">/*利用union把WORD_LEN字节的整数变为字符数组*/</span></span><br><span class="line">  <span class="keyword">long</span> offset=<span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> done=<span class="number">0</span>,i;</span><br><span class="line">  target[<span class="number">0</span>]=<span class="string">'\0'</span>;</span><br><span class="line">  <span class="keyword">while</span>(!done)&#123;<span class="comment">/*循环读取*/</span></span><br><span class="line">    data.word=ptrace(PTRACE_PEEKTEXT,pid,base_addr+offset,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">strncat</span>(target,data.str,WORD_LEN);<span class="comment">/*追加至多WORD_LEN个字符*/</span></span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;WORD_LEN;i++)<span class="comment">/*检查是否有'\0'*/</span></span><br><span class="line">      <span class="keyword">if</span>(data.str[i]==<span class="string">'\0'</span>)</span><br><span class="line">        done=<span class="number">1</span>;</span><br><span class="line">    offset+=WORD_LEN;<span class="comment">/*准备读取下一个WORD_LEN字节*/</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>主程序的大<code>while()</code>循环里的代码是这样的（我已经设置了<code>PTRACE_O_TRACESYSGOOD</code>标记）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</div><div class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">int</span> sig_no;<span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);<span class="keyword">else</span>&#123;<span class="built_in">puts</span>(<span class="string">"Unknown Status"</span>);<span class="keyword">break</span>;&#125;</div><div class="line"><span class="keyword">if</span>(sig_no!=(SIGTRAP|<span class="number">0x80</span>))&#123;ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);<span class="keyword">continue</span>;&#125;</div><div class="line"><span class="keyword">if</span> (intocall)&#123;</div><div class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">reg</span>;</span></div><div class="line">  ptrace(PTRACE_GETREGS,pid,<span class="number">0</span>,&amp;reg);</div><div class="line">  <span class="keyword">if</span> (reg.orig_rax==SYS_open)&#123;</div><div class="line">    <span class="keyword">char</span> file[<span class="number">255</span>];</div><div class="line">    peek_str(pid,reg.rdi,file);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"open() opened: %s\n"</span>,file);</div><div class="line">  &#125;      </div><div class="line">&#125;</div><div class="line">intocall^=<span class="number">1</span>;</div><div class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line"><span class="keyword">if</span>(WIFEXITED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Exited with code %d"</span>,WEXITSTATUS(sta));<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">if</span>(WIFSIGNALED(sta))&#123;<span class="built_in">printf</span>(<span class="string">"Terminated by signal: %s"</span>,strsignal(WTERMSIG(sta)));<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">int</span> sig_no;<span class="keyword">if</span>(WIFSTOPPED(sta))sig_no=WSTOPSIG(sta);<span class="keyword">else</span>&#123;<span class="built_in">puts</span>(<span class="string">"Unknown Status"</span>);<span class="keyword">break</span>;&#125;</span><br><span class="line"><span class="keyword">if</span>(sig_no!=(SIGTRAP|<span class="number">0x80</span>))&#123;ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,sig_no);<span class="keyword">continue</span>;&#125;</span><br><span class="line"><span class="keyword">if</span> (intocall)&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">reg</span>;</span></span><br><span class="line">  ptrace(PTRACE_GETREGS,pid,<span class="number">0</span>,&amp;reg);</span><br><span class="line">  <span class="keyword">if</span> (reg.orig_rax==SYS_open)&#123;</span><br><span class="line">    <span class="keyword">char</span> file[<span class="number">255</span>];</span><br><span class="line">    peek_str(pid,reg.rdi,file);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"open() opened: %s\n"</span>,file);</span><br><span class="line">  &#125;      </span><br><span class="line">&#125;</span><br><span class="line">intocall^=<span class="number">1</span>;</span><br><span class="line">ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
 <p>在这里我使用的<code>PTRACE_GETREGS</code>和<code>user_regs_struct</code>结构来一次性获得所有寄存器的值，该结构定义于<code>sys/user.h</code>头文件中。另外，我还使用了<code>SYS_open</code>来判断系统调用号，避免了Magic Number。<code>SYS_*</code>宏定义于<code>sys/syscall.h</code>头文件中。传递RDI寄存器也很容易理解，查询<code>man 2 open</code>可知open系统调用的路径是第一个参数。现在，重新编译你的<code>target</code>，不要加<code>-static</code>,然后运行，你应该能看到类似这样的输出。</p>
 <pre><code>Parent started
 Child PiD == 4717
@@ -323,11 +323,10 @@ open() opened: /usr/lib/tls/libc.so.6
 open() opened: /usr/lib/x86_64/libc.so.6
 open() opened: /usr/lib/libc.so.6
 Hello World!
-Exited with code 0
-</code></pre><p>可以很明显的看到程序搜索动态链接库的过程。<br>如果你觉得这还不够过瘾，那么你可以看<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="external">Playing with ptrace, part1</a>,后面提供了一个配合使用<code>PTRACE_PEEKTEXT</code>和<code>PTRACE_POKETEXT</code>来将<code>write</code>输出的字符串反转的例子</p>
+Exited with code 0</code></pre><p>可以很明显的看到程序搜索动态链接库的过程。<br>如果你觉得这还不够过瘾，那么你可以看<a href="http://www.kgdb.info/gdb/playing_with_ptrace_part_i/" target="_blank" rel="noopener">Playing with ptrace, part1</a>,后面提供了一个配合使用<code>PTRACE_PEEKTEXT</code>和<code>PTRACE_POKETEXT</code>来将<code>write</code>输出的字符串反转的例子</p>
 <h2 id="其他资料"><a href="#其他资料" class="headerlink" title="其他资料"></a>其他资料</h2><ul>
-<li><a href="http://godorz.info/2011/02/how-debuggers-work-part-1" target="_blank" rel="external">调试器是怎样工作的</a></li>
-<li><a href="http://linuxgazette.net/issue81/sandeep.html" target="_blank" rel="external">Process Tracing Using Ptrace</a></li>
+<li><a href="http://godorz.info/2011/02/how-debuggers-work-part-1" target="_blank" rel="noopener">调试器是怎样工作的</a></li>
+<li><a href="http://linuxgazette.net/issue81/sandeep.html" target="_blank" rel="noopener">Process Tracing Using Ptrace</a></li>
 </ul>
 <h2 id="不是后记的后记"><a href="#不是后记的后记" class="headerlink" title="不是后记的后记"></a>不是后记的后记</h2><p>不知不觉已经写到Part4了，期间一边查资料一边写代码做验证一边写这篇文章，又发现了好多好多之前遗漏的信息和好文章。同时深深感觉自己真是个蒟蒻，好多东西觉得很重要，想讲却心有余而力不足，而且越来越像是在翻译man手册了……我是不是一开始就应该去翻译手册而不是写这系列文章呢？（笑）<br>下个part开始，估计就要暂时和ptrce说再见，然后和内存管理开始较劲了。</p>
 

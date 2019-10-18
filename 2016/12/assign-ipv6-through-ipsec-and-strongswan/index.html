@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>借助IPsec和strongSwan建立隧道并分配IPv6地址 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Setup an IPv6 tunnel through IPsec &amp; strongSwan" />
+  <meta name="description" content="Setup an IPv6 tunnel through IPsec &amp; strongSwan">
   
-  <meta name="keywords" content="IPsec,strongSwan,IPv6,certtool,隧道" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="IPsec,strongSwan,IPv6,certtool,隧道">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="借助IPsec和strongSwan建立隧道并分配IPv6地址"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="借助IPsec和strongSwan建立隧道并分配IPv6地址">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -88,7 +88,9 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <li>需要在服务器手动更新IP</li>
 </ul>
 <p>于是热爱折腾<del>作死</del>的我研究了一下使用IPsec配合IKEv2对流量进行加密的方法。</p>
-<p>服务器与本地均为ArchLinux（Arch大法好），strongSwan软件包可从AUR安装。<br>服务器需要至少有一个公网IPv4和一段Routed IPv6 Subnet。<br><a id="more"></a></p>
+<p>服务器与本地均为ArchLinux（Arch大法好），strongSwan软件包可从AUR安装。<br>服务器需要至少有一个公网IPv4和一段Routed IPv6 Subnet。</p>
+<a id="more"></a>
+
 <h2 id="生成密钥"><a href="#生成密钥" class="headerlink" title="生成密钥"></a>生成密钥</h2><p>我们一共需要三对“密钥-证书”对：</p>
 <ul>
 <li>CA密钥和证书：用于签署其它的证书，同时CA证书需要分发到所有机器上。</li>
@@ -98,13 +100,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <p>我使用了ECC证书，因为其具有更短的长度。如果老版本不支持ECC的，也可以使用RSA证书。<br>先生成三把私钥：</p>
 <pre><code>certtool --generate-privkey --ecc --outfile ca.key
 certtool --generate-privkey --ecc --outfile server.key
-certtool --generate-privkey --ecc --outfile client.key
-</code></pre><p>然后自签名CA证书，<code>Common Name</code>可以随意填，但是和之后的配置一定要统一：</p>
-<pre><code>certtool --generate-self-signed --load-privkey ca.key --outfile ca.crt
-</code></pre><p>接着再用CA证书签名其它两把密钥，<code>Common Name</code>同样可以随意填，但是不要一样：</p>
+certtool --generate-privkey --ecc --outfile client.key</code></pre><p>然后自签名CA证书，<code>Common Name</code>可以随意填，但是和之后的配置一定要统一：</p>
+<pre><code>certtool --generate-self-signed --load-privkey ca.key --outfile ca.crt</code></pre><p>接着再用CA证书签名其它两把密钥，<code>Common Name</code>同样可以随意填，但是不要一样：</p>
 <pre><code>certtool --generate-certificate --load-ca-privkey ca.key --load-ca-certificate ca.crt --load-privkey server.key --outfile server.crt
-certtool --generate-certificate --load-ca-privkey ca.key --load-ca-certificate ca.crt --load-privkey client.key --outfile client.crt
-</code></pre><p>这样就一共产生了六个文件，保存备用。</p>
+certtool --generate-certificate --load-ca-privkey ca.key --load-ca-certificate ca.crt --load-privkey client.key --outfile client.crt</code></pre><p>这样就一共产生了六个文件，保存备用。</p>
 <h2 id="服务端设置"><a href="#服务端设置" class="headerlink" title="服务端设置"></a>服务端设置</h2><p>首先需要把密钥文件放到对应的位置：</p>
 <ul>
 <li><code>ca.crt</code>放入<code>/etc/ipsec.d/cacerts/</code></li>
@@ -112,26 +111,27 @@ certtool --generate-certificate --load-ca-privkey ca.key --load-ca-certificate c
 <li><code>server.crt</code>放入<code>/etc/ipsec.d/certs/</code></li>
 </ul>
 <p>然后编辑<code>/etc/ipsec.secrets</code>文件，注意空格</p>
-<pre><code>&quot;CN=IPsec server&quot; : ECDSA &quot;server.key&quot;
-</code></pre><p>前面<code>CN=...</code>那一串是证书的Subject，CN即Common Name，可以通过<code>certtool -i &lt; server.crt</code>查看。</p>
+<pre><code>&quot;CN=IPsec server&quot; : ECDSA &quot;server.key&quot;</code></pre><p>前面<code>CN=...</code>那一串是证书的Subject，CN即Common Name，可以通过<code>certtool -i &lt; server.crt</code>查看。</p>
 <p>最后编辑<code>/etc/ipsec.conf</code>文件：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">config setup</div><div class="line">    charondebug=&quot;cfg 2, dmn 2, ike 2, net 2&quot;</div><div class="line"></div><div class="line">conn serverconn #此处是链接名称，可以自由填写</div><div class="line">    left=%any</div><div class="line">    leftcert=server.crt</div><div class="line">    leftid=&quot;&#123;这边填入server.crt的Subject&#125;&quot;</div><div class="line">    leftca=&quot;&#123;这边填入ca.crt的Subject&#125;&quot;</div><div class="line">    leftsubnet=::/0     #表示整个IPv6网络都在这端</div><div class="line"></div><div class="line">    right=%any</div><div class="line">    rightca=&quot;&#123;这边填入ca.crt的Subject&#125;&quot;</div><div class="line">    rightsourceip=2001:abc:def:123:456::/80 #客户端IP所在的/80段</div><div class="line"></div><div class="line">    auto=add</div><div class="line">    keyexchange=ikev2</div><div class="line">    ike=aes256gcm128-sha2_512-modp4096! #选择你喜欢的加密方法</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">config setup</span><br><span class="line">    charondebug=&quot;cfg 2, dmn 2, ike 2, net 2&quot;</span><br><span class="line"></span><br><span class="line">conn serverconn #此处是链接名称，可以自由填写</span><br><span class="line">    left=%any</span><br><span class="line">    leftcert=server.crt</span><br><span class="line">    leftid=&quot;&#123;这边填入server.crt的Subject&#125;&quot;</span><br><span class="line">    leftca=&quot;&#123;这边填入ca.crt的Subject&#125;&quot;</span><br><span class="line">    leftsubnet=::/0     #表示整个IPv6网络都在这端</span><br><span class="line"></span><br><span class="line">    right=%any</span><br><span class="line">    rightca=&quot;&#123;这边填入ca.crt的Subject&#125;&quot;</span><br><span class="line">    rightsourceip=2001:abc:def:123:456::/80 #客户端IP所在的/80段</span><br><span class="line"></span><br><span class="line">    auto=add</span><br><span class="line">    keyexchange=ikev2</span><br><span class="line">    ike=aes256gcm128-sha2_512-modp4096! #选择你喜欢的加密方法</span><br></pre></td></tr></table></figure>
+
 <p>然后打开IPv6 Forwarding并启动服务</p>
 <pre><code>sudo sysctl net.ipv6.conf.all.forwarding=1
-sudo systemctl start strongswan
-</code></pre><h2 id="客户端设置"><a href="#客户端设置" class="headerlink" title="客户端设置"></a>客户端设置</h2><p>步骤基本相同。</p>
+sudo systemctl start strongswan</code></pre><h2 id="客户端设置"><a href="#客户端设置" class="headerlink" title="客户端设置"></a>客户端设置</h2><p>步骤基本相同。</p>
 <ul>
 <li><code>ca.crt</code>放入<code>/etc/ipsec.d/cacerts/</code></li>
 <li><code>client.key</code>放入<code>/etc/ipsec.d/private/</code></li>
 <li><code>client.crt</code>放入<code>/etc/ipsec.d/certs/</code></li>
 <li>编辑<code>ipsec.secrets</code>为<code>&quot;CN=...&quot; : ECDSA &quot;client.key&quot;</code></li>
 </ul>
-<p>编辑<code>/etc/ipsec.conf</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">config setup</div><div class="line">    charondebug=&quot;cfg 2, dmn 2, ike 2, net 2&quot;</div><div class="line"></div><div class="line">conn clientconn #此处是链接名称，可以自由填写</div><div class="line">    left=%any</div><div class="line">    leftcert=client.crt</div><div class="line">    leftsourceip=%config6 #从服务器获取一个IPv6地址</div><div class="line"></div><div class="line">    right=&#123;这里填上你服务器的IPv4地址&#125;</div><div class="line">    rightid=&quot;&#123;这边填入server.crt的Subject&#125;&quot;</div><div class="line">    rightsubnet=::/0 #表示整个IPv6网络都在另一端</div><div class="line"></div><div class="line">    auto=start        #自动连接</div><div class="line">    dpdaction=restart #自动重连</div><div class="line">    keyexchange=ikev2</div><div class="line">    ike=aes256gcm128-sha2_512-modp4096!</div></pre></td></tr></table></figure></p>
+<p>编辑<code>/etc/ipsec.conf</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">config setup</span><br><span class="line">    charondebug=&quot;cfg 2, dmn 2, ike 2, net 2&quot;</span><br><span class="line"></span><br><span class="line">conn clientconn #此处是链接名称，可以自由填写</span><br><span class="line">    left=%any</span><br><span class="line">    leftcert=client.crt</span><br><span class="line">    leftsourceip=%config6 #从服务器获取一个IPv6地址</span><br><span class="line"></span><br><span class="line">    right=&#123;这里填上你服务器的IPv4地址&#125;</span><br><span class="line">    rightid=&quot;&#123;这边填入server.crt的Subject&#125;&quot;</span><br><span class="line">    rightsubnet=::/0 #表示整个IPv6网络都在另一端</span><br><span class="line"></span><br><span class="line">    auto=start        #自动连接</span><br><span class="line">    dpdaction=restart #自动重连</span><br><span class="line">    keyexchange=ikev2</span><br><span class="line">    ike=aes256gcm128-sha2_512-modp4096!</span><br></pre></td></tr></table></figure>
+
 <p>然后执行<code>sudo ipsec start --nofork</code>，如果出现<code>keeping connection path</code>字样应该就连接成功了。网卡上会出现一个新的IPv6地址，然后就可以直接访问IPv6网络了。</p>
 <p>如果连接不成功或者是无法访问网络，可以考虑检查一下防火墙是不是把数据包drop了。</p>
 <h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
-<li><a href="https://wiki.strongswan.org/projects/strongswan/wiki" target="_blank" rel="external">strongSwan Wiki</a> strongSwan的官方文档库，同时提供了很多IPsec的资料</li>
-<li><a href="https://www.gnutls.org/manual/html_node/certtool-Invocation.html" target="_blank" rel="external">certtool使用手册</a></li>
+<li><a href="https://wiki.strongswan.org/projects/strongswan/wiki" target="_blank" rel="noopener">strongSwan Wiki</a> strongSwan的官方文档库，同时提供了很多IPsec的资料</li>
+<li><a href="https://www.gnutls.org/manual/html_node/certtool-Invocation.html" target="_blank" rel="noopener">certtool使用手册</a></li>
 </ul>
 
       

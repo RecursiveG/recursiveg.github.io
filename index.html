@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="Recursive G&#39;s personal blog" />
+  <meta name="description" content="Recursive G&#39;s personal blog">
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -82,9 +82,13 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>用任何你喜欢的方法安装 <a href="https://www.haskell.org/" target="_blank" rel="external">Glasgow Haskell Compiler</a> (a.k.a. GHC)。Cabal 之类的<br>依赖管理系统就用不着了。 <del>因为我也不会用。</del> 保证能够执行<code>ghc</code>和<code>ghci</code>命令就行。</p>
-<h1 id="GHCi基础"><a href="#GHCi基础" class="headerlink" title="GHCi基础"></a>GHCi基础</h1><p>首先，把以下文件保存成<code>helloworld.hs</code>。<br><figure class="highlight haskell"><figcaption><span>helloworld.hs</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="title">foo</span> = <span class="string">"hello, world"</span></div></pre></td></tr></table></figure></p>
-<p>然后执行<code>ghci helloworld.hs</code>，然后在<code>&gt;</code>提示符后输入<code>foo</code>并回车<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">GHCi, version 8.6.3: http://www.haskell.org/ghc/  :? for help</div><div class="line">[1 of 1] Compiling Main             ( helloworld.hs, interpreted )</div><div class="line">Ok, one module loaded.</div><div class="line">*Main&gt; foo</div><div class="line">&quot;hello, world&quot;</div><div class="line">*Main&gt;</div></pre></td></tr></table></figure></p>
+        <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>用任何你喜欢的方法安装 <a href="https://www.haskell.org/" target="_blank" rel="noopener">Glasgow Haskell Compiler</a> (a.k.a. GHC)。Cabal 之类的<br>依赖管理系统就用不着了。 <del>因为我也不会用。</del> 保证能够执行<code>ghc</code>和<code>ghci</code>命令就行。</p>
+<h1 id="GHCi基础"><a href="#GHCi基础" class="headerlink" title="GHCi基础"></a>GHCi基础</h1><p>首先，把以下文件保存成<code>helloworld.hs</code>。</p>
+<figure class="highlight haskell"><figcaption><span>helloworld.hs</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">foo</span> = <span class="string">"hello, world"</span></span><br></pre></td></tr></table></figure>
+
+<p>然后执行<code>ghci helloworld.hs</code>，然后在<code>&gt;</code>提示符后输入<code>foo</code>并回车</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GHCi, version 8.6.3: http://www.haskell.org/ghc/  :? for help</span><br><span class="line">[1 of 1] Compiling Main             ( helloworld.hs, interpreted )</span><br><span class="line">Ok, one module loaded.</span><br><span class="line">*Main&gt; foo</span><br><span class="line">&quot;hello, world&quot;</span><br><span class="line">*Main&gt;</span><br></pre></td></tr></table></figure>
+
 <p>你可以使用<code>:r</code>来重新载入文件，也可以使用<code>:l &lt;文件名&gt;</code>来载入代码。</p>
       
     </div>
@@ -128,7 +132,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <li>将内容移到页面的显著位置</li>
 <li><del>去掉辣眼睛的特殊效果</del> 好吧，其实这条并不重要，毕竟内容已经被移到显著位置了</li>
 </ol>
-<p>很自然的，直接用Javascript操纵DOM树即可实现希望的效果。<br>那么要怎么自动载入脚本呢？<br>
+<p>很自然的，直接用Javascript操纵DOM树即可实现希望的效果。<br>那么要怎么自动载入脚本呢？</p>
       
     </div>
     <footer>
@@ -171,7 +175,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <li>需要在服务器手动更新IP</li>
 </ul>
 <p>于是热爱折腾<del>作死</del>的我研究了一下使用IPsec配合IKEv2对流量进行加密的方法。</p>
-<p>服务器与本地均为ArchLinux（Arch大法好），strongSwan软件包可从AUR安装。<br>服务器需要至少有一个公网IPv4和一段Routed IPv6 Subnet。<br>
+<p>服务器与本地均为ArchLinux（Arch大法好），strongSwan软件包可从AUR安装。<br>服务器需要至少有一个公网IPv4和一段Routed IPv6 Subnet。</p>
       
     </div>
     <footer>
@@ -208,8 +212,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。<br>没有错误处理。</p>
-<h2 id="地址解析"><a href="#地址解析" class="headerlink" title="地址解析"></a>地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> *<span class="title">listen_addr</span>;</span> <span class="comment">//存放解析结果。参见`man getaddrinfo`</span></div><div class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></div><div class="line"><span class="comment">// ...</span></div><div class="line">freeaddrinfo(listen_addr); <span class="comment">//释放资源，返回void</span></div></pre></td></tr></table></figure>
-<h2 id="监听"><a href="#监听" class="headerlink" title="监听"></a>监听</h2><p>这种方式只能同时处理一个连接<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见`man 3 socket` 创建文件描述符， 出错返回-1</span></div><div class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</div><div class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></div><div class="line">    <span class="comment">// 绑定地址，出错返回-1，参见`man 3 bind`</span></div><div class="line">listen(fd, SOMAXCONN);</div><div class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></div><div class="line">    <span class="comment">// 开始监听，出错返回-1</span></div><div class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</div><div class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第2，3个参数同bind()</span></div><div class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是EAGAIN,取决于你需要什么)</span></div><div class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符,出错返回-1</span></div><div class="line">    <span class="comment">// ... handle(new_fd);</span></div><div class="line">    close(new_fd); <span class="comment">// 关闭文件描述符</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="地址解析"><a href="#地址解析" class="headerlink" title="地址解析"></a>地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> *<span class="title">listen_addr</span>;</span> <span class="comment">//存放解析结果。参见`man getaddrinfo`</span></span><br><span class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">freeaddrinfo(listen_addr); <span class="comment">//释放资源，返回void</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="监听"><a href="#监听" class="headerlink" title="监听"></a>监听</h2><p>这种方式只能同时处理一个连接</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见`man 3 socket` 创建文件描述符， 出错返回-1</span></span><br><span class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</span><br><span class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></span><br><span class="line">    <span class="comment">// 绑定地址，出错返回-1，参见`man 3 bind`</span></span><br><span class="line">listen(fd, SOMAXCONN);</span><br><span class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></span><br><span class="line">    <span class="comment">// 开始监听，出错返回-1</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第2，3个参数同bind()</span></span><br><span class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是EAGAIN,取决于你需要什么)</span></span><br><span class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符,出错返回-1</span></span><br><span class="line">    <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">    close(new_fd); <span class="comment">// 关闭文件描述符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     <footer>
@@ -252,7 +258,9 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <li>服务器的IPv6段是<code>a:b:c:d::/64</code></li>
 <li>要分配下去的IPv6段是<code>a:b:c:d:e::/80</code></li>
 </ol>
-<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</div><div class="line">ip link <span class="built_in">set</span> gre-tunnel up</div><div class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</div></pre></td></tr></table></figure></p>
+<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>第一行建立隧道，<code>gre-tunnel</code>是隧道名称，可以按自己喜欢的来，记得其他的也要一起改</li>
 <li>第二行激活隧道</li>
@@ -294,7 +302,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>见过不少教程都是基于Eclipse的，而基于IDEA的文章少得可怜，遂决定写此文。<br>本文通篇基于Linux/IntellijIDEA进行讲解，Windows/MAC/Eclipse用户请自行依葫芦画瓢。</p>
-<h1 id="设置Forge工作区"><a href="#设置Forge工作区" class="headerlink" title="设置Forge工作区"></a>设置Forge工作区</h1><p>当然，你得首先去<a href="http://files.minecraftforge.net/" target="_blank" rel="external">MinecraftForge</a>下载一份源代码。我这里用的是最新的<code>forge-1.7.10-10.13.2.1258-src.zip</code><br>接着，找个地方建立一个文件夹，这将是你的工程目录，我的叫做<code>Forge1.7.10-1258</code>。然后再在里面建立一个目录，比方说就叫<code>forge-1.7.10-10.13.2.1258-src</code>，把你的Forge源码解压进去。<br>现在，你的文件夹层次应该看起来是这样的：</p>
+<h1 id="设置Forge工作区"><a href="#设置Forge工作区" class="headerlink" title="设置Forge工作区"></a>设置Forge工作区</h1><p>当然，你得首先去<a href="http://files.minecraftforge.net/" target="_blank" rel="noopener">MinecraftForge</a>下载一份源代码。我这里用的是最新的<code>forge-1.7.10-10.13.2.1258-src.zip</code><br>接着，找个地方建立一个文件夹，这将是你的工程目录，我的叫做<code>Forge1.7.10-1258</code>。然后再在里面建立一个目录，比方说就叫<code>forge-1.7.10-10.13.2.1258-src</code>，把你的Forge源码解压进去。<br>现在，你的文件夹层次应该看起来是这样的：</p>
 <pre><code>Forge1.7.10-1258
 └── forge-1.7.10-10.13.2.1258-src
      ├── build.gradle
@@ -308,13 +316,12 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
      ├── MinecraftForge-Credits.txt
      ├── MinecraftForge-License.txt
      ├── README.txt
-     └── src
-</code></pre><p>你可以先按自己喜好改动一下<code>build.gradle</code>。比如，我喜欢手动指定一下mappings的版本：</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">minecraft &#123;</div><div class="line">    version = <span class="string">"1.7.10-10.13.2.1258"</span></div><div class="line">    runDir = <span class="string">"eclipse"</span></div><div class="line">    mappings = <span class="string">"stable_12"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+     └── src</code></pre><p>你可以先按自己喜好改动一下<code>build.gradle</code>。比如，我喜欢手动指定一下mappings的版本：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">minecraft &#123;</span><br><span class="line">    version = <span class="string">"1.7.10-10.13.2.1258"</span></span><br><span class="line">    runDir = <span class="string">"eclipse"</span></span><br><span class="line">    mappings = <span class="string">"stable_12"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>接着，cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下两条命令：</p>
 <pre><code>gradle -i setupDecompWorkspace
-gradle -i ideaModule
-</code></pre><p>然后请耐心等待指令完成，可以去喝杯牛奶睡个觉什么的。<br>
+gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以去喝杯牛奶睡个觉什么的。</p>
       
     </div>
     <footer>
@@ -350,8 +357,8 @@ gradle -i ideaModule
     </header>
     <div class="entry">
       
-        <p>表示最近时间荒废得厉害，主要都是耗在了<a href="http://www.minecraft.net" target="_blank" rel="external">Minecraft</a>这款游戏上。<br>Minecraft的一大魅力在于其几乎无穷的MODs，于是我也小试了一下Mod开发，顺便学习一下Java。<del>于是掉入了万劫不复的深坑</del><br>当然，我要做点和加个方块、改个合成表之类的不一样的事。<br>（教程中不少内容都参考了szszss的<a href="http://www.hakugyokurou.net/wordpress/?page_id=126" target="_blank" rel="external">博客</a>，在此表示深深的感谢）</p>
-<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><p>关于这篇文章，不适合特别特别新的新人，我假设各位读者都有一些基础的编程经验。如果你是入门级别的，在MCBBS论坛的<a href="http://www.mcbbs.net/thread-54579-1-1.html" target="_blank" rel="external">编程开发板块</a>有不少不错的入门教程。<br>我假设各位读者都具备以下能力:</p>
+        <p>表示最近时间荒废得厉害，主要都是耗在了<a href="http://www.minecraft.net" target="_blank" rel="noopener">Minecraft</a>这款游戏上。<br>Minecraft的一大魅力在于其几乎无穷的MODs，于是我也小试了一下Mod开发，顺便学习一下Java。<del>于是掉入了万劫不复的深坑</del><br>当然，我要做点和加个方块、改个合成表之类的不一样的事。<br>（教程中不少内容都参考了szszss的<a href="http://www.hakugyokurou.net/wordpress/?page_id=126" target="_blank" rel="noopener">博客</a>，在此表示深深的感谢）</p>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><p>关于这篇文章，不适合特别特别新的新人，我假设各位读者都有一些基础的编程经验。如果你是入门级别的，在MCBBS论坛的<a href="http://www.mcbbs.net/thread-54579-1-1.html" target="_blank" rel="noopener">编程开发板块</a>有不少不错的入门教程。<br>我假设各位读者都具备以下能力:</p>
 <ul>
 <li>会安装软件</li>
 <li>了解基本的程序流程控制，比如判断、循环等</li>

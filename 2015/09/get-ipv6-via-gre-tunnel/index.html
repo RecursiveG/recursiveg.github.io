@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>Linux下建立GRE隧道并获取IPv6地址 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="如何在Linux服务器上建立隧道并获得IPv6地址" />
+  <meta name="description" content="如何在Linux服务器上建立隧道并获得IPv6地址">
   
-  <meta name="keywords" content="GRE Tunnel,IPv6,隧道,邻居发现,6to4,6in4" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="GRE Tunnel,IPv6,隧道,邻居发现,6to4,6in4">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="Linux下建立GRE隧道并获取IPv6地址"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="Linux下建立GRE隧道并获取IPv6地址">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -88,28 +88,32 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <li>服务器的IPv6段是<code>a:b:c:d::/64</code></li>
 <li>要分配下去的IPv6段是<code>a:b:c:d:e::/80</code></li>
 </ol>
-<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</div><div class="line">ip link <span class="built_in">set</span> gre-tunnel up</div><div class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</div></pre></td></tr></table></figure></p>
+<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>第一行建立隧道，<code>gre-tunnel</code>是隧道名称，可以按自己喜欢的来，记得其他的也要一起改</li>
 <li>第二行激活隧道</li>
 <li>第三行分配IP地址</li>
 </ul>
 <a id="more"></a>
-<h2 id="本地配置"><a href="#本地配置" class="headerlink" title="本地配置"></a>本地配置</h2><p>脚本如下，和服务端配置几乎一样，同样需要root：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$server_ipv4</span> ttl 64</div><div class="line">ip link <span class="built_in">set</span> gre-tunnel up</div><div class="line">ip addr add a:b:c:d:e::2/80 dev gre-tunnel</div><div class="line">ip -6 route add default dev gre-tunnel</div></pre></td></tr></table></figure></p>
+<h2 id="本地配置"><a href="#本地配置" class="headerlink" title="本地配置"></a>本地配置</h2><p>脚本如下，和服务端配置几乎一样，同样需要root：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$server_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::2/80 dev gre-tunnel</span><br><span class="line">ip -6 route add default dev gre-tunnel</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>第一行建立隧道，隧道名称不必和服务器的一样</li>
 <li>第二行激活隧道</li>
 <li>第三行分配IP地址，注意不要和服务器的冲突，这个IP也是将要暴露在网络上的IP</li>
 <li>第四行设定路由，让IPv6流量都走隧道</li>
 </ul>
-<h2 id="访问网络"><a href="#访问网络" class="headerlink" title="访问网络"></a>访问网络</h2><p>现在，两台机器应该可以互ping了。有的比较奇葩的情况可能需要手动<code>ip link set gre0 up</code>一下，gre0似乎是内核模块自动加入的玩意儿，具体怎么回事我也不清楚–_–|<br>但是现在还不能访问外网，还需要在服务器执行以下命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">sysctl net.ipv6.conf.all.forwarding=1</div><div class="line">sysctl net.ipv6.conf.all.proxy_ndp=1</div><div class="line">ip -6 neigh add proxy a:b:c:d:e::2 dev eth0</div></pre></td></tr></table></figure></p>
+<h2 id="访问网络"><a href="#访问网络" class="headerlink" title="访问网络"></a>访问网络</h2><p>现在，两台机器应该可以互ping了。有的比较奇葩的情况可能需要手动<code>ip link set gre0 up</code>一下，gre0似乎是内核模块自动加入的玩意儿，具体怎么回事我也不清楚–_–|<br>但是现在还不能访问外网，还需要在服务器执行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv6.conf.all.forwarding=1</span><br><span class="line">sysctl net.ipv6.conf.all.proxy_ndp=1</span><br><span class="line">ip -6 neigh add proxy a:b:c:d:e::2 dev eth0</span><br></pre></td></tr></table></figure>
+
 <p>第一行开启forward<br>二三行和IPv6的NDP(邻居发现)有关，又是个没搞明白的东西真是残念……<br>eth0是服务器实际连接网络的接口。</p>
 <h2 id="删除-amp-修改"><a href="#删除-amp-修改" class="headerlink" title="删除 &amp; 修改"></a>删除 &amp; 修改</h2><p>要删除Tunnel，在两端均执行:</p>
 <pre><code>ip link set gre-tunnel down
-ip tunnel del gre-tunnel
-</code></pre><p>如果客户端IP变化:</p>
-<pre><code>ip tunnel change gre-tunnel remote $new_client_ipv4
-</code></pre><h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>虽然叫做“隧道”，但是内容依然是<em>明文</em>，对保密要求高的同学们要注意了。<br>另外直接用命令建立的隧道在重启后会没有，所以可以考虑用networkd之类的东西来管理。<br>Linux在访问有IPv6地址的域名时会优先使用IPv6，所以要当心服务器流量爆炸。当然配置成IPv4优先也是可以的。<br>如果你的本地IPv4经常变动的话，你可能需要些脚本之类的东西自动更新服务器的Remote IP。<br>对于每一个新的IP(新的设备)，都需要在服务端执行<code>ip -6 neigh add</code>，有知道怎么解决这个问题的请务必留言…</p>
+ip tunnel del gre-tunnel</code></pre><p>如果客户端IP变化:</p>
+<pre><code>ip tunnel change gre-tunnel remote $new_client_ipv4</code></pre><h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>虽然叫做“隧道”，但是内容依然是<em>明文</em>，对保密要求高的同学们要注意了。<br>另外直接用命令建立的隧道在重启后会没有，所以可以考虑用networkd之类的东西来管理。<br>Linux在访问有IPv6地址的域名时会优先使用IPv6，所以要当心服务器流量爆炸。当然配置成IPv4优先也是可以的。<br>如果你的本地IPv4经常变动的话，你可能需要些脚本之类的东西自动更新服务器的Remote IP。<br>对于每一个新的IP(新的设备)，都需要在服务端执行<code>ip -6 neigh add</code>，有知道怎么解决这个问题的请务必留言…</p>
 
       
     </div>

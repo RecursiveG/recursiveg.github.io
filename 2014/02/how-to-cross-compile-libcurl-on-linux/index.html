@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>在Linux下使用MinGW静态交叉编译带有zlib的libcurl | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="A short memo on how to cross-compile libcurl statically on linux." />
+  <meta name="description" content="A short memo on how to cross-compile libcurl statically on linux.">
   
-  <meta name="keywords" content="Cross-Compile,Static Library,zlib,libcurl,MinGW" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="Cross-Compile,Static Library,zlib,libcurl,MinGW">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="在Linux下使用MinGW静态交叉编译带有zlib的libcurl"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="在Linux下使用MinGW静态交叉编译带有zlib的libcurl">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -81,38 +81,33 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p><a href="http://curl.haxx.se/" target="_blank" rel="external">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
+        <p><a href="http://curl.haxx.se/" target="_blank" rel="noopener">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
 <h3 id="STEP1-安装MinGW编译器"><a href="#STEP1-安装MinGW编译器" class="headerlink" title="STEP1 安装MinGW编译器"></a>STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
-<pre><code>~# pacman -S mingw-w64
-</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
+<pre><code>~# pacman -S mingw-w64</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
 <pre><code>~# pacman -Ql mingw-w64-gcc| grep &apos;/usr/bin/.*gcc$&apos;
 mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
-mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc
-</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/" target="_blank" rel="external">Hello World代码</a> ^_^），然后编译试试：</p>
-<pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe
-</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。<br><a id="more"></a></p>
+mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/" target="_blank" rel="noopener">Hello World代码</a> ^_^），然后编译试试：</p>
+<pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。</p>
+<a id="more"></a>
 <h3 id="STEP2-下载源码"><a href="#STEP2-下载源码" class="headerlink" title="STEP2 下载源码"></a>STEP2 下载源码</h3><p>很简单的步骤，如果自己搞不定的建议直接右上角。</p>
 <ul>
-<li><a href="http://curl.haxx.se/download.html" target="_blank" rel="external">LibCurl</a>:最上面的Source Archives</li>
-<li><a href="http://www.zlib.net/" target="_blank" rel="external">zLib</a>:请下Source Code</li>
-<li><a href="https://www.openssl.org/source/" target="_blank" rel="external">OpenSSL</a>:可选，如果没有必要就不要编译，会极大地增加文件体积</li>
+<li><a href="http://curl.haxx.se/download.html" target="_blank" rel="noopener">LibCurl</a>:最上面的Source Archives</li>
+<li><a href="http://www.zlib.net/" target="_blank" rel="noopener">zLib</a>:请下Source Code</li>
+<li><a href="https://www.openssl.org/source/" target="_blank" rel="noopener">OpenSSL</a>:可选，如果没有必要就不要编译，会极大地增加文件体积</li>
 </ul>
 <p>把<code>curl-7.35.0</code>和<code>zlib-1.2.8</code>(可能还有<code>openssl-1.0.1f</code>)这几个文件夹放在同一个目录下，然后进行下一步。</p>
 <h3 id="STEP3-编译源码"><a href="#STEP3-编译源码" class="headerlink" title="STEP3 编译源码"></a>STEP3 编译源码</h3><p>先打开<code>zlib/win32</code>文件夹下的<code>Makefile.gcc</code>文件,把<code>PREFIX =</code>这行改成STEP1里的gcc前缀，对于我来说就是<code>PREFIX = i686-w64-mingw32-</code>。把这个文件拷贝到<code>zlib</code>文件夹下，然后在<code>zlib</code>文件夹下<code>make -f Makefile.gcc</code>，你就应该能看到<code>libz.a</code>这个文件了。</p>
 <p>如果你要编译OpenSSL,那么就去openssl文件夹下</p>
 <pre><code>$ ./Configure no-shared --cross-compile-prefix=i686-w64-mingw32- mingw
-$ make
-</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<code>libcrypto.a</code></p>
+$ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<code>libcrypto.a</code></p>
 <p>最后去libcurl里的lib文件夹里修改<code>Makefile.m32</code>文件，在<code>CC    = $(CROSSPREFIX)gcc</code>上加一行<code>CROSSPREFIX=i686-w64-mingw32-</code>（请按需修改），然后把下面<code>CFLAGS</code>那行改成这样<code>CFLAGS    = -g -O2 -Wall -DCURL_DISABLE_LDAP</code>，最后</p>
-<pre><code>make -f Makefile.m32 CFG=-zlib
-</code></pre><p>或是</p>
-<pre><code>make -f Makefile.m32 CFG=-zlib-ssl
-</code></pre><p>make到最后时会报个错，是因为文件没放对地方，手动挪一下即可</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> x <span class="keyword">in</span> vtls/openssl.o vtls/gtls.o vtls/vtls.o vtls/nss.o vtls/qssl.o vtls/polarssl.o vtls/polarssl_threadlock.o vtls/axtls.o vtls/cyassl.o vtls/curl_schannel.o vtls/curl_darwinssl.o vtls/gskit.o</div><div class="line"><span class="keyword">do</span></div><div class="line">    mv `basename <span class="variable">$x</span>` vtls</div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure>
+<pre><code>make -f Makefile.m32 CFG=-zlib</code></pre><p>或是</p>
+<pre><code>make -f Makefile.m32 CFG=-zlib-ssl</code></pre><p>make到最后时会报个错，是因为文件没放对地方，手动挪一下即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> vtls/openssl.o vtls/gtls.o vtls/vtls.o vtls/nss.o vtls/qssl.o vtls/polarssl.o vtls/polarssl_threadlock.o vtls/axtls.o vtls/cyassl.o vtls/curl_schannel.o vtls/curl_darwinssl.o vtls/gskit.o</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    mv `basename <span class="variable">$x</span>` vtls</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
 <p>然后再make一下，<code>libcurl.a</code>文件应该就出现了。<br>如果生成dll出错也不要紧，我们要的是<code>.a</code>文件</p>
 <h3 id="STEP4-测试"><a href="#STEP4-测试" class="headerlink" title="STEP4 测试"></a>STEP4 测试</h3><p>现在，你可以找一段libcurl的demo来测试了。注意要加上宏定义<code>CURL_STATICLIB</code></p>
-<pre><code>i686-w64-mingw32-gcc -I. -L. -DCURL_STATICLIB curl_demo.c -lcurl -lz -lws2_32 -o curl_demo.exe
-</code></pre><p>如果你因为不知道gcc<code>-I</code>和<code>-L</code>选项的用法而编译不过，请自行Google。如果你加了ssl支持，你需要链接更多的库，具体请根据错误信息自行Google。最后提醒一点:<strong>请把<code>-lcurl</code>选项放在源文件后面</strong>，我当初就是因为这个死活链接不过。最后把<code>curl_demo.exe</code>拖进虚拟机里，如果一切正常，那么恭喜你，你成功了。</p>
+<pre><code>i686-w64-mingw32-gcc -I. -L. -DCURL_STATICLIB curl_demo.c -lcurl -lz -lws2_32 -o curl_demo.exe</code></pre><p>如果你因为不知道gcc<code>-I</code>和<code>-L</code>选项的用法而编译不过，请自行Google。如果你加了ssl支持，你需要链接更多的库，具体请根据错误信息自行Google。最后提醒一点:<strong>请把<code>-lcurl</code>选项放在源文件后面</strong>，我当初就是因为这个死活链接不过。最后把<code>curl_demo.exe</code>拖进虚拟机里，如果一切正常，那么恭喜你，你成功了。</p>
 
       
     </div>

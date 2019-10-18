@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
   <title>有屏幕的地方就有烂苹果 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG" />
+  <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="A short tutorial on creating a character-base animation" />
+  <meta name="description" content="A short tutorial on creating a character-base animation">
   
-  <meta name="keywords" content="Bad Apple,字符动画" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="keywords" content="Bad Apple,字符动画">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="有屏幕的地方就有烂苹果"/>
-  <meta property="og:site_name" content="RECURSIVE LAND"/>
+  <meta property="og:title" content="有屏幕的地方就有烂苹果">
+  <meta property="og:site_name" content="RECURSIVE LAND">
 
   
-    <meta property="og:image" content=""/>
+    <meta property="og:image" content>
   
 
-  <link href="/favicon.png" rel="icon" />
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -39,7 +39,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 </head>
-
+</html>
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -81,14 +81,20 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="external">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
-<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。<br><a id="more"></a><br>第二步要把视频变成一帧一帧的图片，请出FFmpeg来帮忙:</p>
-<pre><code>ffmpeg -i BadApple.mkv -s 80x60 -r 15 Ba%d.png
-</code></pre><p>然后你就会得到<code>Ba1.png Ba2.png Ba3.png</code>等一大堆文件，这就是各帧了。注意我在这一步同时把大小缩小到了80*60和把帧速率调到了15帧每秒。</p>
-<p>第三步用ImageMagick将图像转换成黑白图，然后再转换成<code>xpm</code>格式。XPM格式本质上是一个文本文档，可以直接被<code>#include</code>。我们这一步要用到一点点脚本技巧。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> x <span class="keyword">in</span> *.png</div><div class="line"><span class="keyword">do</span></div><div class="line">  convert <span class="variable">$x</span> -monochrome `basename -s .png <span class="variable">$x</span>`.xpm</div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure></p>
+        <p>如果你还不知道Bad Apple是什么东西，请移步<a href="http://zh.wikipedia.org/wiki/Bad_apple!!" target="_blank" rel="noopener">这里</a><br>播放的原理很简单，就是不停的打印清屏再打印清屏。任何一个略有编程基础的人都能做到。比较令人头大的是如何把原视频转化为一个易于解析而且又不占地方的文件。<br>其实，借助<code>FFmpeg</code>、<code>ImageMagick</code>和一点点的编程小技巧就可以轻松完成。</p>
+<p>第一步当然是要去下一个视频文件，我已经下好了，叫做<code>BadApple.mkv</code>。</p>
+<a id="more"></a>
+<p>第二步要把视频变成一帧一帧的图片，请出FFmpeg来帮忙:</p>
+<pre><code>ffmpeg -i BadApple.mkv -s 80x60 -r 15 Ba%d.png</code></pre><p>然后你就会得到<code>Ba1.png Ba2.png Ba3.png</code>等一大堆文件，这就是各帧了。注意我在这一步同时把大小缩小到了80*60和把帧速率调到了15帧每秒。</p>
+<p>第三步用ImageMagick将图像转换成黑白图，然后再转换成<code>xpm</code>格式。XPM格式本质上是一个文本文档，可以直接被<code>#include</code>。我们这一步要用到一点点脚本技巧。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> *.png</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  convert <span class="variable">$x</span> -monochrome `basename -s .png <span class="variable">$x</span>`.xpm</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
 <p>最后写一段C语言小程序，利用游程编码进一步缩小文件体积。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">#include &lt;stdio.h&gt;</div><div class="line">#include &quot;xpm.h&quot;</div><div class="line">void main()&#123;</div><div class="line">  FILE *f=fopen(&quot;BA.dat&quot;,&quot;a&quot;);</div><div class="line">  char count;</div><div class="line">  int t=ARR[0][6]==&apos;1&apos;?1:2;</div><div class="line">  for(int i=1+t;i&lt;61+t;i++)&#123;</div><div class="line">    count=1;</div><div class="line">    for(int j=1;j&lt;80;j++)&#123;</div><div class="line">      if(ARR[i][j]==ARR[i][j-1])&#123;</div><div class="line">        count++;</div><div class="line">      &#125;else&#123;</div><div class="line">        if(ARR[i][j]==&apos;.&apos;)count=-count;</div><div class="line">        fprintf(f,&quot;%c&quot;,count);</div><div class="line">        count=1;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    if(ARR[i][79]==&apos; &apos;)count=-count;</div><div class="line">    fprintf(f,&quot;%c&quot;,count);</div><div class="line">    fprintf(f,&quot;%c&quot;,0);</div><div class="line">  &#125;</div><div class="line">  fclose(f);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>当然，离不了脚本和编译器的帮助，我这里使用了<code>tcc</code>进行编译<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (( i=1; i&lt;=3288; i++))</div><div class="line"><span class="keyword">do</span></div><div class="line">  cp Ba<span class="variable">$i</span>.xpm xpm.h</div><div class="line">  tcc -DARR=Ba<span class="variable">$i</span> bad_apple.c &amp;&amp; ./a.out</div><div class="line">  rm xpm.h</div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &quot;xpm.h&quot;</span><br><span class="line">void main()&#123;</span><br><span class="line">  FILE *f=fopen(&quot;BA.dat&quot;,&quot;a&quot;);</span><br><span class="line">  char count;</span><br><span class="line">  int t=ARR[0][6]==&apos;1&apos;?1:2;</span><br><span class="line">  for(int i=1+t;i&lt;61+t;i++)&#123;</span><br><span class="line">    count=1;</span><br><span class="line">    for(int j=1;j&lt;80;j++)&#123;</span><br><span class="line">      if(ARR[i][j]==ARR[i][j-1])&#123;</span><br><span class="line">        count++;</span><br><span class="line">      &#125;else&#123;</span><br><span class="line">        if(ARR[i][j]==&apos;.&apos;)count=-count;</span><br><span class="line">        fprintf(f,&quot;%c&quot;,count);</span><br><span class="line">        count=1;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    if(ARR[i][79]==&apos; &apos;)count=-count;</span><br><span class="line">    fprintf(f,&quot;%c&quot;,count);</span><br><span class="line">    fprintf(f,&quot;%c&quot;,0);</span><br><span class="line">  &#125;</span><br><span class="line">  fclose(f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然，离不了脚本和编译器的帮助，我这里使用了<code>tcc</code>进行编译</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (( i=1; i&lt;=3288; i++))</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  cp Ba<span class="variable">$i</span>.xpm xpm.h</span><br><span class="line">  tcc -DARR=Ba<span class="variable">$i</span> bad_apple.c &amp;&amp; ./a.out</span><br><span class="line">  rm xpm.h</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
 <p>其中，那个3288就是总帧数。这样就得到了一个<code>BA.dat</code>文件。文件内容是一堆用二进制存储的数字，正数代表连续的白色，负数代表连续的黑色，零代表换行。一帧60行，总计3288帧。这样就把一个80多兆的视频压缩到了900多K。有了数据文件剩下的就好办了。</p>
 <p><strong>未完待续。。。。。。</strong></p>
 

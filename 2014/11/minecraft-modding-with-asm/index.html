@@ -115,7 +115,7 @@ gradle genIntellijRun</code></pre><p>没有装gradle也不想装的，可以用<
 <li><p>打开IDEA，直接Open Project，选择目录下的.ipr文件应该就好了，你可以试着Run一下看看有没有什么问题。</p>
 </li>
 </ol>
-<p>注：直接<code>gradle idea</code>现在是不被推荐的，可以尝试用<code>gradle ideaModule</code>代替，具体方法在<a href="http://www.devinprogress.org/2014/12/setup-forge-workspace-with-idea/" target="_blank" rel="noopener">我的另一篇日志</a>里有讲。<br>如果需要Socks代理的，可以这么来<code>gradle -DsocksProxyHost={代理服务器地址} -DsocksProxyPort={代理端口}</code></p>
+<p>注：直接<code>gradle idea</code>现在是不被推荐的，可以尝试用<code>gradle ideaModule</code>代替，具体方法在<a href="/2014/12/setup-forge-workspace-with-idea/">我的另一篇日志</a>里有讲。<br>如果需要Socks代理的，可以这么来<code>gradle -DsocksProxyHost={代理服务器地址} -DsocksProxyPort={代理端口}</code></p>
 <h1 id="代码管理与开发"><a href="#代码管理与开发" class="headerlink" title="代码管理与开发"></a>代码管理与开发</h1><p><del>源代码和资源文件都是放在<code>src</code>文件夹里的，有时要在多个不同的Mod间切换开发，我目前的解决方法是将代码统一放在别处，将src文件夹做软链接进来。同时我也非常推荐也用这种方法处理<code>build.gradle</code>文件。将代码放在别处还有个好处，就是可以用<code>git</code>来管理版本，而且可以用分支方便地管理对不同Minecraft版本做的修改。不管什么方式，自己习惯就好。</del></p>
 <p>用了<code>gradle ideaModule</code>后，代码本身就分开放置了，不再需要这种方法了。</p>
 <p>对于开发这一部分，自己深感无力(其实就是懒)，请参阅szszss的系列教程。<br>另外，现在已经没有Coremod文件夹了，所以所有Mod都放在Mods文件夹下，不同之处只在于<code>MANIFEST.MF</code>文件。</p>

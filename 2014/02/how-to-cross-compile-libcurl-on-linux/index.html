@@ -86,7 +86,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <pre><code>~# pacman -S mingw-w64</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
 <pre><code>~# pacman -Ql mingw-w64-gcc| grep &apos;/usr/bin/.*gcc$&apos;
 mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
-mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="http://www.devinprogress.org/2012/12/helloworld/" target="_blank" rel="noopener">Hello World代码</a> ^_^），然后编译试试：</p>
+mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="/2012/12/helloworld/">Hello World代码</a> ^_^），然后编译试试：</p>
 <pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。</p>
 <a id="more"></a>
 <h3 id="STEP2-下载源码"><a href="#STEP2-下载源码" class="headerlink" title="STEP2 下载源码"></a>STEP2 下载源码</h3><p>很简单的步骤，如果自己搞不定的建议直接右上角。</p>

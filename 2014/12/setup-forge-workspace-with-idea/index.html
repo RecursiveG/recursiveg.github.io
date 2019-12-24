@@ -44,7 +44,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <body>
   <header id="header" class="inner"><div class="alignleft">
   <h1><a href="/">RECURSIVE LAND</a></h1>
-  <h2><a href="/">A Blog of Recursive G</a></h2>
+  <h2><a href="/"></a></h2>
 </div>
 <nav id="main-nav" class="alignright">
   <ul>
@@ -105,15 +105,15 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
 <a id="more"></a>
 <h1 id="导入到IDEA"><a href="#导入到IDEA" class="headerlink" title="导入到IDEA"></a>导入到IDEA</h1><p>等以上操作完成后，就可以打开IDEA，选“Create New Project”，注意要建立一个<strong>空工程</strong>（Empty Project）</p>
 
-<p><img src="/images/setup-forge-workspace-with-idea-1.png" alt="Create New Project"><br>“Project Name”自然可以随意填写，”Project Location”则是之前创建的目录，下方的”Project Format”推荐选”Directory Based”<br>点”Finish”之后应该会自动打开”Project Structure”窗口，如果没有的话可以按Ctrl+Alt+Shift+S或是从菜单栏”File –&gt; Project Structure”<br>打开窗口之后我们首先要选择SDK版本：先点左边的”Project”，然后在右边”Project SDK”里选一个，我是选了Java8，你当然可以选择任何版本（不要低于Java6）<br><img src="/images/setup-forge-workspace-with-idea-2.png" alt="Select Project SDK"><br>接着点左边的”Modules”,再点那个绿色的“+”号，接着选”Import Module”<br><img src="/images/setup-forge-workspace-with-idea-3.png" alt="Location of &quot;Import Module&quot;"><br>然后选forge-1.7.10-10.13.2.1258-src目录下的<code>forge-1.7.10-10.13.2.1258-src.iml</code>文件就好。<br>Import完了之后检查下有没有报错，如果没问题就可以点右下角OK。</p>
+<p><img src="/images/setup-forge-workspace-with-idea/1.png" alt="Create New Project"><br>“Project Name”自然可以随意填写，”Project Location”则是之前创建的目录，下方的”Project Format”推荐选”Directory Based”<br>点”Finish”之后应该会自动打开”Project Structure”窗口，如果没有的话可以按Ctrl+Alt+Shift+S或是从菜单栏”File –&gt; Project Structure”<br>打开窗口之后我们首先要选择SDK版本：先点左边的”Project”，然后在右边”Project SDK”里选一个，我是选了Java8，你当然可以选择任何版本（不要低于Java6）<br><img src="/images/setup-forge-workspace-with-idea/2.png" alt="Select Project SDK"><br>接着点左边的”Modules”,再点那个绿色的“+”号，接着选”Import Module”<br><img src="/images/setup-forge-workspace-with-idea/3.png" alt="Location of &quot;Import Module&quot;"><br>然后选forge-1.7.10-10.13.2.1258-src目录下的<code>forge-1.7.10-10.13.2.1258-src.iml</code>文件就好。<br>Import完了之后检查下有没有报错，如果没问题就可以点右下角OK。</p>
 <p>重新cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下三条命令让gradle自动建立运行配置。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ln -s ../.idea .</span><br><span class="line">gradle -i genIntellijRun</span><br><span class="line">rm .idea</span><br></pre></td></tr></table></figure>
 
-<p>回到IDEA，然后有必要的话重新加载一下Project。继续选菜单栏”Run –&gt; Edit Configurations”,点左侧的”Minecraft Client”，修改”Working Directory”到<code>forge-1.7.10-10.13.2.1258-src/eclipse</code>。<br><img src="/images/setup-forge-workspace-with-idea-4.png" alt="Edit Configuration"><br>你也可以像我一样指定一个username。接着对”Minecraft Server”也如法炮制。然后右下角”OK”退出。</p>
-<p>现在Forge应该就可以运行了，在IDEA的主界面右上角有这么一片区域，选”Minecraft Client”然后点右侧那个绿色的三角箭头即可<br><img src="/images/setup-forge-workspace-with-idea-5.png" alt="Execution Control Bar"></p>
+<p>回到IDEA，然后有必要的话重新加载一下Project。继续选菜单栏”Run –&gt; Edit Configurations”,点左侧的”Minecraft Client”，修改”Working Directory”到<code>forge-1.7.10-10.13.2.1258-src/eclipse</code>。<br><img src="/images/setup-forge-workspace-with-idea/4.png" alt="Edit Configuration"><br>你也可以像我一样指定一个username。接着对”Minecraft Server”也如法炮制。然后右下角”OK”退出。</p>
+<p>现在Forge应该就可以运行了，在IDEA的主界面右上角有这么一片区域，选”Minecraft Client”然后点右侧那个绿色的三角箭头即可<br><img src="/images/setup-forge-workspace-with-idea/5.png" alt="Execution Control Bar"></p>
 <h1 id="一个Mod！"><a href="#一个Mod！" class="headerlink" title="一个Mod！"></a>一个Mod！</h1><p>如果之前的步骤都没有问题，你就可以继续了<br>为了更好地演示运行配置以及发布流程，我决定写一个Mod，添加一种矿石：“Xp Ore”,顾名思义，挖掉后能得到大量经验。</p>
-<p>我们需要新建一个Module来写我们的代码：菜单栏”File –&gt; New Module”<br>我就叫XpOre好了，然后继续打开”Project Structure”，将<code>forge-1.7.10-10.13.2.1258-src</code>添加成为它的依赖。<br><img src="/images/setup-forge-workspace-with-idea-6.png" alt="Add to Dependencies"><br>那个菜单同样是点右边的绿色加号出来，点”Module Dependency”后在弹出来的窗口里选”forge-1.7.10-10.13.2.1258-src”然后”OK”即可。</p>
-<p>之后就可以写Mod了！至于具体Mod怎么写我就不在这里提了，请各位参考其他文章。<br>这是我的代码和目录层次结构，请自行调整，我就不把每一步的细节都写出来了。<br>请记得把<code>java</code>和<code>resources</code>两个目录设置成代码根目录和资源根目录，具体方法是在文件夹上右键然后”Mark Directory As”<br><img src="/images/setup-forge-workspace-with-idea-7.png" alt="The Module Tree"><br>（xp_ore.png是矿石的材质，其实就是拿金矿石的材质把几个像素涂成绿色让它看起来比较像附魔瓶的颜色）<br>为了防止图挂，我再拿文本形式列一下目录</p>
+<p>我们需要新建一个Module来写我们的代码：菜单栏”File –&gt; New Module”<br>我就叫XpOre好了，然后继续打开”Project Structure”，将<code>forge-1.7.10-10.13.2.1258-src</code>添加成为它的依赖。<br><img src="/images/setup-forge-workspace-with-idea/6.png" alt="Add to Dependencies"><br>那个菜单同样是点右边的绿色加号出来，点”Module Dependency”后在弹出来的窗口里选”forge-1.7.10-10.13.2.1258-src”然后”OK”即可。</p>
+<p>之后就可以写Mod了！至于具体Mod怎么写我就不在这里提了，请各位参考其他文章。<br>这是我的代码和目录层次结构，请自行调整，我就不把每一步的细节都写出来了。<br>请记得把<code>java</code>和<code>resources</code>两个目录设置成代码根目录和资源根目录，具体方法是在文件夹上右键然后”Mark Directory As”<br><img src="/images/setup-forge-workspace-with-idea/7.png" alt="The Module Tree"><br>（xp_ore.png是矿石的材质，其实就是拿金矿石的材质把几个像素涂成绿色让它看起来比较像附魔瓶的颜色）<br>为了防止图挂，我再拿文本形式列一下目录</p>
 <pre><code>XpOre
 ├── src
 │   └── main
@@ -136,7 +136,7 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
 <pre><code>version = &quot;v0.1&quot;
 group= &quot;org.devinprogress.xpore&quot;
 archivesBaseName = &quot;XpOre-1.7.10&quot;</code></pre><p>然后在XpOre文件夹下<code>gradle build</code>即可。运行完成后，就能在<code>XpOre/build/libs/</code>文件夹下找到编译好的jar了。</p>
-<p>最后来一张Mod的效果图<br><img src="/images/setup-forge-workspace-with-idea-8.png" alt="XpOre Mod"></p>
+<p>最后来一张Mod的效果图<br><img src="/images/setup-forge-workspace-with-idea/8.png" alt="XpOre Mod"></p>
 
       
     </div>
@@ -188,6 +188,10 @@ archivesBaseName = &quot;XpOre-1.7.10&quot;</code></pre><p>然后在XpOre文件�
   <ul class="entry">
     
       <li>
+        <a href="/2019/12/build-amd-3960x-pc/">AMD Threadripper 3960X 装机</a>
+      </li>
+    
+      <li>
         <a href="/2019/03/haskell-intro/">Haskell 简易指南</a>
       </li>
     
@@ -203,10 +207,6 @@ archivesBaseName = &quot;XpOre-1.7.10&quot;</code></pre><p>然后在XpOre文件�
         <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
       </li>
     
-      <li>
-        <a href="/2015/09/get-ipv6-via-gre-tunnel/">Linux下建立GRE隧道并获取IPv6地址</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -219,6 +219,8 @@ archivesBaseName = &quot;XpOre-1.7.10&quot;</code></pre><p>然后在XpOre文件�
     <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
   
     <li><a href="/categories/Informatics/">Informatics</a><small>20</small></li>
+  
+    <li><a href="/categories/Life/">Life</a><small>1</small></li>
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>0</small></li>
   
@@ -234,7 +236,7 @@ archivesBaseName = &quot;XpOre-1.7.10&quot;</code></pre><p>然后在XpOre文件�
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Linux/" style="font-size: 18px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 14px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
   </div>
 </div>
 

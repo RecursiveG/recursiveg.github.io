@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://recursiveg.me/2019/12/build-amd-3960x-pc/</loc>
+    
+    <lastmod>2019-12-24T21:34:46.182Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
+    
+    <lastmod>2019-12-24T19:36:24.679Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</loc>
+    
+    <lastmod>2019-12-24T19:35:17.919Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://recursiveg.me/about/index.html</loc>
     
     <lastmod>2019-10-19T04:52:18.308Z</lastmod>
@@ -19,20 +40,6 @@
     <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
     
     <lastmod>2019-10-19T04:48:17.272Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
-    
-    <lastmod>2019-10-19T04:47:29.439Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</loc>
-    
-    <lastmod>2019-10-19T04:44:55.334Z</lastmod>
     
   </url>
   
@@ -65,13 +72,6 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
@@ -79,7 +79,21 @@
   </url>
   
   <url>
+    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -114,7 +128,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -128,20 +142,6 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
@@ -149,7 +149,7 @@
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
@@ -157,6 +157,13 @@
   
   <url>
     <loc>http://recursiveg.me/2014/07/domain-name-registrar-switched/</loc>
+    
+    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
     
     <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     

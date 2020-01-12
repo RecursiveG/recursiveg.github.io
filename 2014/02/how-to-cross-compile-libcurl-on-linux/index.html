@@ -6,9 +6,9 @@
   <title>在Linux下使用MinGW静态交叉编译带有zlib的libcurl | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG">
   
-  <meta name="description" content="A short memo on how to cross-compile libcurl statically on linux.">
+  <meta name="description" content="Recursive G&#39;s personal blog">
   
-  <meta name="keywords" content="Cross-Compile,Static Library,zlib,libcurl,MinGW">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   <meta property="og:title" content="在Linux下使用MinGW静态交叉编译带有zlib的libcurl">
@@ -82,13 +82,14 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p><a href="http://curl.haxx.se/" target="_blank" rel="noopener">libcurl</a>是一个跨平台的、易用的、强大的网络库。在大部分Linux发行版中都有编译好的二进制包可供使用，Mac系统更是将其作为了一个核心部件。但是在Windows平台上却需要手工编译，更不必说一些有特殊洁癖的人（比如说我）还特别讨厌多出来几个DLL,非要静态链接不可。本文作为我两个晚上折腾经历的一个小小总结，讲解如何在Linux下使用MinGW编译给Windows使用的libcurl静态库。</p>
+<a id="more"></a>
 <h3 id="STEP1-安装MinGW编译器"><a href="#STEP1-安装MinGW编译器" class="headerlink" title="STEP1 安装MinGW编译器"></a>STEP1 安装MinGW编译器</h3><p>这步我不打算多说，大部分Linux发行版的仓库应该都有，以我的ArchLinux为例，执行：</p>
 <pre><code>~# pacman -S mingw-w64</code></pre><p>即可。如果你不需要交叉编译，要在Windows上直接编译，请自行去SourceForge上下载Windows版本。不要担心那个<code>w64</code>是不是64位版本，它既可以编译32位又可以编译64位程序。还是以我的版本为例:</p>
 <pre><code>~# pacman -Ql mingw-w64-gcc| grep &apos;/usr/bin/.*gcc$&apos;
 mingw-w64-gcc /usr/bin/i686-w64-mingw32-gcc
 mingw-w64-gcc /usr/bin/x86_64-w64-mingw32-gcc</code></pre><p>可以看到有两个gcc,用<code>i686-w64-mingw32-gcc</code>编译出来的程序就是32位的，而<code>x86_64-w64-mingw32-gcc</code>编译出来的就是64位的。现在，随便写个Hello World（你可以用我的<a href="/2012/12/helloworld/">Hello World代码</a> ^_^），然后编译试试：</p>
 <pre><code>i686-w64-mingw32-gcc hello_world.c -o hello_world.exe</code></pre><p>把它拿到虚拟机或扔进Wine里，如果能正常运行，那么恭喜你，第一步完成了。</p>
-<a id="more"></a>
+<!--more-->
 <h3 id="STEP2-下载源码"><a href="#STEP2-下载源码" class="headerlink" title="STEP2 下载源码"></a>STEP2 下载源码</h3><p>很简单的步骤，如果自己搞不定的建议直接右上角。</p>
 <ul>
 <li><a href="http://curl.haxx.se/download.html" target="_blank" rel="noopener">LibCurl</a>:最上面的Source Archives</li>
@@ -116,7 +117,7 @@ $ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<
         
   
   <div class="categories">
-    <a href="/categories/Informatics/">Informatics</a>
+    <a href="/categories/Programming/">Programming</a>
   </div>
 
         
@@ -159,6 +160,10 @@ $ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<
   <ul class="entry">
     
       <li>
+        <a href="/2020/01/simple-kernel-dev-environment/">简易内核开发环境</a>
+      </li>
+    
+      <li>
         <a href="/2019/12/build-amd-3960x-pc/">AMD Threadripper 3960X 装机</a>
       </li>
     
@@ -174,10 +179,6 @@ $ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<
         <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
       </li>
     
-      <li>
-        <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -187,17 +188,11 @@ $ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<
   <h3 class="title">分类</h3>
   <ul class="entry">
   
-    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
-  
-    <li><a href="/categories/Informatics/">Informatics</a><small>20</small></li>
-  
     <li><a href="/categories/Life/">Life</a><small>1</small></li>
   
-    <li><a href="/categories/Mathematics/">Mathematics</a><small>0</small></li>
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
-  
-    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>25</small></li>
   
   </ul>
 </div>
@@ -207,7 +202,7 @@ $ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 18px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 16px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
   </div>
 </div>
 
@@ -237,7 +232,7 @@ $ make</code></pre><p>即可，记得改prefix。生成<code>libssl.a</code>和<
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2019 RecursiveG
+  &copy; 2020 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

@@ -72,6 +72,54 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-01-12T04:30:00.000Z"><a href="/2020/01/simple-kernel-dev-environment/">Jan 11 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/01/simple-kernel-dev-environment/">简易内核开发环境</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>近期尝试了一下写 Linux 内核代码，于是把折腾过程记录一下，方便以后参考。本文默认使用 x86_64 架构以及 Linux 作为宿主系统。</p>
+<h2 id="使用-QEMU-运行-Linux-内核"><a href="#使用-QEMU-运行-Linux-内核" class="headerlink" title="使用 QEMU 运行 Linux 内核"></a>使用 QEMU 运行 Linux 内核</h2><p>在开始写代码之前，我们需要先准备好模拟器用于运行 Linux。我这里用了QEMU，你也可以用 VirtualBox 之类的虚拟机。一般来说，我们需要一个内核可执行文件（内核本体）和一个 initramfs 镜像（提供用户态程序）。当内核被加载后，它会自动载入 initramfs 镜像，并执行其中的<code>/init</code>程序。由于这一节的重点是 QEMU 配置，所以我直接使用宿主机的内核和 initramfs。以我的 Archlinux 系统为例，内核文件是<code>/boot/vmlinuz-linux</code>，initramfs 文件是<code>/boot/initramfs-linux.img</code>。使用以下命令启动 QEMU，按<code>Ctrl-A x</code>退出。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 \</span><br><span class="line">    -kernel /boot/vmlinuz-linux \</span><br><span class="line">    -initrd /boot/initramfs-linux.img \</span><br><span class="line">    -nographic -append <span class="string">"console=ttyS0"</span> \</span><br><span class="line">    -m 512 \</span><br><span class="line">    --<span class="built_in">enable</span>-kvm \</span><br><span class="line">    -cpu host</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-kernel</code> 指定内核可执行文件。</li>
+<li><code>-initrd</code> 指定 initramfs disk 镜像文件。</li>
+<li><code>-nographic -append &quot;console=ttyS0&quot;</code> 禁用视频输出并使用串口作为终端。</li>
+<li><code>-m 512</code> 设定内存。</li>
+<li><code>--enable-kvm</code> 使用KVM。</li>
+<li><code>-cpu host</code> 使用宿主机的 CPU 特性。</li>
+</ul>
+<p>你应该能看到一些系统启动的信息以及无法挂载根分区的报错，这是正常现象，因为我们没有提供任何磁盘文件。你应该可以进入一个紧急修复 Shell, 执行一些简单的如 <code>ls</code> <code>cd</code> 之类的命令。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/01/simple-kernel-dev-environment/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2019-12-24T04:00:00.000Z"><a href="/2019/12/build-amd-3960x-pc/">Dec 23 2019</a></time>
       
       
@@ -321,62 +369,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-12-11T06:17:48.000Z"><a href="/2014/12/setup-forge-workspace-with-idea/">Dec 11 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/12/setup-forge-workspace-with-idea/">IDEA下建立Forge开发环境的正确姿势</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><strong>本文作于2014年末，其中记载的方法可能已经过期，请读者谨慎参考</strong><br>见过不少教程都是基于Eclipse的，而基于IDEA的文章少得可怜，遂决定写此文。<br>本文通篇基于Linux/IntellijIDEA进行讲解，Windows/MAC/Eclipse用户请自行依葫芦画瓢。</p>
-<h1 id="设置Forge工作区"><a href="#设置Forge工作区" class="headerlink" title="设置Forge工作区"></a>设置Forge工作区</h1><p>当然，你得首先去<a href="http://files.minecraftforge.net/" target="_blank" rel="noopener">MinecraftForge</a>下载一份源代码。我这里用的是最新的<code>forge-1.7.10-10.13.2.1258-src.zip</code><br>接着，找个地方建立一个文件夹，这将是你的工程目录，我的叫做<code>Forge1.7.10-1258</code>。然后再在里面建立一个目录，比方说就叫<code>forge-1.7.10-10.13.2.1258-src</code>，把你的Forge源码解压进去。<br>现在，你的文件夹层次应该看起来是这样的：</p>
-<pre><code>Forge1.7.10-1258
-└── forge-1.7.10-10.13.2.1258-src
-     ├── build.gradle
-     ├── CREDITS-fml.txt
-     ├── eclipse
-     ├── forge-1.7.10-10.13.2.1258-changelog.txt
-     ├── gradle
-     ├── gradlew
-     ├── gradlew.bat
-     ├── LICENSE-fml.txt
-     ├── MinecraftForge-Credits.txt
-     ├── MinecraftForge-License.txt
-     ├── README.txt
-     └── src</code></pre><p>你可以先按自己喜好改动一下<code>build.gradle</code>。比如，我喜欢手动指定一下mappings的版本：</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">minecraft &#123;</span><br><span class="line">    version = <span class="string">"1.7.10-10.13.2.1258"</span></span><br><span class="line">    runDir = <span class="string">"eclipse"</span></span><br><span class="line">    mappings = <span class="string">"stable_12"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>接着，cd到forge-1.7.10-10.13.2.1258-src目录下，执行如下两条命令：</p>
-<pre><code>gradle -i setupDecompWorkspace
-gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以去喝杯牛奶睡个觉什么的。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2014/12/setup-forge-workspace-with-idea/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -400,6 +392,10 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
   <ul class="entry">
     
       <li>
+        <a href="/2020/01/simple-kernel-dev-environment/">简易内核开发环境</a>
+      </li>
+    
+      <li>
         <a href="/2019/12/build-amd-3960x-pc/">AMD Threadripper 3960X 装机</a>
       </li>
     
@@ -415,10 +411,6 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
         <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a>
       </li>
     
-      <li>
-        <a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -428,17 +420,11 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
   <h3 class="title">分类</h3>
   <ul class="entry">
   
-    <li><a href="/categories/ACG/">ACG</a><small>1</small></li>
-  
-    <li><a href="/categories/Informatics/">Informatics</a><small>20</small></li>
-  
     <li><a href="/categories/Life/">Life</a><small>1</small></li>
   
-    <li><a href="/categories/Mathematics/">Mathematics</a><small>0</small></li>
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>1</small></li>
-  
-    <li><a href="/categories/Site-Management/">Site Management</a><small>3</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>25</small></li>
   
   </ul>
 </div>
@@ -448,7 +434,7 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 15px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12.5px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.5px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12.5px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12.5px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12.5px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/网盘/" style="font-size: 12.5px;">网盘</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 18px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 16px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
   </div>
 </div>
 
@@ -478,7 +464,7 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2019 RecursiveG
+  &copy; 2020 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

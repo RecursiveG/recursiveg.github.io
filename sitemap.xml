@@ -2,23 +2,191 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://recursiveg.me/2019/12/build-amd-3960x-pc/</loc>
+    <loc>http://recursiveg.me/2020/01/simple-kernel-dev-environment/</loc>
     
-    <lastmod>2019-12-24T21:34:46.182Z</lastmod>
+    <lastmod>2020-01-12T22:01:14.348Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
+    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
     
-    <lastmod>2019-12-24T19:36:24.679Z</lastmod>
+    <lastmod>2020-01-12T19:20:10.706Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</loc>
     
-    <lastmod>2019-12-24T19:35:17.919Z</lastmod>
+    <lastmod>2020-01-12T19:20:10.260Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
+    
+    <lastmod>2020-01-12T19:20:09.810Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
+    
+    <lastmod>2020-01-12T19:20:09.376Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
+    
+    <lastmod>2020-01-12T19:20:08.943Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/07/domain-name-registrar-switched/</loc>
+    
+    <lastmod>2020-01-12T19:20:08.510Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/11/minecraft-modding-with-asm/</loc>
+    
+    <lastmod>2020-01-12T19:20:08.093Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</loc>
+    
+    <lastmod>2020-01-12T19:20:07.643Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
+    
+    <lastmod>2020-01-12T19:20:07.180Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
+    
+    <lastmod>2020-01-12T19:20:06.730Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/</loc>
+    
+    <lastmod>2020-01-12T19:20:06.296Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2017/05/simple-chrome-extension/</loc>
+    
+    <lastmod>2020-01-12T19:20:05.830Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2019/03/haskell-intro/</loc>
+    
+    <lastmod>2020-01-12T19:20:05.413Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2019/12/build-amd-3960x-pc/</loc>
+    
+    <lastmod>2020-01-12T19:04:35.210Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/07/programming-with-ptrace-part6/</loc>
+    
+    <lastmod>2020-01-12T19:04:30.200Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
+    
+    <lastmod>2020-01-12T19:04:29.750Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
+    
+    <lastmod>2020-01-12T19:04:29.316Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
+    
+    <lastmod>2020-01-12T19:04:28.883Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
+    
+    <lastmod>2020-01-12T19:04:28.450Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2012/12/helloworld/</loc>
+    
+    <lastmod>2020-01-12T19:01:24.704Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</loc>
+    
+    <lastmod>2020-01-12T19:01:24.174Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
+    
+    <lastmod>2020-01-12T19:01:23.694Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
+    
+    <lastmod>2020-01-12T19:01:23.194Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/03/universal-storge/</loc>
+    
+    <lastmod>2020-01-12T19:01:22.228Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2013/12/site-migration-complete/</loc>
+    
+    <lastmod>2020-01-12T19:01:21.744Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
+    
+    <lastmod>2020-01-12T18:58:51.351Z</lastmod>
     
   </url>
   
@@ -26,167 +194,6 @@
     <loc>http://recursiveg.me/about/index.html</loc>
     
     <lastmod>2019-10-19T04:52:18.308Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/11/minecraft-modding-with-asm/</loc>
-    
-    <lastmod>2019-10-19T04:49:14.760Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</loc>
-    
-    <lastmod>2019-10-19T04:48:17.272Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2019/03/haskell-intro/</loc>
-    
-    <lastmod>2019-03-21T20:26:08.597Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2017/05/simple-chrome-extension/</loc>
-    
-    <lastmod>2017-08-25T04:27:51.435Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.229Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2012/12/helloworld/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2012/12/public-key-cryptography/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/01/cheat-with-pascal/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/03/universal-storge/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/12/site-migration-complete/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2013/01/data-structure-of-vdisk/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/03/bad-apple-character-player/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/07/domain-name-registrar-switched/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2014/07/programming-with-ptrace-part6/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</loc>
-    
-    <lastmod>2017-08-13T04:55:25.222Z</lastmod>
     
   </url>
   

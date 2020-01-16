@@ -5,9 +5,9 @@
   
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://recursiveg.me/"/>
+  <link href="https://recursiveg.me/"/>
   <updated>2020-01-12T22:01:14.348Z</updated>
-  <id>http://recursiveg.me/</id>
+  <id>https://recursiveg.me/</id>
   
   <author>
     <name>RecursiveG</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>简易内核开发环境</title>
-    <link href="http://recursiveg.me/2020/01/simple-kernel-dev-environment/"/>
-    <id>http://recursiveg.me/2020/01/simple-kernel-dev-environment/</id>
+    <link href="https://recursiveg.me/2020/01/simple-kernel-dev-environment/"/>
+    <id>https://recursiveg.me/2020/01/simple-kernel-dev-environment/</id>
     <published>2020-01-12T04:30:00.000Z</published>
     <updated>2020-01-12T22:01:14.348Z</updated>
     
@@ -44,23 +44,23 @@
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
     
-      <category term="编程" scheme="http://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="Kernel" scheme="http://recursiveg.me/tags/Kernel/"/>
+      <category term="Kernel" scheme="https://recursiveg.me/tags/Kernel/"/>
     
   </entry>
   
   <entry>
     <title>AMD Threadripper 3960X 装机</title>
-    <link href="http://recursiveg.me/2019/12/build-amd-3960x-pc/"/>
-    <id>http://recursiveg.me/2019/12/build-amd-3960x-pc/</id>
+    <link href="https://recursiveg.me/2019/12/build-amd-3960x-pc/"/>
+    <id>https://recursiveg.me/2019/12/build-amd-3960x-pc/</id>
     <published>2019-12-24T04:00:00.000Z</published>
     <updated>2020-01-12T19:04:35.210Z</updated>
     
@@ -73,21 +73,21 @@
     </summary>
     
     
-      <category term="Life" scheme="http://recursiveg.me/categories/Life/"/>
+      <category term="Life" scheme="https://recursiveg.me/categories/Life/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="AMD" scheme="http://recursiveg.me/tags/AMD/"/>
+      <category term="AMD" scheme="https://recursiveg.me/tags/AMD/"/>
     
-      <category term="装机" scheme="http://recursiveg.me/tags/%E8%A3%85%E6%9C%BA/"/>
+      <category term="装机" scheme="https://recursiveg.me/tags/%E8%A3%85%E6%9C%BA/"/>
     
   </entry>
   
   <entry>
     <title>Haskell 简易指南</title>
-    <link href="http://recursiveg.me/2019/03/haskell-intro/"/>
-    <id>http://recursiveg.me/2019/03/haskell-intro/</id>
+    <link href="https://recursiveg.me/2019/03/haskell-intro/"/>
+    <id>https://recursiveg.me/2019/03/haskell-intro/</id>
     <published>2019-03-20T18:00:00.000Z</published>
     <updated>2020-01-12T19:20:05.413Z</updated>
     
@@ -107,21 +107,21 @@
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
     
-      <category term="编程" scheme="http://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="Haskell" scheme="http://recursiveg.me/tags/Haskell/"/>
+      <category term="Haskell" scheme="https://recursiveg.me/tags/Haskell/"/>
     
   </entry>
   
   <entry>
     <title>编写一个简易的Chrome扩展</title>
-    <link href="http://recursiveg.me/2017/05/simple-chrome-extension/"/>
-    <id>http://recursiveg.me/2017/05/simple-chrome-extension/</id>
+    <link href="https://recursiveg.me/2017/05/simple-chrome-extension/"/>
+    <id>https://recursiveg.me/2017/05/simple-chrome-extension/</id>
     <published>2017-05-12T09:30:00.000Z</published>
     <updated>2020-01-12T19:20:05.830Z</updated>
     
@@ -141,23 +141,23 @@
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="技术宅" scheme="http://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
+      <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="技术宅" scheme="https://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
     
-      <category term="编程" scheme="http://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="Chrome" scheme="http://recursiveg.me/tags/Chrome/"/>
+      <category term="Chrome" scheme="https://recursiveg.me/tags/Chrome/"/>
     
   </entry>
   
   <entry>
     <title>借助IPsec和strongSwan建立隧道并分配IPv6地址</title>
-    <link href="http://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/"/>
-    <id>http://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/</id>
+    <link href="https://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/"/>
+    <id>https://recursiveg.me/2016/12/assign-ipv6-through-ipsec-and-strongswan/</id>
     <published>2016-12-24T07:54:08.000Z</published>
     <updated>2020-01-12T19:20:06.296Z</updated>
     
@@ -177,21 +177,21 @@
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="IPsec" scheme="http://recursiveg.me/tags/IPsec/"/>
+      <category term="IPsec" scheme="https://recursiveg.me/tags/IPsec/"/>
     
-      <category term="Networking" scheme="http://recursiveg.me/tags/Networking/"/>
+      <category term="Networking" scheme="https://recursiveg.me/tags/Networking/"/>
     
   </entry>
   
   <entry>
     <title>Linux环境TCP Socket与Epoll使用备忘</title>
-    <link href="http://recursiveg.me/2015/12/linux-socket-epoll-demo/"/>
-    <id>http://recursiveg.me/2015/12/linux-socket-epoll-demo/</id>
+    <link href="https://recursiveg.me/2015/12/linux-socket-epoll-demo/"/>
+    <id>https://recursiveg.me/2015/12/linux-socket-epoll-demo/</id>
     <published>2015-12-25T11:15:13.000Z</published>
     <updated>2020-01-12T19:20:06.730Z</updated>
     
@@ -208,25 +208,25 @@
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="Epoll" scheme="http://recursiveg.me/tags/Epoll/"/>
+      <category term="Epoll" scheme="https://recursiveg.me/tags/Epoll/"/>
     
-      <category term="Socket" scheme="http://recursiveg.me/tags/Socket/"/>
+      <category term="Socket" scheme="https://recursiveg.me/tags/Socket/"/>
     
-      <category term="TCP" scheme="http://recursiveg.me/tags/TCP/"/>
+      <category term="TCP" scheme="https://recursiveg.me/tags/TCP/"/>
     
   </entry>
   
   <entry>
     <title>Linux下建立GRE隧道并获取IPv6地址</title>
-    <link href="http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/"/>
-    <id>http://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</id>
+    <link href="https://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/"/>
+    <id>https://recursiveg.me/2015/09/get-ipv6-via-gre-tunnel/</id>
     <published>2015-09-19T06:35:10.000Z</published>
     <updated>2020-01-12T19:20:07.180Z</updated>
     
@@ -253,21 +253,21 @@
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="GRE Tunnel" scheme="http://recursiveg.me/tags/GRE-Tunnel/"/>
+      <category term="GRE Tunnel" scheme="https://recursiveg.me/tags/GRE-Tunnel/"/>
     
-      <category term="IPv6" scheme="http://recursiveg.me/tags/IPv6/"/>
+      <category term="IPv6" scheme="https://recursiveg.me/tags/IPv6/"/>
     
   </entry>
   
   <entry>
     <title>IDEA下建立Forge开发环境的正确姿势</title>
-    <link href="http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/"/>
-    <id>http://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</id>
+    <link href="https://recursiveg.me/2014/12/setup-forge-workspace-with-idea/"/>
+    <id>https://recursiveg.me/2014/12/setup-forge-workspace-with-idea/</id>
     <published>2014-12-11T06:17:48.000Z</published>
     <updated>2020-01-12T19:20:07.643Z</updated>
     
@@ -300,21 +300,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="Minecraft" scheme="http://recursiveg.me/tags/Minecraft/"/>
+      <category term="Minecraft" scheme="https://recursiveg.me/tags/Minecraft/"/>
     
-      <category term="Java" scheme="http://recursiveg.me/tags/Java/"/>
+      <category term="Java" scheme="https://recursiveg.me/tags/Java/"/>
     
   </entry>
   
   <entry>
     <title>Minecraft Coremod开发杂事记</title>
-    <link href="http://recursiveg.me/2014/11/minecraft-modding-with-asm/"/>
-    <id>http://recursiveg.me/2014/11/minecraft-modding-with-asm/</id>
+    <link href="https://recursiveg.me/2014/11/minecraft-modding-with-asm/"/>
+    <id>https://recursiveg.me/2014/11/minecraft-modding-with-asm/</id>
     <published>2014-11-04T13:48:53.000Z</published>
     <updated>2020-01-12T19:20:08.093Z</updated>
     
@@ -337,21 +337,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="Minecraft" scheme="http://recursiveg.me/tags/Minecraft/"/>
+      <category term="Minecraft" scheme="https://recursiveg.me/tags/Minecraft/"/>
     
-      <category term="Java" scheme="http://recursiveg.me/tags/Java/"/>
+      <category term="Java" scheme="https://recursiveg.me/tags/Java/"/>
     
   </entry>
   
   <entry>
     <title>域名注册商更换</title>
-    <link href="http://recursiveg.me/2014/07/domain-name-registrar-switched/"/>
-    <id>http://recursiveg.me/2014/07/domain-name-registrar-switched/</id>
+    <link href="https://recursiveg.me/2014/07/domain-name-registrar-switched/"/>
+    <id>https://recursiveg.me/2014/07/domain-name-registrar-switched/</id>
     <published>2014-07-16T05:43:25.000Z</published>
     <updated>2020-01-12T19:20:08.510Z</updated>
     
@@ -367,17 +367,17 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Site Management" scheme="http://recursiveg.me/tags/Site-Management/"/>
+      <category term="Site Management" scheme="https://recursiveg.me/tags/Site-Management/"/>
     
   </entry>
   
   <entry>
     <title>Programming with PTRACE, Part6 - 时间控制</title>
-    <link href="http://recursiveg.me/2014/07/programming-with-ptrace-part6/"/>
-    <id>http://recursiveg.me/2014/07/programming-with-ptrace-part6/</id>
+    <link href="https://recursiveg.me/2014/07/programming-with-ptrace-part6/"/>
+    <id>https://recursiveg.me/2014/07/programming-with-ptrace-part6/</id>
     <published>2014-07-07T08:51:03.000Z</published>
     <updated>2020-01-12T19:04:30.200Z</updated>
     
@@ -390,21 +390,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="PTRACE" scheme="http://recursiveg.me/tags/PTRACE/"/>
+      <category term="PTRACE" scheme="https://recursiveg.me/tags/PTRACE/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>Programming with PTRACE, Part5 - 内存管理</title>
-    <link href="http://recursiveg.me/2014/05/programming-with-ptrace-part5/"/>
-    <id>http://recursiveg.me/2014/05/programming-with-ptrace-part5/</id>
+    <link href="https://recursiveg.me/2014/05/programming-with-ptrace-part5/"/>
+    <id>https://recursiveg.me/2014/05/programming-with-ptrace-part5/</id>
     <published>2014-05-26T02:00:32.000Z</published>
     <updated>2020-01-12T19:04:29.750Z</updated>
     
@@ -417,21 +417,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="PTRACE" scheme="http://recursiveg.me/tags/PTRACE/"/>
+      <category term="PTRACE" scheme="https://recursiveg.me/tags/PTRACE/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>Programming with PTRACE, Part4 - 系统调用进阶</title>
-    <link href="http://recursiveg.me/2014/05/programming-with-ptrace-part4/"/>
-    <id>http://recursiveg.me/2014/05/programming-with-ptrace-part4/</id>
+    <link href="https://recursiveg.me/2014/05/programming-with-ptrace-part4/"/>
+    <id>https://recursiveg.me/2014/05/programming-with-ptrace-part4/</id>
     <published>2014-05-26T02:00:31.000Z</published>
     <updated>2020-01-12T19:04:29.316Z</updated>
     
@@ -444,21 +444,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="PTRACE" scheme="http://recursiveg.me/tags/PTRACE/"/>
+      <category term="PTRACE" scheme="https://recursiveg.me/tags/PTRACE/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>Programming with PTRACE, Part3 - 进程的终止与信号</title>
-    <link href="http://recursiveg.me/2014/05/programming-with-ptrace-part3/"/>
-    <id>http://recursiveg.me/2014/05/programming-with-ptrace-part3/</id>
+    <link href="https://recursiveg.me/2014/05/programming-with-ptrace-part3/"/>
+    <id>https://recursiveg.me/2014/05/programming-with-ptrace-part3/</id>
     <published>2014-05-25T10:26:20.000Z</published>
     <updated>2020-01-12T19:04:28.883Z</updated>
     
@@ -471,21 +471,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="PTRACE" scheme="http://recursiveg.me/tags/PTRACE/"/>
+      <category term="PTRACE" scheme="https://recursiveg.me/tags/PTRACE/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>Programming with PTRACE, Part2 - 系统调用入门</title>
-    <link href="http://recursiveg.me/2014/04/programming-with-ptrace-part2/"/>
-    <id>http://recursiveg.me/2014/04/programming-with-ptrace-part2/</id>
+    <link href="https://recursiveg.me/2014/04/programming-with-ptrace-part2/"/>
+    <id>https://recursiveg.me/2014/04/programming-with-ptrace-part2/</id>
     <published>2014-04-20T12:00:19.000Z</published>
     <updated>2020-01-12T19:04:28.450Z</updated>
     
@@ -498,21 +498,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="PTRACE" scheme="http://recursiveg.me/tags/PTRACE/"/>
+      <category term="PTRACE" scheme="https://recursiveg.me/tags/PTRACE/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>Programming with PTRACE, Part1 - 起步</title>
-    <link href="http://recursiveg.me/2014/04/programming-with-ptrace-part1/"/>
-    <id>http://recursiveg.me/2014/04/programming-with-ptrace-part1/</id>
+    <link href="https://recursiveg.me/2014/04/programming-with-ptrace-part1/"/>
+    <id>https://recursiveg.me/2014/04/programming-with-ptrace-part1/</id>
     <published>2014-04-17T13:16:29.000Z</published>
     <updated>2020-01-12T19:20:08.943Z</updated>
     
@@ -525,21 +525,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="PTRACE" scheme="http://recursiveg.me/tags/PTRACE/"/>
+      <category term="PTRACE" scheme="https://recursiveg.me/tags/PTRACE/"/>
     
-      <category term="教程" scheme="http://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>有屏幕的地方就有烂苹果</title>
-    <link href="http://recursiveg.me/2014/03/bad-apple-character-player/"/>
-    <id>http://recursiveg.me/2014/03/bad-apple-character-player/</id>
+    <link href="https://recursiveg.me/2014/03/bad-apple-character-player/"/>
+    <id>https://recursiveg.me/2014/03/bad-apple-character-player/</id>
     <published>2014-03-19T11:55:49.000Z</published>
     <updated>2020-01-12T19:20:09.376Z</updated>
     
@@ -553,19 +553,19 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="技术宅" scheme="http://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
+      <category term="技术宅" scheme="https://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
     
-      <category term="东方Project" scheme="http://recursiveg.me/tags/%E4%B8%9C%E6%96%B9Project/"/>
+      <category term="东方Project" scheme="https://recursiveg.me/tags/%E4%B8%9C%E6%96%B9Project/"/>
     
   </entry>
   
   <entry>
     <title>在Linux下使用MinGW静态交叉编译带有zlib的libcurl</title>
-    <link href="http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/"/>
-    <id>http://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</id>
+    <link href="https://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/"/>
+    <id>https://recursiveg.me/2014/02/how-to-cross-compile-libcurl-on-linux/</id>
     <published>2014-02-28T13:17:41.000Z</published>
     <updated>2020-01-12T19:20:09.810Z</updated>
     
@@ -578,21 +578,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="MinGW" scheme="http://recursiveg.me/tags/MinGW/"/>
+      <category term="MinGW" scheme="https://recursiveg.me/tags/MinGW/"/>
     
-      <category term="交叉编译" scheme="http://recursiveg.me/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/"/>
+      <category term="交叉编译" scheme="https://recursiveg.me/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/"/>
     
   </entry>
   
   <entry>
     <title>记一次坑爹的乱码解决过程</title>
-    <link href="http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/"/>
-    <id>http://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</id>
+    <link href="https://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/"/>
+    <id>https://recursiveg.me/2014/02/clear-a-special-kind-of-messy-code/</id>
     <published>2014-02-08T06:12:59.000Z</published>
     <updated>2020-01-12T19:20:10.260Z</updated>
     
@@ -605,21 +605,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
-      <category term="乱码" scheme="http://recursiveg.me/tags/%E4%B9%B1%E7%A0%81/"/>
+      <category term="乱码" scheme="https://recursiveg.me/tags/%E4%B9%B1%E7%A0%81/"/>
     
-      <category term="Python" scheme="http://recursiveg.me/tags/Python/"/>
+      <category term="Python" scheme="https://recursiveg.me/tags/Python/"/>
     
   </entry>
   
   <entry>
     <title>网站从Octopress迁移至Hexo</title>
-    <link href="http://recursiveg.me/2013/12/site-migration-complete/"/>
-    <id>http://recursiveg.me/2013/12/site-migration-complete/</id>
+    <link href="https://recursiveg.me/2013/12/site-migration-complete/"/>
+    <id>https://recursiveg.me/2013/12/site-migration-complete/</id>
     <published>2013-12-24T13:26:08.000Z</published>
     <updated>2020-01-12T19:01:21.744Z</updated>
     
@@ -635,17 +635,17 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Hexo" scheme="http://recursiveg.me/tags/Hexo/"/>
+      <category term="Hexo" scheme="https://recursiveg.me/tags/Hexo/"/>
     
   </entry>
   
   <entry>
     <title>通用存储及分布式文件共享系统的设想</title>
-    <link href="http://recursiveg.me/2013/03/universal-storge/"/>
-    <id>http://recursiveg.me/2013/03/universal-storge/</id>
+    <link href="https://recursiveg.me/2013/03/universal-storge/"/>
+    <id>https://recursiveg.me/2013/03/universal-storge/</id>
     <published>2013-03-30T12:02:00.000Z</published>
     <updated>2020-01-12T19:01:22.228Z</updated>
     
@@ -659,19 +659,19 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Black Technology" scheme="http://recursiveg.me/tags/Black-Technology/"/>
+      <category term="Black Technology" scheme="https://recursiveg.me/tags/Black-Technology/"/>
     
-      <category term="网盘" scheme="http://recursiveg.me/tags/%E7%BD%91%E7%9B%98/"/>
+      <category term="网盘" scheme="https://recursiveg.me/tags/%E7%BD%91%E7%9B%98/"/>
     
   </entry>
   
   <entry>
     <title>Pascal中鲜为人知的那些技巧</title>
-    <link href="http://recursiveg.me/2013/01/cheat-with-pascal/"/>
-    <id>http://recursiveg.me/2013/01/cheat-with-pascal/</id>
+    <link href="https://recursiveg.me/2013/01/cheat-with-pascal/"/>
+    <id>https://recursiveg.me/2013/01/cheat-with-pascal/</id>
     <published>2013-01-31T13:46:00.000Z</published>
     <updated>2020-01-12T19:20:10.706Z</updated>
     
@@ -686,21 +686,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Pascal" scheme="http://recursiveg.me/tags/Pascal/"/>
+      <category term="Pascal" scheme="https://recursiveg.me/tags/Pascal/"/>
     
-      <category term="ACM" scheme="http://recursiveg.me/tags/ACM/"/>
+      <category term="ACM" scheme="https://recursiveg.me/tags/ACM/"/>
     
-      <category term="编程" scheme="http://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
+      <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>新浪微盘数据结构解析</title>
-    <link href="http://recursiveg.me/2013/01/data-structure-of-vdisk/"/>
-    <id>http://recursiveg.me/2013/01/data-structure-of-vdisk/</id>
+    <link href="https://recursiveg.me/2013/01/data-structure-of-vdisk/"/>
+    <id>https://recursiveg.me/2013/01/data-structure-of-vdisk/</id>
     <published>2013-01-27T14:00:00.000Z</published>
     <updated>2020-01-12T19:01:23.194Z</updated>
     
@@ -713,19 +713,19 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Black Technology" scheme="http://recursiveg.me/tags/Black-Technology/"/>
+      <category term="Black Technology" scheme="https://recursiveg.me/tags/Black-Technology/"/>
     
-      <category term="网盘" scheme="http://recursiveg.me/tags/%E7%BD%91%E7%9B%98/"/>
+      <category term="网盘" scheme="https://recursiveg.me/tags/%E7%BD%91%E7%9B%98/"/>
     
   </entry>
   
   <entry>
     <title>公钥加密</title>
-    <link href="http://recursiveg.me/2012/12/public-key-cryptography/"/>
-    <id>http://recursiveg.me/2012/12/public-key-cryptography/</id>
+    <link href="https://recursiveg.me/2012/12/public-key-cryptography/"/>
+    <id>https://recursiveg.me/2012/12/public-key-cryptography/</id>
     <published>2012-12-31T13:02:00.000Z</published>
     <updated>2020-01-12T18:58:51.351Z</updated>
     
@@ -743,19 +743,19 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Mathematics" scheme="http://recursiveg.me/categories/Mathematics/"/>
+      <category term="Mathematics" scheme="https://recursiveg.me/categories/Mathematics/"/>
     
     
-      <category term="加密" scheme="http://recursiveg.me/tags/%E5%8A%A0%E5%AF%86/"/>
+      <category term="加密" scheme="https://recursiveg.me/tags/%E5%8A%A0%E5%AF%86/"/>
     
-      <category term="RSA" scheme="http://recursiveg.me/tags/RSA/"/>
+      <category term="RSA" scheme="https://recursiveg.me/tags/RSA/"/>
     
   </entry>
   
   <entry>
     <title>Sync with iDevice on Linux</title>
-    <link href="http://recursiveg.me/2012/12/sync-with-idevice-on-linux/"/>
-    <id>http://recursiveg.me/2012/12/sync-with-idevice-on-linux/</id>
+    <link href="https://recursiveg.me/2012/12/sync-with-idevice-on-linux/"/>
+    <id>https://recursiveg.me/2012/12/sync-with-idevice-on-linux/</id>
     <published>2012-12-31T13:01:00.000Z</published>
     <updated>2020-01-12T19:01:23.694Z</updated>
     
@@ -771,21 +771,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Written In English" scheme="http://recursiveg.me/tags/Written-In-English/"/>
+      <category term="Written In English" scheme="https://recursiveg.me/tags/Written-In-English/"/>
     
-      <category term="iDevice" scheme="http://recursiveg.me/tags/iDevice/"/>
+      <category term="iDevice" scheme="https://recursiveg.me/tags/iDevice/"/>
     
-      <category term="Linux" scheme="http://recursiveg.me/tags/Linux/"/>
+      <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>How to solve the &quot;Connection Reset&quot; problem</title>
-    <link href="http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/"/>
-    <id>http://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</id>
+    <link href="https://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/"/>
+    <id>https://recursiveg.me/2012/12/how-to-solve-the-connection-reset-problem/</id>
     <published>2012-12-31T12:50:00.000Z</published>
     <updated>2020-01-12T19:01:24.174Z</updated>
     
@@ -802,21 +802,21 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Written In English" scheme="http://recursiveg.me/tags/Written-In-English/"/>
+      <category term="Written In English" scheme="https://recursiveg.me/tags/Written-In-English/"/>
     
-      <category term="Black Technology" scheme="http://recursiveg.me/tags/Black-Technology/"/>
+      <category term="Black Technology" scheme="https://recursiveg.me/tags/Black-Technology/"/>
     
-      <category term="GFW" scheme="http://recursiveg.me/tags/GFW/"/>
+      <category term="GFW" scheme="https://recursiveg.me/tags/GFW/"/>
     
   </entry>
   
   <entry>
     <title>Hello, World!</title>
-    <link href="http://recursiveg.me/2012/12/helloworld/"/>
-    <id>http://recursiveg.me/2012/12/helloworld/</id>
+    <link href="https://recursiveg.me/2012/12/helloworld/"/>
+    <id>https://recursiveg.me/2012/12/helloworld/</id>
     <published>2012-12-22T12:32:00.000Z</published>
     <updated>2020-01-12T19:01:24.704Z</updated>
     
@@ -829,12 +829,12 @@ gradle -i ideaModule&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后请耐心等待指�
     </summary>
     
     
-      <category term="Programming" scheme="http://recursiveg.me/categories/Programming/"/>
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
     
     
-      <category term="Site Management" scheme="http://recursiveg.me/tags/Site-Management/"/>
+      <category term="Site Management" scheme="https://recursiveg.me/tags/Site-Management/"/>
     
-      <category term="Hello World!" scheme="http://recursiveg.me/tags/Hello-World/"/>
+      <category term="Hello World!" scheme="https://recursiveg.me/tags/Hello-World/"/>
     
   </entry>
   

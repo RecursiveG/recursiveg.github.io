@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://recursiveg.me/2020/03/cmake-environment-script/</loc>
+    
+    <lastmod>2020-03-17T04:14:43.308Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://recursiveg.me/2020/01/simple-kernel-dev-environment/</loc>
     
     <lastmod>2020-01-12T22:01:14.348Z</lastmod>

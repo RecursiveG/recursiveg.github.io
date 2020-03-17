@@ -3,7 +3,7 @@
 <head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
-  <title>RECURSIVE LAND</title>
+  <title>CMake 项目生成脚本 | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG">
   
   <meta name="description" content="Recursive G&#39;s personal blog">
@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  
+  <meta property="og:title" content="CMake 项目生成脚本">
   <meta property="og:site_name" content="RECURSIVE LAND">
 
   
@@ -65,8 +65,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper">
-  <article class="post">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
   
   <div class="post-content">
     <header>
@@ -76,7 +75,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
       
       
   
-    <h1 class="title"><a href="/2020/03/cmake-environment-script/">CMake 项目生成脚本</a></h1>
+    <h1 class="title">CMake 项目生成脚本</h1>
   
 
     </header>
@@ -98,6 +97,17 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <footer>
       
         
+  
+  <div class="categories">
+    <a href="/categories/Programming/">Programming</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>, <a href="/tags/CMake/">CMake</a>, <a href="/tags/C/">C++</a>, <a href="/tags/脚本/">脚本</a>
+  </div>
+
         
       
       <div class="clearfix"></div>
@@ -106,269 +116,17 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </article>
 
 
+<section id="comment">
+  <h1 class="title">留言</h1>
 
-
-  <article class="post">
   
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-01-12T04:30:00.000Z"><a href="/2020/01/simple-kernel-dev-environment/">Jan 11 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/01/simple-kernel-dev-environment/">简易内核开发环境</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>近期尝试了一下写 Linux 内核代码，于是把折腾过程记录一下，方便以后参考。本文默认使用 x86_64 架构以及 Linux 作为宿主系统。</p>
-<h2 id="使用-QEMU-运行-Linux-内核"><a href="#使用-QEMU-运行-Linux-内核" class="headerlink" title="使用 QEMU 运行 Linux 内核"></a>使用 QEMU 运行 Linux 内核</h2><p>在开始写代码之前，我们需要先准备好模拟器用于运行 Linux。我这里用了QEMU，你也可以用 VirtualBox 之类的虚拟机。一般来说，我们需要一个内核可执行文件（内核本体）和一个 initramfs 镜像（提供用户态程序）。当内核被加载后，它会自动载入 initramfs 镜像，并执行其中的<code>/init</code>程序。由于这一节的重点是 QEMU 配置，所以我直接使用宿主机的内核和 initramfs。以我的 Archlinux 系统为例，内核文件是<code>/boot/vmlinuz-linux</code>，initramfs 文件是<code>/boot/initramfs-linux.img</code>。使用以下命令启动 QEMU，按<code>Ctrl-A x</code>退出。</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 \</span><br><span class="line">    -kernel /boot/vmlinuz-linux \</span><br><span class="line">    -initrd /boot/initramfs-linux.img \</span><br><span class="line">    -nographic -append <span class="string">"console=ttyS0"</span> \</span><br><span class="line">    -m 512 \</span><br><span class="line">    --<span class="built_in">enable</span>-kvm \</span><br><span class="line">    -cpu host</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>-kernel</code> 指定内核可执行文件。</li>
-<li><code>-initrd</code> 指定 initramfs disk 镜像文件。</li>
-<li><code>-nographic -append &quot;console=ttyS0&quot;</code> 禁用视频输出并使用串口作为终端。</li>
-<li><code>-m 512</code> 设定内存。</li>
-<li><code>--enable-kvm</code> 使用KVM。</li>
-<li><code>-cpu host</code> 使用宿主机的 CPU 特性。</li>
-</ul>
-<p>你应该能看到一些系统启动的信息以及无法挂载根分区的报错，这是正常现象，因为我们没有提供任何磁盘文件。你应该可以进入一个紧急修复 Shell, 执行一些简单的如 <code>ls</code> <code>cd</code> 之类的命令。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/01/simple-kernel-dev-environment/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
   </div>
-</article>
-
-
-
-
-  <article class="post">
   
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2019-12-24T04:00:00.000Z"><a href="/2019/12/build-amd-3960x-pc/">Dec 23 2019</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2019/12/build-amd-3960x-pc/">AMD Threadripper 3960X 装机</a></h1>
-  
+</section>
 
-    </header>
-    <div class="entry">
-      
-        <p>眼看2019年就要结束了，发现自己的手竟然还在。于是决定连着胳膊一起剁掉。<br><img src="/images/build-amd-3960x-pc/01-all.jpg" alt="配件合照"></p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2019/12/build-amd-3960x-pc/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2019-03-20T18:00:00.000Z"><a href="/2019/03/haskell-intro/">Mar 20 2019</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2019/03/haskell-intro/">Haskell 简易指南</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>用任何你喜欢的方法安装 <a href="https://www.haskell.org/" target="_blank" rel="noopener">Glasgow Haskell Compiler</a> (a.k.a. GHC)。Cabal 之类的<br>依赖管理系统就用不着了。 <del>因为我也不会用。</del> 保证能够执行<code>ghc</code>和<code>ghci</code>命令就行。</p>
-<h1 id="GHCi基础"><a href="#GHCi基础" class="headerlink" title="GHCi基础"></a>GHCi基础</h1><p>首先，把以下文件保存成<code>helloworld.hs</code>。</p>
-<figure class="highlight haskell"><figcaption><span>helloworld.hs</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">foo</span> = <span class="string">"hello, world"</span></span><br></pre></td></tr></table></figure>
-
-<p>然后执行<code>ghci helloworld.hs</code>，然后在<code>&gt;</code>提示符后输入<code>foo</code>并回车</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GHCi, version 8.6.3: http://www.haskell.org/ghc/  :? for help</span><br><span class="line">[1 of 1] Compiling Main             ( helloworld.hs, interpreted )</span><br><span class="line">Ok, one module loaded.</span><br><span class="line">*Main&gt; foo</span><br><span class="line">&quot;hello, world&quot;</span><br><span class="line">*Main&gt;</span><br></pre></td></tr></table></figure>
-
-<p>你可以使用<code>:r</code>来重新载入文件，也可以使用<code>:l &lt;文件名&gt;</code>来载入代码。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2019/03/haskell-intro/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2017-05-12T09:30:00.000Z"><a href="/2017/05/simple-chrome-extension/">May 12 2017</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>时隔半年的毫无诚心的流水帐作品。<br>假设读者有基础的Javascript能力。</p>
-<h1 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h1><p>常去的某资源站的某资源发布者喜欢把重要的内容加上花里胡哨的特殊效果并藏在页面的角落里。<br>虽说要尊重资源的发布者，不过这种给人添堵的行为实在令我感到不爽，于是研究了一下Chrome的扩展程序（Extension）。</p>
-<h1 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h1><p>要干的事情有两件：</p>
-<ol>
-<li>将内容移到页面的显著位置</li>
-<li><del>去掉辣眼睛的特殊效果</del> 好吧，其实这条并不重要，毕竟内容已经被移到显著位置了</li>
-</ol>
-<p>很自然的，直接用Javascript操纵DOM树即可实现希望的效果。<br>那么要怎么自动载入脚本呢？</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2017/05/simple-chrome-extension/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2016-12-24T07:54:08.000Z"><a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">Dec 24 2016</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/">借助IPsec和strongSwan建立隧道并分配IPv6地址</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>在一年前，我写过一篇<a href="/2015/09/get-ipv6-via-gre-tunnel/">文章</a>，介绍利用GRE隧道将一台服务器的IPv6地址“分配”给另一台电脑，令其能访问IPv6网络的方法。<br>不过那种方法存在一些问题：</p>
-<ul>
-<li>不能通过NAT</li>
-<li>数据不加密</li>
-<li>需要在服务器手动更新IP</li>
-</ul>
-<p>于是热爱折腾<del>作死</del>的我研究了一下使用IPsec配合IKEv2对流量进行加密的方法。</p>
-<p>服务器与本地均为ArchLinux（Arch大法好），strongSwan软件包可从AUR安装。<br>服务器需要至少有一个公网IPv4和一段Routed IPv6 Subnet。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2016/12/assign-ipv6-through-ipsec-and-strongswan/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-12-25T11:15:13.000Z"><a href="/2015/12/linux-socket-epoll-demo/">Dec 25 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。<br>没有错误处理。</p>
-<h2 id="地址解析"><a href="#地址解析" class="headerlink" title="地址解析"></a>地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> *<span class="title">listen_addr</span>;</span> <span class="comment">//存放解析结果。参见`man getaddrinfo`</span></span><br><span class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">freeaddrinfo(listen_addr); <span class="comment">//释放资源，返回void</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="监听"><a href="#监听" class="headerlink" title="监听"></a>监听</h2><p>这种方式只能同时处理一个连接</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见`man 3 socket` 创建文件描述符， 出错返回-1</span></span><br><span class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</span><br><span class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></span><br><span class="line">    <span class="comment">// 绑定地址，出错返回-1，参见`man 3 bind`</span></span><br><span class="line">listen(fd, SOMAXCONN);</span><br><span class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></span><br><span class="line">    <span class="comment">// 开始监听，出错返回-1</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第2，3个参数同bind()</span></span><br><span class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是EAGAIN,取决于你需要什么)</span></span><br><span class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符,出错返回-1</span></span><br><span class="line">    <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">    close(new_fd); <span class="comment">// 关闭文件描述符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/12/linux-socket-epoll-demo/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-
-<nav id="pagination">
-  
-  
-    <a href="/page/2/" class="alignright next">下一页</a>
-  
-  <div class="clearfix"></div>
-</nav></div></div>
+</div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">
@@ -483,7 +241,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     var dsq = document.createElement('script');
     dsq.type = 'text/javascript';
     dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
   }());
 }

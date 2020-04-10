@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://recursiveg.me/"/>
-  <updated>2020-03-17T04:14:43.308Z</updated>
+  <updated>2020-04-10T03:45:37.612Z</updated>
   <id>https://recursiveg.me/</id>
   
   <author>
@@ -15,6 +15,39 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>WinRAR 恢复记录添加及使用教程</title>
+    <link href="https://recursiveg.me/2020/04/winrar-best-practice/"/>
+    <id>https://recursiveg.me/2020/04/winrar-best-practice/</id>
+    <published>2020-04-09T14:30:00.000Z</published>
+    <updated>2020-04-10T03:45:37.612Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>本文中的所有图片及文字均使用 CC0 发布，可任意转载使用。</p></blockquote><p>本文属于疫情期间的摸鱼之作，旨在推广 RAR 压缩格式的正确压缩方法，让资源分享更轻松一些。</p><h1 id="获取-WinRAR"><a href="#获取-WinRAR" class="headerlink" title="获取 WinRAR"></a>获取 WinRAR</h1><p>先说一下为什么用 WinRAR 而不用 7zip, 因为 7zip 没有恢复记录。在百度网盘等平台分享文件时，文件可能发生损坏，没有恢复记录的话只能尝试重新下载浪费时间，而有恢复记录的话有大概率可以成功修复，正确解压。</p><p>国内特供版的 WinRAR 可以免费使用，但是有广告。如果不想要广告，你可以从以下链接下载官方无广告简体中文版</p><pre><code>https://www.win-rar.com/fileadmin/winrar-versions/sc/sc20200409/rrlb/winrar-x64-590sc.exe</code></pre><p>注意，如果你没有<code>rarreg.key</code>文件进行注册的话依然是有广告的。至于具体的注册方法请自行搜寻。</p><a id="more"></a><h1 id="添加恢复记录"><a href="#添加恢复记录" class="headerlink" title="添加恢复记录"></a>添加恢复记录</h1><p>恢复记录需要在创建压缩文件时添加，你需要先勾选<code>添加恢复记录</code>复选框。<br><img src="/images/winrar-best-practice/01-check-add-rr-box.png" alt><br>然后检查恢复记录的百分比设置。<br><img src="/images/winrar-best-practice/02-rr-percentile.png" alt><br>对于大于 100MB 的大型文件文件来说，默认的 3% 足够使用。如果你的文件非常小，比如只有 几MB 或者 十几MB 你可以考虑增加到 5%。<br>增大这项设置会同时增大文件体积，因此不建议设置得过大，尤其是对于几个 GB 的文件来说。</p><p>如果你在压缩时忘记添加恢复记录或者是想要修改恢复记录的大小，也可以在事后进行操作：<br><img src="/images/winrar-best-practice/03-modify-rr-percentile.png" alt></p><h1 id="损坏压缩文件的修复"><a href="#损坏压缩文件的修复" class="headerlink" title="损坏压缩文件的修复"></a>损坏压缩文件的修复</h1><p>如果你在解压时遇到“校验和错误”，那么你下载到的压缩文件就是损坏了：<br><img src="/images/winrar-best-practice/04-broken-file-example.png" alt><br>你可以使用“工具”菜单尝试修复它。修复操作会生成一个新的，修复好的压缩包，你需要选择这个新文件的保存位置：<br><img src="/images/winrar-best-practice/05-select-fixed-save-location.png" alt><br>稍等片刻就会生成一个修复后的文件：<br><img src="/images/winrar-best-practice/06-fixed-file.png" alt><br>你也有可能在修复过程中遇到错误，但只要修复后的文件可以正确解压不报错，就没有问题。<br>但是只有添加了恢复记录的文件可以使用修复操作，因此所有人在压缩时都添加恢复记录是非常重要的。<br>如果修复后的文件依然不能正确解压，要么是损坏的部分过多无法修复，要么是资源发布者没有添加恢复记录。<br>在这种情况下就只能重新下载试试了。</p><h1 id="给压缩文件加密"><a href="#给压缩文件加密" class="headerlink" title="给压缩文件加密"></a>给压缩文件加密</h1><p>给压缩文件加密是防止文件被和谐的重要方法之一。<br><img src="/images/winrar-best-practice/07-add-password.png" alt></p><h1 id="分卷压缩"><a href="#分卷压缩" class="headerlink" title="分卷压缩"></a>分卷压缩</h1><p>如果你要分享一个非常巨大的压缩包，比如说十几个GB，直接作为一个文件分享一般不是一个好主意，因为下载者有可能下载到中途失败，不得不从头再来。将大压缩包切分成多个较小的文件可以有效减少这种情况的发生。<br><img src="/images/winrar-best-practice/08-split-volume.png" alt></p><h1 id="Linux-用户？"><a href="#Linux-用户？" class="headerlink" title="Linux 用户？"></a>Linux 用户？</h1><ul><li>很不幸地，创建或是修复带恢复记录的压缩包都需要<code>rar</code>而不是<code>unrar</code>。</li><li>如果遇到压缩包包含了文件名过长的文件，可以尝试创建一个 NTFS 格式的磁盘文件，用回环挂载，然后把文件解压进去。</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      &lt;blockquote&gt;
+&lt;p&gt;本文中的所有图片及文字均使用 CC0 发布，可任意转载使用。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本文属于疫情期间的摸鱼之作，旨在推广 RAR 压缩格式的正确压缩方法，让资源分享更轻松一些。&lt;/p&gt;
+&lt;h1 id=&quot;获取-WinRAR&quot;&gt;&lt;a href=&quot;#获取-WinRAR&quot; class=&quot;headerlink&quot; title=&quot;获取 WinRAR&quot;&gt;&lt;/a&gt;获取 WinRAR&lt;/h1&gt;&lt;p&gt;先说一下为什么用 WinRAR 而不用 7zip, 因为 7zip 没有恢复记录。在百度网盘等平台分享文件时，文件可能发生损坏，没有恢复记录的话只能尝试重新下载浪费时间，而有恢复记录的话有大概率可以成功修复，正确解压。&lt;/p&gt;
+&lt;p&gt;国内特供版的 WinRAR 可以免费使用，但是有广告。如果不想要广告，你可以从以下链接下载官方无广告简体中文版&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;https://www.win-rar.com/fileadmin/winrar-versions/sc/sc20200409/rrlb/winrar-x64-590sc.exe&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;注意，如果你没有&lt;code&gt;rarreg.key&lt;/code&gt;文件进行注册的话依然是有广告的。至于具体的注册方法请自行搜寻。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Life" scheme="https://recursiveg.me/categories/Life/"/>
+    
+    
+      <category term="网盘" scheme="https://recursiveg.me/tags/%E7%BD%91%E7%9B%98/"/>
+    
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="WinRAR" scheme="https://recursiveg.me/tags/WinRAR/"/>
+    
+  </entry>
   
   <entry>
     <title>CMake 项目生成脚本</title>

@@ -72,6 +72,258 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-05-26T02:00:31.000Z"><a href="/2014/05/programming-with-ptrace-part4/">May 25 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/05/programming-with-ptrace-part4/">Programming with PTRACE, Part4 - 系统调用进阶</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>这个part是<a href="/2014/04/programming-with-ptrace-part2/">Part2</a>的延续，所以我强烈建议你弄明白Part2中的内容后再来看本part。那么进入正题，我将在这个部分讲解系统调用的参数传递顺序以及如何利用ptrace系统调用获得用户空间的数据。</p>
+<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="noopener">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
+<center>
+
+<table>
+<thead>
+<tr>
+<th align="left">arch/ABI</th>
+<th align="left">instruction</th>
+<th align="left">syscall #</th>
+<th align="left">retval</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">arm/OABI</td>
+<td align="left">swi NR</td>
+<td align="left">-</td>
+<td align="left">a1</td>
+<td align="left">NR is syscall #</td>
+</tr>
+<tr>
+<td align="left">arm/EABI</td>
+<td align="left">swi 0x0</td>
+<td align="left">r7</td>
+<td align="left">r0</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">blackfin</td>
+<td align="left">excpt 0x0</td>
+<td align="left">P0</td>
+<td align="left">R0</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">i386</td>
+<td align="left">int $0x80</td>
+<td align="left">eax</td>
+<td align="left">eax</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">ia64</td>
+<td align="left">break 0x100000</td>
+<td align="left">r15</td>
+<td align="left">r10/r8</td>
+<td align="left">bool error/errno value</td>
+</tr>
+<tr>
+<td align="left">parisc</td>
+<td align="left">ble 0x100(%sr2, %r0)</td>
+<td align="left">r20</td>
+<td align="left">r28</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">s390</td>
+<td align="left">svc 0</td>
+<td align="left">r1</td>
+<td align="left">r2</td>
+<td align="left">See below</td>
+</tr>
+<tr>
+<td align="left">s390x</td>
+<td align="left">svc 0</td>
+<td align="left">r1</td>
+<td align="left">r2</td>
+<td align="left">See below</td>
+</tr>
+<tr>
+<td align="left">sparc/32</td>
+<td align="left">t 0x10</td>
+<td align="left">g1</td>
+<td align="left">o0</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">sparc/64</td>
+<td align="left">t 0x6d</td>
+<td align="left">g1</td>
+<td align="left">o0</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">x86_64</td>
+<td align="left">syscall</td>
+<td align="left">rax</td>
+<td align="left">rax</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th align="left">arch/ABI</th>
+<th align="left">arg1</th>
+<th align="left">arg2</th>
+<th align="left">arg3</th>
+<th align="left">arg4</th>
+<th align="left">arg5</th>
+<th align="left">arg6</th>
+<th align="left">arg7</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">arm/OABI</td>
+<td align="left">a1</td>
+<td align="left">a2</td>
+<td align="left">a3</td>
+<td align="left">a4</td>
+<td align="left">v1</td>
+<td align="left">v2</td>
+<td align="left">v3</td>
+</tr>
+<tr>
+<td align="left">arm/EABI</td>
+<td align="left">r0</td>
+<td align="left">r1</td>
+<td align="left">r2</td>
+<td align="left">r3</td>
+<td align="left">r4</td>
+<td align="left">r5</td>
+<td align="left">r6</td>
+</tr>
+<tr>
+<td align="left">blackfin</td>
+<td align="left">R0</td>
+<td align="left">R1</td>
+<td align="left">R2</td>
+<td align="left">R3</td>
+<td align="left">R4</td>
+<td align="left">R5</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">i386</td>
+<td align="left">ebx</td>
+<td align="left">ecx</td>
+<td align="left">edx</td>
+<td align="left">esi</td>
+<td align="left">edi</td>
+<td align="left">ebp</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">ia64</td>
+<td align="left">out0</td>
+<td align="left">out1</td>
+<td align="left">out2</td>
+<td align="left">out3</td>
+<td align="left">out4</td>
+<td align="left">out5</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">parisc</td>
+<td align="left">r26</td>
+<td align="left">r25</td>
+<td align="left">r24</td>
+<td align="left">r23</td>
+<td align="left">r22</td>
+<td align="left">r21</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">s390</td>
+<td align="left">r2</td>
+<td align="left">r3</td>
+<td align="left">r4</td>
+<td align="left">r5</td>
+<td align="left">r6</td>
+<td align="left">r7</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">s390x</td>
+<td align="left">r2</td>
+<td align="left">r3</td>
+<td align="left">r4</td>
+<td align="left">r5</td>
+<td align="left">r6</td>
+<td align="left">r7</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">sparc/32</td>
+<td align="left">o0</td>
+<td align="left">o1</td>
+<td align="left">o2</td>
+<td align="left">o3</td>
+<td align="left">o4</td>
+<td align="left">o5</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">sparc/64</td>
+<td align="left">o0</td>
+<td align="left">o1</td>
+<td align="left">o2</td>
+<td align="left">o3</td>
+<td align="left">o4</td>
+<td align="left">o5</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">x86_64</td>
+<td align="left">rdi</td>
+<td align="left">rsi</td>
+<td align="left">rdx</td>
+<td align="left">r10</td>
+<td align="left">r8</td>
+<td align="left">r9</td>
+<td align="left">-</td>
+</tr>
+</tbody></table>
+</center>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/05/programming-with-ptrace-part4/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2014-05-25T10:26:20.000Z"><a href="/2014/05/programming-with-ptrace-part3/">May 25 2014</a></time>
       
       
@@ -306,39 +558,6 @@ if (pid==0){
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2013-12-24T13:26:08.000Z"><a href="/2013/12/site-migration-complete/">Dec 24 2013</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2013/12/site-migration-complete/">网站从Octopress迁移至Hexo</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>经过我两个小时的折腾，总算是重新把网站弄起来了。Ruby实在是坑爹，各种gem装得目录结构乱七八糟的……（强迫性人格障碍的典型表现）而且速度还慢……<br>曾尝试用Python和Tornado模板自己写一个静态页面生成器，然后发现我想多了。我果然还是不适合写UI……<br>一通Google之后，最终决定使用Hexo。它使用node.js(也就是javascript)作为编程语言(这样说恰当么？反正就是这个意思啦),据说速度极快。最重要的是，AUR源里有Hexo打好的包，能用pacman管理就是好。<br>主题试了一圈下来还是默认的Light看着最舒心。<strong>以后千万不能再手贱自己写主题了！！</strong><br>膜拜一下Hexo的作者tommy351。自己改了一下高亮配色和Widgets，把以前Octopress的Markdown文档做了一点点修改，这样就算上线了吧。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -364,6 +583,10 @@ if (pid==0){
   <ul class="entry">
     
       <li>
+        <a href="/2020/04/winrar-best-practice/">WinRAR 恢复记录添加及使用教程</a>
+      </li>
+    
+      <li>
         <a href="/2020/03/cmake-environment-script/">CMake 项目生成脚本</a>
       </li>
     
@@ -379,10 +602,6 @@ if (pid==0){
         <a href="/2019/03/haskell-intro/">Haskell 简易指南</a>
       </li>
     
-      <li>
-        <a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -392,11 +611,13 @@ if (pid==0){
   <h3 class="title">分类</h3>
   <ul class="entry">
   
-    <li><a href="/categories/Life/">Life</a><small>1</small></li>
+    <li><a href="/categories/Life/">Life</a><small>2</small></li>
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
     <li><a href="/categories/Programming/">Programming</a><small>26</small></li>
+  
+    <li><a href="/categories/uncategorized/">uncategorized</a><small>0</small></li>
   
   </ul>
 </div>
@@ -406,7 +627,7 @@ if (pid==0){
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 14px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 12px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 12px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 18px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 12px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/Written-In-English/" style="font-size: 12px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 12px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 16px;">编程</a> <a href="/tags/网盘/" style="font-size: 12px;">网盘</a> <a href="/tags/脚本/" style="font-size: 10px;">脚本</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 13.33px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.33px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.67px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16.67px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 11.67px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Written-In-English/" style="font-size: 11.67px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 11.67px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/网盘/" style="font-size: 13.33px;">网盘</a> <a href="/tags/脚本/" style="font-size: 10px;">脚本</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
   </div>
 </div>
 

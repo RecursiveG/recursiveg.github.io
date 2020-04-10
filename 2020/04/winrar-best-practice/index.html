@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+  <title>WinRAR 恢复记录添加及使用教程 | RECURSIVE LAND</title>
+  <meta name="author" content="RecursiveG">
+  
+  <meta name="description" content="Recursive G&#39;s personal blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="WinRAR 恢复记录添加及使用教程">
+  <meta property="og:site_name" content="RECURSIVE LAND">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">RECURSIVE LAND</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2020-04-09T14:30:00.000Z"><a href="/2020/04/winrar-best-practice/">Apr 9 2020</a></time>
+      
+      
+  
+    <h1 class="title">WinRAR 恢复记录添加及使用教程</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <blockquote>
+<p>本文中的所有图片及文字均使用 CC0 发布，可任意转载使用。</p>
+</blockquote>
+<p>本文属于疫情期间的摸鱼之作，旨在推广 RAR 压缩格式的正确压缩方法，让资源分享更轻松一些。</p>
+<h1 id="获取-WinRAR"><a href="#获取-WinRAR" class="headerlink" title="获取 WinRAR"></a>获取 WinRAR</h1><p>先说一下为什么用 WinRAR 而不用 7zip, 因为 7zip 没有恢复记录。在百度网盘等平台分享文件时，文件可能发生损坏，没有恢复记录的话只能尝试重新下载浪费时间，而有恢复记录的话有大概率可以成功修复，正确解压。</p>
+<p>国内特供版的 WinRAR 可以免费使用，但是有广告。如果不想要广告，你可以从以下链接下载官方无广告简体中文版</p>
+<pre><code>https://www.win-rar.com/fileadmin/winrar-versions/sc/sc20200409/rrlb/winrar-x64-590sc.exe</code></pre><p>注意，如果你没有<code>rarreg.key</code>文件进行注册的话依然是有广告的。至于具体的注册方法请自行搜寻。</p>
+<a id="more"></a>
+<h1 id="添加恢复记录"><a href="#添加恢复记录" class="headerlink" title="添加恢复记录"></a>添加恢复记录</h1><p>恢复记录需要在创建压缩文件时添加，你需要先勾选<code>添加恢复记录</code>复选框。<br><img src="/images/winrar-best-practice/01-check-add-rr-box.png" alt><br>然后检查恢复记录的百分比设置。<br><img src="/images/winrar-best-practice/02-rr-percentile.png" alt><br>对于大于 100MB 的大型文件文件来说，默认的 3% 足够使用。如果你的文件非常小，比如只有 几MB 或者 十几MB 你可以考虑增加到 5%。<br>增大这项设置会同时增大文件体积，因此不建议设置得过大，尤其是对于几个 GB 的文件来说。</p>
+<p>如果你在压缩时忘记添加恢复记录或者是想要修改恢复记录的大小，也可以在事后进行操作：<br><img src="/images/winrar-best-practice/03-modify-rr-percentile.png" alt></p>
+<h1 id="损坏压缩文件的修复"><a href="#损坏压缩文件的修复" class="headerlink" title="损坏压缩文件的修复"></a>损坏压缩文件的修复</h1><p>如果你在解压时遇到“校验和错误”，那么你下载到的压缩文件就是损坏了：<br><img src="/images/winrar-best-practice/04-broken-file-example.png" alt><br>你可以使用“工具”菜单尝试修复它。修复操作会生成一个新的，修复好的压缩包，你需要选择这个新文件的保存位置：<br><img src="/images/winrar-best-practice/05-select-fixed-save-location.png" alt><br>稍等片刻就会生成一个修复后的文件：<br><img src="/images/winrar-best-practice/06-fixed-file.png" alt><br>你也有可能在修复过程中遇到错误，但只要修复后的文件可以正确解压不报错，就没有问题。<br>但是只有添加了恢复记录的文件可以使用修复操作，因此所有人在压缩时都添加恢复记录是非常重要的。<br>如果修复后的文件依然不能正确解压，要么是损坏的部分过多无法修复，要么是资源发布者没有添加恢复记录。<br>在这种情况下就只能重新下载试试了。</p>
+<h1 id="给压缩文件加密"><a href="#给压缩文件加密" class="headerlink" title="给压缩文件加密"></a>给压缩文件加密</h1><p>给压缩文件加密是防止文件被和谐的重要方法之一。<br><img src="/images/winrar-best-practice/07-add-password.png" alt></p>
+<h1 id="分卷压缩"><a href="#分卷压缩" class="headerlink" title="分卷压缩"></a>分卷压缩</h1><p>如果你要分享一个非常巨大的压缩包，比如说十几个GB，直接作为一个文件分享一般不是一个好主意，因为下载者有可能下载到中途失败，不得不从头再来。将大压缩包切分成多个较小的文件可以有效减少这种情况的发生。<br><img src="/images/winrar-best-practice/08-split-volume.png" alt></p>
+<h1 id="Linux-用户？"><a href="#Linux-用户？" class="headerlink" title="Linux 用户？"></a>Linux 用户？</h1><ul>
+<li>很不幸地，创建或是修复带恢复记录的压缩包都需要<code>rar</code>而不是<code>unrar</code>。</li>
+<li>如果遇到压缩包包含了文件名过长的文件，可以尝试创建一个 NTFS 格式的磁盘文件，用回环挂载，然后把文件解压进去。</li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Life/">Life</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/网盘/">网盘</a>, <a href="/tags/教程/">教程</a>, <a href="/tags/WinRAR/">WinRAR</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:recursiveg.me">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2020/04/winrar-best-practice/">WinRAR 恢复记录添加及使用教程</a>
+      </li>
+    
+      <li>
+        <a href="/2020/03/cmake-environment-script/">CMake 项目生成脚本</a>
+      </li>
+    
+      <li>
+        <a href="/2020/01/simple-kernel-dev-environment/">简易内核开发环境</a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/build-amd-3960x-pc/">AMD Threadripper 3960X 装机</a>
+      </li>
+    
+      <li>
+        <a href="/2019/03/haskell-intro/">Haskell 简易指南</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/Life/">Life</a><small>2</small></li>
+  
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
+  
+    <li><a href="/categories/Programming/">Programming</a><small>26</small></li>
+  
+    <li><a href="/categories/uncategorized/">uncategorized</a><small>0</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 13.33px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.33px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.67px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16.67px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 11.67px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Written-In-English/" style="font-size: 11.67px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 11.67px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/网盘/" style="font-size: 13.33px;">网盘</a> <a href="/tags/脚本/" style="font-size: 10px;">脚本</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="https://exz.me" title="Epix Sphere">Epix Sphere</a></li>
+  
+    <li><a href="https://im.librazy.org" title="Librazy">Librazy</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明 / Licensing</h3>
+    <div class="entry">
+        <center>
+            <a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">
+                <img class="nofancybox nolightbox" alt="CC-BY-NC 4.0" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" />
+            </a>
+        </center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可。
+        <p>
+        Unless stated otherwise, RecursiveG is the author of all articles on this website. All articles are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+        <p>
+        本站所有的代码，包括行内代码以及代码块中的代码，使用 CC 与 <a rel="license" href="https://opensource.org/licenses/MIT">MIT</a> 双许可发布，你可任选其一使用。
+        <p>
+        All codes on this website, inline or in codeblocks, are dual-licensed under CC and <a rel="license" href="https://opensource.org/licenses/MIT">MIT</a>. You can use whichever license that meets your needs.
+        </p>
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2020 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

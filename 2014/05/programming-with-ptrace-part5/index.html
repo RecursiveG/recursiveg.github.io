@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
 <html>
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
   <title>Programming with PTRACE, Part5 - 内存管理 | RECURSIVE LAND</title>
-  <meta name="author" content="RecursiveG">
+  <meta name="author" content="RecursiveG" />
   
-  <meta name="description" content="Fifth part of serial of tutorial: Programming with PTRACE">
+  <meta name="description" content="Fifth part of serial of tutorial: Programming with PTRACE" />
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  <meta property="og:title" content="Programming with PTRACE, Part5 - 内存管理">
-  <meta property="og:site_name" content="RECURSIVE LAND">
+  <meta property="og:title" content="Programming with PTRACE, Part5 - 内存管理"/>
+  <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
-    <meta property="og:image" content>
+    <meta property="og:image" content=""/>
   
 
-  <link href="/favicon.png" rel="icon">
-  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml">
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
   <script type="text/javascript"><!--Code to Prevent been iframed-->
     if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
   </script>
@@ -38,8 +38,8 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </script>
 
 
-</head>
-</html>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
 
 <body>
   <header id="header" class="inner"><div class="alignleft">
@@ -55,7 +55,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     
       <li><a href="/archives">Archives</a></li>
     
-      <li><a href="https://github.com/RecursiveG">Github</a></li>
+      <li><a href="https://github.com/RecursiveG" target="_blank" rel="noopener">Github</a></li>
     
       <li><a href="/atom.xml">RSS</a></li>
     
@@ -101,7 +101,7 @@ VmExe:        1140 kB
 VmLib:        2268 kB
 VmPTE:          72 kB
 VmSwap:           0 kB</code></pre><p>我们看到了两个令人感兴趣的东西：<code>VmData</code>和<code>VmStk</code>。分别代表了数据区和栈的大小，而且这两个数据是真正的可访问的虚拟内存大小，即不会像RSS那样，漏掉那些分配了而未访问的内存。当然，其他数据也都是很有趣的，有兴趣的人可以自己去翻man手册。这段代码计算给定进程的数据段和堆栈段内存使用总和。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">getMemory</span><span class="params">(<span class="keyword">const</span> <span class="keyword">pid_t</span> pid)</span></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> stat_loc[<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">long</span> VmData,VmStk;</span><br><span class="line">    <span class="built_in">sprintf</span>(stat_loc,<span class="string">"/proc/%d/status"</span>,pid);</span><br><span class="line">    FILE *stat=fopen(stat_loc,<span class="string">"r"</span>);</span><br><span class="line">    <span class="keyword">char</span> line[<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">while</span>(EOF!=<span class="built_in">fscanf</span>(stat,<span class="string">"%[^\n]"</span>,line))&#123;</span><br><span class="line">        <span class="built_in">sscanf</span>(line,<span class="string">"VmData: %ld"</span>,&amp;VmData);</span><br><span class="line">        <span class="built_in">sscanf</span>(line,<span class="string">"VmStk: %ld"</span>,&amp;VmStk);</span><br><span class="line">        fgetc(stat);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> VmData+VmStk;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">getMemory</span><span class="params">(<span class="keyword">const</span> <span class="keyword">pid_t</span> pid)</span></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> stat_loc[<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">long</span> VmData,VmStk;</span><br><span class="line">    <span class="built_in">sprintf</span>(stat_loc,<span class="string">"/proc/%d/status"</span>,pid);</span><br><span class="line">    FILE *stat=fopen(stat_loc,<span class="string">"r"</span>);</span><br><span class="line">    <span class="keyword">char</span> <span class="built_in">line</span>[<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">while</span>(EOF!=<span class="built_in">fscanf</span>(stat,<span class="string">"%[^\n]"</span>,<span class="built_in">line</span>))&#123;</span><br><span class="line">        <span class="built_in">sscanf</span>(<span class="built_in">line</span>,<span class="string">"VmData: %ld"</span>,&amp;VmData);</span><br><span class="line">        <span class="built_in">sscanf</span>(<span class="built_in">line</span>,<span class="string">"VmStk: %ld"</span>,&amp;VmStk);</span><br><span class="line">        fgetc(stat);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> VmData+VmStk;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h1 id="限制内存"><a href="#限制内存" class="headerlink" title="限制内存"></a>限制内存</h1><p>也许你们已经知道，有一个叫做<code>setrlimit</code>的函数可以用来限制资源使用，你们也许已经翻过了它的man手册，看到了<code>RLIMIT_AS</code> <code>RLIMIT_DATA</code> <code>RLIMIT_RSS</code>等一票似乎很有用的参数。现在，请你立刻忘掉他们！既然我们之前讲了<code>/proc</code>当然要用起来啦。我们不用<code>setrlimit</code>是因为，这种限制策略会导致malloc失败（确切的讲是brk和mmap失败），而大部分OIer都没有检查malloc返回值的的习惯，最终导致本应是MLE(Memory Limit Exceeded)的情况变成了由访问无效内存导致的RE(Runtime Error)。更糟糕的是，如果是系统栈增长被限制了，进程会被直接<code>SIGSEGV</code>，连errno都没有，这种情况下就更难分辨了。那么，有什么好的方法来限制内存呢？答案就是在每次分配内存的系统调用（不限于brk和mmap）时通过proc来检查内存使用，注意要在返回时检查哦。一旦超过，就由父进程直接杀死子进程，方法多种多样，你可以使用<code>ptrace(PTRACE_KILL,pid,0,0)</code>，或是用Part3所讲的方法发送信号，或是直接用<a href="http://man7.org/linux/man-pages/man2/kill.2.html" target="_blank" rel="noopener">kill函数</a>。这种方法看上去很不优雅，但确实很有效。至于那些对<code>setrlimit</code>耿耿于怀的同学，不要担心，下个part时间限制，将会大量用到。</p>
 <h1 id="拓展阅读-amp-参考资料"><a href="#拓展阅读-amp-参考资料" class="headerlink" title="拓展阅读&amp;参考资料"></a>拓展阅读&amp;参考资料</h1><ul>
@@ -142,7 +142,7 @@ VmSwap:           0 kB</code></pre><p>我们看到了两个令人感兴趣的东
 
   
   <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
   </div>
   
 </section>
@@ -197,8 +197,6 @@ VmSwap:           0 kB</code></pre><p>我们看到了两个令人感兴趣的东
   
     <li><a href="/categories/Programming/">Programming</a><small>26</small></li>
   
-    <li><a href="/categories/uncategorized/">uncategorized</a><small>0</small></li>
-  
   </ul>
 </div>
 
@@ -207,7 +205,7 @@ VmSwap:           0 kB</code></pre><p>我们看到了两个令人感兴趣的东
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 13.33px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.33px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.67px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16.67px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 11.67px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Written-In-English/" style="font-size: 11.67px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/东方Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/乱码/" style="font-size: 10px;">乱码</a> <a href="/tags/交叉编译/" style="font-size: 10px;">交叉编译</a> <a href="/tags/加密/" style="font-size: 10px;">加密</a> <a href="/tags/技术宅/" style="font-size: 11.67px;">技术宅</a> <a href="/tags/教程/" style="font-size: 20px;">教程</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/网盘/" style="font-size: 13.33px;">网盘</a> <a href="/tags/脚本/" style="font-size: 10px;">脚本</a> <a href="/tags/装机/" style="font-size: 10px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 13.33px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 10px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.33px;">Linux</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.67px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 10px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16.67px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/Site-Management/" style="font-size: 11.67px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Written-In-English/" style="font-size: 11.67px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.67px;">技术宅</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 13.33px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 10px;">装机</a>
   </div>
 </div>
 
@@ -216,9 +214,11 @@ VmSwap:           0 kB</code></pre><p>我们看到了两个令人感兴趣的东
   <h3 class="title">友情链接</h3>
   <ul class="entry">
   
-    <li><a href="https://exz.me" title="Epix Sphere">Epix Sphere</a></li>
+    <li><a href="https://exz.me" target="_blank" rel="noopener" title="Epix Sphere">Epix Sphere</a></li>
   
-    <li><a href="https://im.librazy.org" title="Librazy">Librazy</a></li>
+    <li><a href="https://im.librazy.org" target="_blank" rel="noopener" title="Librazy">Librazy</a></li>
+  
+    <li><a href="https://farseerfc.me" target="_blank" rel="noopener" title="FarseerFc">FarseerFc</a></li>
   
   </ul>
 </div>
@@ -228,17 +228,17 @@ VmSwap:           0 kB</code></pre><p>我们看到了两个令人感兴趣的东
     <h3 class="title">原创声明 / Licensing</h3>
     <div class="entry">
         <center>
-            <a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">
+            <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">
                 <img class="nofancybox nolightbox" alt="CC-BY-NC 4.0" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" />
             </a>
         </center>
-        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可。
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license noopener" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可。
         <p>
-        Unless stated otherwise, RecursiveG is the author of all articles on this website. All articles are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+        Unless stated otherwise, RecursiveG is the author of all articles on this website. All articles are licensed under a <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
         <p>
-        本站所有的代码，包括行内代码以及代码块中的代码，使用 CC 与 <a rel="license" href="https://opensource.org/licenses/MIT">MIT</a> 双许可发布，你可任选其一使用。
+        本站所有的代码，包括行内代码以及代码块中的代码，使用 CC 与 <a rel="license noopener" href="https://opensource.org/licenses/MIT" target="_blank">MIT</a> 双许可发布，你可任选其一使用。
         <p>
-        All codes on this website, inline or in codeblocks, are dual-licensed under CC and <a rel="license" href="https://opensource.org/licenses/MIT">MIT</a>. You can use whichever license that meets your needs.
+        All codes on this website, inline or in codeblocks, are dual-licensed under CC and <a rel="license noopener" href="https://opensource.org/licenses/MIT" target="_blank">MIT</a>. You can use whichever license that meets your needs.
         </p>
     </div>
 </div>

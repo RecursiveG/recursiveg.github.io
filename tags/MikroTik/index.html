@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>第 5 页 | RECURSIVE LAND</title>
+  <title>MikroTik | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
   <meta name="description" content="Recursive G&#39;s personal blog" />
@@ -66,90 +66,25 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2012-12-31T12:50:00.000Z"><a href="/2012/12/how-to-solve-the-connection-reset-problem/">Dec 31 2012</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2012/12/how-to-solve-the-connection-reset-problem/">How to solve the &#34;Connection Reset&#34; problem</a></h1>
-  
+<h2 class="archive-title tag">MikroTik</h2>
 
-    </header>
-    <div class="entry">
-      
-        <p>考虑到安全原因，这篇文章用英语写成。如果你没有足够的勇气读完它，请自觉退出。</p>
-<p>This article is written mainly for those people in China. Be sure you are enough familiar with what you are reading and what you try to do.</p>
-<p>================================================================</p>
-<p>As we all known, in China mainland, we cannot visit sites like YouTube Facebook Twitter. And the Google sites are out of service frequently. It’s because the Chinese government used some technical methods to prevent us from visiting them. The government has setup a system to do this. It’s called the <a href="https://en.wikipedia.org/wiki/Great_Firewall" target="_blank" rel="noopener">Great Firewall of China</a> (GFW). This system keeps look on the gateway export. And if it finds something unusual. It will stop the connection.</p>
-<p>The system usually inject a RESET into the TCP connection. To prevent this, we can use HTTPS(The S means Secure) instead of HTTP. So the system can not inject the RESET any more. It’s easy to perform. You just need to replace the “http://“ part of a URL with “https://“. And the URL will look like this “<a href="https://www.facebook.com&quot;" target="_blank" rel="noopener">https://www.facebook.com&quot;</a>. Most of the sites support a HTTPS connection.</p>
-<p>Unfortunately, this will not always works. Because the system also used another method called “DNS Redirection”. As we all known, the computers on the Internet are identified by IP address. But human can’t remember them easily. So we use some meaningful phases called “Domain”. Some computers on the Internet provide the kind of service to translate the domains to IP address which is the only form computers can recognize. They are called the “DNS Server”. DNS Redirection is that the DNS servers won’t return the correct IP address (usually were instructed to do so) so that we can’t visit the particular sites.</p>
-<p>Luckily, we can assign an IP to a domain manually. That’s the function of a file called <a href="https://en.wikipedia.org/wiki/Hosts_(file)" target="_blank" rel="noopener">hosts</a>. There’s a project called <a href="https://code.google.com/p/smarthosts/" target="_blank" rel="noopener">smarthosts</a> on Google Code. It provided a set of IP address you may use. Paste them to your local hosts file and enjoy the Internet.</p>
-<p>I will write more about the Internet censorship and how to avoid it. Check back later.</p>
 
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
+  <div class="archive">
+    
+      <article class="post">
+        <div class="post-content">
+          <header>
+            <div class="icon"></div>
+            <time datetime="2020-07-03T04:30:00.000Z"><a href="/2020/07/mikrotik-rb4011-setup-memo/">Jul 2 2020</a></time>
+            
+              <h1 class="title"><a href="/2020/07/mikrotik-rb4011-setup-memo/">MikroTik RB4011 访客网络配置备忘</a></h1>
+            
+          </header>
+        </div>
+      </article>
+    
   </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2012-12-22T12:32:00.000Z"><a href="/2012/12/helloworld/">Dec 22 2012</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2012/12/helloworld/">Hello, World!</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h2 id="A-standard-“Hello-World-”-page"><a href="#A-standard-“Hello-World-”-page" class="headerlink" title="A standard “Hello World!” page"></a>A standard “Hello World!” page</h2><h2 id="你好世界。"><a href="#你好世界。" class="headerlink" title="你好世界。"></a>你好世界。</h2><figure class="highlight delphi"><figcaption><span>hello_world.pas</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">program</span> Hello_World;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  writeln(<span class="string">'Hello World!'</span>);</span><br><span class="line"><span class="keyword">end</span>.</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2012/12/helloworld/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-
-<nav id="pagination">
-  
-    <a href="/page/4/" class="alignleft prev">上一页</a>
-  
-  
-  <div class="clearfix"></div>
-</nav></div></div>
+</div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">

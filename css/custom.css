@@ -1,0 +1,9 @@
+.fancybox+span {
+  margin: 0 auto;
+  width: 61%;
+}
+.fancybox {
+  display: block;
+  margin: 0 auto;
+  width: 61%;
+}

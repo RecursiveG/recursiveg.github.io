@@ -805,7 +805,7 @@ pre .deletion {
   width: 61%;
 }
 .fancybox {
-  display: inline-block;
+  display: block;
   margin: 0 auto;
   width: 61%;
 }

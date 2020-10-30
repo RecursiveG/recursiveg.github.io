@@ -2,16 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://recursiveg.me/2020/10/linux-windows-multiboot-usb/</loc>
+    <loc>https://recursiveg.me/2020/10/ipsec-configurations-part1/</loc>
     
-    <lastmod>2020-10-25T07:16:55.332Z</lastmod>
+    <lastmod>2020-10-30T04:01:57.175Z</lastmod>
     
   </url>
   
   <url>
     <loc>https://recursiveg.me/2020/10/archlinux-on-raspberrypi-4b/</loc>
     
-    <lastmod>2020-10-03T22:26:40.396Z</lastmod>
+    <lastmod>2020-10-30T03:57:48.330Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://recursiveg.me/2020/04/winrar-best-practice/</loc>
+    
+    <lastmod>2020-10-30T03:49:49.971Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://recursiveg.me/2020/10/linux-windows-multiboot-usb/</loc>
+    
+    <lastmod>2020-10-25T07:19:38.289Z</lastmod>
     
   </url>
   
@@ -19,13 +33,6 @@
     <loc>https://recursiveg.me/2020/07/mikrotik-rb4011-setup-memo/</loc>
     
     <lastmod>2020-07-03T23:06:13.250Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://recursiveg.me/2020/04/winrar-best-practice/</loc>
-    
-    <lastmod>2020-04-10T03:47:33.470Z</lastmod>
     
   </url>
   

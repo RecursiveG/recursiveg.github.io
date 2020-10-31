@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://recursiveg.me/"/>
-  <updated>2020-10-31T07:24:13.801Z</updated>
+  <updated>2020-10-31T18:06:53.952Z</updated>
   <id>https://recursiveg.me/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>IPsec 配置备忘 Part3 - Tunnel 模式</title>
+    <link href="https://recursiveg.me/2020/10/ipsec-configurations-part3/"/>
+    <id>https://recursiveg.me/2020/10/ipsec-configurations-part3/</id>
+    <published>2020-10-31T02:50:00.000Z</published>
+    <updated>2020-10-31T18:06:53.952Z</updated>
+    
+    <content type="html"><![CDATA[<p>第三篇简单介绍一下 IPsec 的 Tunnel 模式，没看过前两篇的快去看~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a></p><h2 id="Tunnel-模式简介"><a href="#Tunnel-模式简介" class="headerlink" title="Tunnel 模式简介"></a>Tunnel 模式简介</h2><p><img src="/images/ipsec-configurations-part3/01-tunnel-mode-header-layout.png" alt="Tunnel mode header layout"> 前两篇中我们使用的都是 Transport 模式，但是实际使用中，更常用的是 Tunnel 模式。Transport 模式只加密四层及以上数据，而不修改 IP 头，原始的 IP 头将会原样传输。这意味着我们只能进行点对点传输，因为只有一个 IP 头，我们无法告知对方服务器我们实际要访问的地址。Tunnel 模式则是连原始的 IP 头也一起加密，然后再在前端添加一个新的 IP 头，这样服务器在收到数据包后，可以解密并读取内部的 IP 头，再转发给实际的目标服务器。</p><a id="more"></a><h2 id="配置场景"><a href="#配置场景" class="headerlink" title="配置场景"></a>配置场景</h2><p>这次的场景在 Part2 的基础上略有改动：在 HostA 与 HostB 的<code>lo</code>接口上分别添加<code>fd01::1/64</code>与<code>fd01::2/64</code>:</p><pre><code>hosta$ ip -6 -br addrlo               UNKNOWN        fd01::1/64 ::1/128eth1             UP             fd00::1/64 [--omit--][--omit--]hostb$ ip -6 -br addrlo               UNKNOWN        fd01::2/64 ::1/128eth1             UP             fd00::2/64 [--omit--][--omit--]</code></pre><p>在没有建立连接的情况下，fd00::1 和 fd00::2 可互 ping，fd01::1 和 fd01::2 不可互 ping。在建立连接后，fd00::1 和 fd00::2 可互 ping，但是不加密，fd01::1 和 fd01::2 可互 ping 且流量加密。</p><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>配置文件也是在 Part2 的基础上改动而来，变化部分已加注释</p><figure class="highlight bash"><figcaption><span>hosta.conf</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># hosta</span></span><br><span class="line">connections &#123;</span><br><span class="line">  conn_hosta_hostb &#123;</span><br><span class="line">    version = 2</span><br><span class="line">    local_addrs = fd00::1</span><br><span class="line">    remote_addrs = fd00::2</span><br><span class="line">    <span class="comment"># 使用 NULL 加密以方便抓包观察</span></span><br><span class="line">    proposals = null-sha-modp2048</span><br><span class="line">    <span class="built_in">local</span> &#123;</span><br><span class="line">      id = CN=HOSTA_COMMON_NAME</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    remote &#123;</span><br><span class="line">      id = %any</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    children &#123;</span><br><span class="line">      child_sa &#123;</span><br><span class="line">        <span class="comment"># Traffic selector 改为 fd01::*</span></span><br><span class="line">        <span class="comment"># 这意味着 fd00::* 不被选中，也就不会被加密</span></span><br><span class="line">        local_ts = fd01::1/128</span><br><span class="line">        remote_ts = fd01::2/128</span><br><span class="line">        <span class="comment"># 传输模式改为 Tunnel</span></span><br><span class="line">        mode = tunnel</span><br><span class="line">        esp_proposals = null-sha-modp2048</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><figure class="highlight bash"><figcaption><span>hostb.conf</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">connections &#123;</span><br><span class="line">  conn_hosta_hostb &#123;</span><br><span class="line">    version = 2</span><br><span class="line">    <span class="comment"># 交换 local 与 remote</span></span><br><span class="line">    local_addrs = fd00::2</span><br><span class="line">    remote_addrs = fd00::1</span><br><span class="line">    proposals = null-sha-modp2048</span><br><span class="line">    <span class="built_in">local</span> &#123;</span><br><span class="line">      <span class="comment"># 使用 HostB 的 id</span></span><br><span class="line">      id = CN=HOSTB_COMMON_NAME</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    remote &#123;</span><br><span class="line">      id = %any</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    children &#123;</span><br><span class="line">      child_sa &#123;</span><br><span class="line">        <span class="comment"># 交换 local 与 remote</span></span><br><span class="line">        local_ts = fd01::2/128</span><br><span class="line">        remote_ts = fd01::1/128</span><br><span class="line">        mode = tunnel</span><br><span class="line">        esp_proposals = null-sha-modp2048</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="链接测试"><a href="#链接测试" class="headerlink" title="链接测试"></a>链接测试</h2><p>启动 strongSwan 和 Wireshark，在 HostA 上，可以 ping fd00::2 但是不能 ping fd01::2。然后用<code>sudo swanctl -i -c child_sa</code>建立连接，依然可以 ping fd00::2 但是数据不加密，同时能够 ping 通 fd01::2 了。抓包可以看出明显的<code>ETHERNET-IP-ESP-IP-ICMP</code>的包头层次，并且外层 IP 使用 fd00::* 进行数据传输，内层 IP 使用 fd01::* 的实际目的地址：</p><p><img src="/images/ipsec-configurations-part3/02-esp-tunnel-mode-packet-wireshark.png" alt="Tunnel mode packet example"></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;第三篇简单介绍一下 IPsec 的 Tunnel 模式，没看过前两篇的快去看~&lt;br&gt;&lt;a href=&quot;/2020/10/ipsec-configurations-part1/&quot;&gt;Part1 传送门&lt;/a&gt;；&lt;a href=&quot;/2020/10/ipsec-configurations-part2/&quot;&gt;Part2 传送门&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;Tunnel-模式简介&quot;&gt;&lt;a href=&quot;#Tunnel-模式简介&quot; class=&quot;headerlink&quot; title=&quot;Tunnel 模式简介&quot;&gt;&lt;/a&gt;Tunnel 模式简介&lt;/h2&gt;&lt;p&gt;&lt;img src=&quot;/images/ipsec-configurations-part3/01-tunnel-mode-header-layout.png&quot; alt=&quot;Tunnel mode header layout&quot;&gt; 前两篇中我们使用的都是 Transport 模式，但是实际使用中，更常用的是 Tunnel 模式。Transport 模式只加密四层及以上数据，而不修改 IP 头，原始的 IP 头将会原样传输。这意味着我们只能进行点对点传输，因为只有一个 IP 头，我们无法告知对方服务器我们实际要访问的地址。Tunnel 模式则是连原始的 IP 头也一起加密，然后再在前端添加一个新的 IP 头，这样服务器在收到数据包后，可以解密并读取内部的 IP 头，再转发给实际的目标服务器。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
+    
+    
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="IPsec" scheme="https://recursiveg.me/tags/IPsec/"/>
+    
+      <category term="Networking" scheme="https://recursiveg.me/tags/Networking/"/>
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
+    
+      <category term="VPN" scheme="https://recursiveg.me/tags/VPN/"/>
+    
+  </entry>
   
   <entry>
     <title>IPsec 配置备忘 Part2 - 证书</title>

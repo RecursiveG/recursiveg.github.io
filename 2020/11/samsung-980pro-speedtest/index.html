@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>Chrome | RECURSIVE LAND</title>
+  <title>[娱乐向] Samsung 980 Pro RAID 性能测试 | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
   <meta name="description" content="Recursive G&#39;s personal blog" />
@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  
+  <meta property="og:title" content="[娱乐向] Samsung 980 Pro RAID 性能测试"/>
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
@@ -65,25 +65,116 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper">
-<h2 class="archive-title tag">Chrome</h2>
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2020-11-02T14:00:00.000Z"><a href="/2020/11/samsung-980pro-speedtest/">Nov 2 2020</a></time>
+      
+      
+  
+    <h1 class="title">[娱乐向] Samsung 980 Pro RAID 性能测试</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>三星的新 SSD 980 Pro 已经发售一段时间了，前两天看到 Amazon 上 1TB 有货，赶紧下单两条。今天到货，于是装机测一波速度。打算用来做系统盘，所以自然就是用来组 RAID-0 咯。于是用 fio 分别测试了一下 btrfs 和 mdadm 组 RAID 的性能。测试完全不严谨，参数是用脸滚键盘滚出来的，放出来仅供各位一乐，为什么是娱乐向你看数据就知道了。同时拉上了打酱油的 970 Evo（我现在的系统盘），以及完全是搞笑用的<code>/dev/shm</code>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">场景</th>
+<th align="right">连续读取(MiB/s)</th>
+<th align="right">连续写入(MiB/s)</th>
+<th align="right">4K 随机读取(kIOPS)</th>
+<th align="right">4K 随机写入(kIOPS)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">980 Pro 单盘 EXT4</td>
+<td align="right">6370</td>
+<td align="right">4725</td>
+<td align="right">330</td>
+<td align="right">125</td>
+</tr>
+<tr>
+<td align="left">980 Pro 单盘 BTRFS</td>
+<td align="right">6264</td>
+<td align="right">2720</td>
+<td align="right">137</td>
+<td align="right">63.7</td>
+</tr>
+<tr>
+<td align="left">980 Pro mdadm RAID-0 EXT4</td>
+<td align="right">12186</td>
+<td align="right">9426</td>
+<td align="right">298</td>
+<td align="right">115</td>
+</tr>
+<tr>
+<td align="left">980 Pro BTRFS RAID0</td>
+<td align="right">5937</td>
+<td align="right">3932</td>
+<td align="right">133</td>
+<td align="right">63.3</td>
+</tr>
+<tr>
+<td align="left">/dev/shm</td>
+<td align="right">6290</td>
+<td align="right">5541</td>
+<td align="right">792</td>
+<td align="right">571</td>
+</tr>
+<tr>
+<td align="left">970 Evo 单盘 XFS</td>
+<td align="right">2963</td>
+<td align="right">410</td>
+<td align="right">199</td>
+<td align="right">31.3</td>
+</tr>
+</tbody></table>
+<p>Emmmm, mdadm RAID0 比内存快……这很合理……以及 btrfs 你的 RAID 性能还能更烂一点吗？</p>
+<a id="more"></a>
+<p>测试用设置在此，测试<code>/dev/shm</code>的时候关掉了<code>direct</code>以及把文件大小改成了<code>1g</code>:</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[global]</span></span><br><span class="line"><span class="attr">ioengine</span>=libaio</span><br><span class="line"><span class="attr">direct</span>=<span class="number">1</span></span><br><span class="line">time_based</span><br><span class="line"><span class="attr">runtime</span>=<span class="number">60</span></span><br><span class="line"><span class="attr">numjobs</span>=<span class="number">1</span></span><br><span class="line"><span class="attr">iodepth</span>=<span class="number">32</span></span><br><span class="line">group_reporting</span><br><span class="line"><span class="attr">size</span>=<span class="number">10</span>g</span><br><span class="line"></span><br><span class="line"><span class="section">[seq_read]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">1</span>M</span><br><span class="line"><span class="attr">rw</span>=read</span><br><span class="line"></span><br><span class="line"><span class="section">[seq_write]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">1</span>M</span><br><span class="line"><span class="attr">rw</span>=write</span><br><span class="line"></span><br><span class="line"><span class="section">[random_read]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">4</span>k</span><br><span class="line"><span class="attr">rw</span>=randread</span><br><span class="line"></span><br><span class="line"><span class="section">[random_write]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">4</span>k</span><br><span class="line"><span class="attr">rw</span>=randwrite</span><br></pre></td></tr></table></figure>
 
 
-  <div class="archive">
-    
-      <article class="post">
-        <div class="post-content">
-          <header>
-            <div class="icon"></div>
-            <time datetime="2017-05-12T09:30:00.000Z"><a href="/2017/05/simple-chrome-extension/">May 12 2017</a></time>
-            
-              <h1 class="title"><a href="/2017/05/simple-chrome-extension/">编写一个简易的Chrome扩展</a></h1>
-            
-          </header>
-        </div>
-      </article>
-    
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Programming/">Programming</a>
   </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/折腾/">折腾</a>, <a href="/tags/硬件/">硬件</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
 </div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
@@ -201,7 +292,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     var dsq = document.createElement('script');
     dsq.type = 'text/javascript';
     dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
   }());
 }

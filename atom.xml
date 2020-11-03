@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://recursiveg.me/"/>
-  <updated>2020-10-31T18:06:53.952Z</updated>
+  <updated>2020-11-03T05:44:01.988Z</updated>
   <id>https://recursiveg.me/</id>
   
   <author>
@@ -15,6 +15,85 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>[娱乐向] Samsung 980 Pro RAID 性能测试</title>
+    <link href="https://recursiveg.me/2020/11/samsung-980pro-speedtest/"/>
+    <id>https://recursiveg.me/2020/11/samsung-980pro-speedtest/</id>
+    <published>2020-11-02T14:00:00.000Z</published>
+    <updated>2020-11-03T05:44:01.988Z</updated>
+    
+    <content type="html"><![CDATA[<p>三星的新 SSD 980 Pro 已经发售一段时间了，前两天看到 Amazon 上 1TB 有货，赶紧下单两条。今天到货，于是装机测一波速度。打算用来做系统盘，所以自然就是用来组 RAID-0 咯。于是用 fio 分别测试了一下 btrfs 和 mdadm 组 RAID 的性能。测试完全不严谨，参数是用脸滚键盘滚出来的，放出来仅供各位一乐，为什么是娱乐向你看数据就知道了。同时拉上了打酱油的 970 Evo（我现在的系统盘），以及完全是搞笑用的<code>/dev/shm</code>：</p><table><thead><tr><th align="left">场景</th><th align="right">连续读取(MiB/s)</th><th align="right">连续写入(MiB/s)</th><th align="right">4K 随机读取(kIOPS)</th><th align="right">4K 随机写入(kIOPS)</th></tr></thead><tbody><tr><td align="left">980 Pro 单盘 EXT4</td><td align="right">6370</td><td align="right">4725</td><td align="right">330</td><td align="right">125</td></tr><tr><td align="left">980 Pro 单盘 BTRFS</td><td align="right">6264</td><td align="right">2720</td><td align="right">137</td><td align="right">63.7</td></tr><tr><td align="left">980 Pro mdadm RAID-0 EXT4</td><td align="right">12186</td><td align="right">9426</td><td align="right">298</td><td align="right">115</td></tr><tr><td align="left">980 Pro BTRFS RAID0</td><td align="right">5937</td><td align="right">3932</td><td align="right">133</td><td align="right">63.3</td></tr><tr><td align="left">/dev/shm</td><td align="right">6290</td><td align="right">5541</td><td align="right">792</td><td align="right">571</td></tr><tr><td align="left">970 Evo 单盘 XFS</td><td align="right">2963</td><td align="right">410</td><td align="right">199</td><td align="right">31.3</td></tr></tbody></table><p>Emmmm, mdadm RAID0 比内存快……这很合理……以及 btrfs 你的 RAID 性能还能更烂一点吗？</p><a id="more"></a><p>测试用设置在此，测试<code>/dev/shm</code>的时候关掉了<code>direct</code>以及把文件大小改成了<code>1g</code>:</p><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[global]</span></span><br><span class="line"><span class="attr">ioengine</span>=libaio</span><br><span class="line"><span class="attr">direct</span>=<span class="number">1</span></span><br><span class="line">time_based</span><br><span class="line"><span class="attr">runtime</span>=<span class="number">60</span></span><br><span class="line"><span class="attr">numjobs</span>=<span class="number">1</span></span><br><span class="line"><span class="attr">iodepth</span>=<span class="number">32</span></span><br><span class="line">group_reporting</span><br><span class="line"><span class="attr">size</span>=<span class="number">10</span>g</span><br><span class="line"></span><br><span class="line"><span class="section">[seq_read]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">1</span>M</span><br><span class="line"><span class="attr">rw</span>=read</span><br><span class="line"></span><br><span class="line"><span class="section">[seq_write]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">1</span>M</span><br><span class="line"><span class="attr">rw</span>=write</span><br><span class="line"></span><br><span class="line"><span class="section">[random_read]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">4</span>k</span><br><span class="line"><span class="attr">rw</span>=randread</span><br><span class="line"></span><br><span class="line"><span class="section">[random_write]</span></span><br><span class="line">stonewall</span><br><span class="line"><span class="attr">bs</span>=<span class="number">4</span>k</span><br><span class="line"><span class="attr">rw</span>=randwrite</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;三星的新 SSD 980 Pro 已经发售一段时间了，前两天看到 Amazon 上 1TB 有货，赶紧下单两条。今天到货，于是装机测一波速度。打算用来做系统盘，所以自然就是用来组 RAID-0 咯。于是用 fio 分别测试了一下 btrfs 和 mdadm 组 RAID 的性能。测试完全不严谨，参数是用脸滚键盘滚出来的，放出来仅供各位一乐，为什么是娱乐向你看数据就知道了。同时拉上了打酱油的 970 Evo（我现在的系统盘），以及完全是搞笑用的&lt;code&gt;/dev/shm&lt;/code&gt;：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&quot;left&quot;&gt;场景&lt;/th&gt;
+&lt;th align=&quot;right&quot;&gt;连续读取(MiB/s)&lt;/th&gt;
+&lt;th align=&quot;right&quot;&gt;连续写入(MiB/s)&lt;/th&gt;
+&lt;th align=&quot;right&quot;&gt;4K 随机读取(kIOPS)&lt;/th&gt;
+&lt;th align=&quot;right&quot;&gt;4K 随机写入(kIOPS)&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;&lt;tr&gt;
+&lt;td align=&quot;left&quot;&gt;980 Pro 单盘 EXT4&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;6370&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;4725&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;330&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;125&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&quot;left&quot;&gt;980 Pro 单盘 BTRFS&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;6264&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;2720&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;137&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;63.7&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&quot;left&quot;&gt;980 Pro mdadm RAID-0 EXT4&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;12186&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;9426&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;298&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;115&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&quot;left&quot;&gt;980 Pro BTRFS RAID0&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;5937&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;3932&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;133&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;63.3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&quot;left&quot;&gt;/dev/shm&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;6290&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;5541&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;792&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;571&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&quot;left&quot;&gt;970 Evo 单盘 XFS&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;2963&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;410&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;199&lt;/td&gt;
+&lt;td align=&quot;right&quot;&gt;31.3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;p&gt;Emmmm, mdadm RAID0 比内存快……这很合理……以及 btrfs 你的 RAID 性能还能更烂一点吗？&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
+    
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
+    
+      <category term="硬件" scheme="https://recursiveg.me/tags/%E7%A1%AC%E4%BB%B6/"/>
+    
+  </entry>
   
   <entry>
     <title>IPsec 配置备忘 Part3 - Tunnel 模式</title>
@@ -42,9 +121,9 @@
     
       <category term="Networking" scheme="https://recursiveg.me/tags/Networking/"/>
     
-      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
-    
       <category term="VPN" scheme="https://recursiveg.me/tags/VPN/"/>
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
     
   </entry>
   
@@ -74,9 +153,9 @@
     
       <category term="Networking" scheme="https://recursiveg.me/tags/Networking/"/>
     
-      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
-    
       <category term="VPN" scheme="https://recursiveg.me/tags/VPN/"/>
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
     
   </entry>
   
@@ -111,9 +190,9 @@
     
       <category term="Networking" scheme="https://recursiveg.me/tags/Networking/"/>
     
-      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
-    
       <category term="VPN" scheme="https://recursiveg.me/tags/VPN/"/>
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
     
   </entry>
   
@@ -179,11 +258,11 @@
     
       <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
+    
       <category term="树莓派" scheme="https://recursiveg.me/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
     
       <category term="硬件" scheme="https://recursiveg.me/tags/%E7%A1%AC%E4%BB%B6/"/>
-    
-      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
     
   </entry>
   
@@ -417,9 +496,9 @@
     
       <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
     
-      <category term="技术宅" scheme="https://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
-    
       <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="技术宅" scheme="https://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
     
       <category term="Chrome" scheme="https://recursiveg.me/tags/Chrome/"/>
     

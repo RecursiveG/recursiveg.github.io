@@ -72,6 +72,48 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-04-09T14:30:00.000Z"><a href="/2020/04/winrar-best-practice/">Apr 9 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/04/winrar-best-practice/">WinRAR 恢复记录添加及使用教程</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <blockquote>
+<p>本文中的所有图片及文字均使用 CC0 发布，可任意转载使用。</p>
+</blockquote>
+<p>本文属于疫情期间的摸鱼之作，旨在推广 RAR 压缩格式的正确压缩方法，让资源分享更轻松一些。</p>
+<h1 id="获取-WinRAR"><a href="#获取-WinRAR" class="headerlink" title="获取 WinRAR"></a>获取 WinRAR</h1><p>先说一下为什么用 WinRAR 而不用 7zip, 因为 7zip 没有恢复记录。在百度网盘等平台分享文件时，文件可能发生损坏，没有恢复记录的话只能尝试重新下载浪费时间，而有恢复记录的话有大概率可以成功修复，正确解压。</p>
+<p>国内特供版的 WinRAR 可以免费使用，但是有广告。如果不想要广告，你可以从以下链接下载官方无广告简体中文版</p>
+<pre><code>https://www.win-rar.com/fileadmin/winrar-versions/sc/sc20200409/rrlb/winrar-x64-590sc.exe</code></pre><p>注意，如果你没有<code>rarreg.key</code>文件进行注册的话依然是有广告的。至于具体的注册方法请自行搜寻。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/04/winrar-best-practice/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-03-16T15:00:00.000Z"><a href="/2020/03/cmake-environment-script/">Mar 16 2020</a></time>
       
       
@@ -319,46 +361,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-12-25T11:15:13.000Z"><a href="/2015/12/linux-socket-epoll-demo/">Dec 25 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/12/linux-socket-epoll-demo/">Linux环境TCP Socket与Epoll使用备忘</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>流水帐式地记录了 Linux 下 TCP Socket 通信的方法和基本的 Epoll 使用方法。<br>没有错误处理。</p>
-<h2 id="地址解析"><a href="#地址解析" class="headerlink" title="地址解析"></a>地址解析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> *<span class="title">listen_addr</span>;</span> <span class="comment">//存放解析结果。参见`man getaddrinfo`</span></span><br><span class="line">getaddrinfo(<span class="string">"0.0.0.0"</span>, <span class="string">"55553"</span>, <span class="literal">NULL</span>, &amp;listen_addr); <span class="comment">// getaddrinfo([主机名],[端口],[hint],[结果])。成功返回 `0`</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">freeaddrinfo(listen_addr); <span class="comment">//释放资源，返回void</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="监听"><a href="#监听" class="headerlink" title="监听"></a>监听</h2><p>这种方式只能同时处理一个连接</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>); <span class="comment">// int socket(int domain, int type, int protocol); 参见`man 3 socket` 创建文件描述符， 出错返回-1</span></span><br><span class="line">bind(fd, listen_addr-&gt;ai_addr, listen_addr-&gt;ai_addrlen);</span><br><span class="line">    <span class="comment">// int bind(int socket, const struct sockaddr *address,socklen_t address_len);</span></span><br><span class="line">    <span class="comment">// 绑定地址，出错返回-1，参见`man 3 bind`</span></span><br><span class="line"><span class="built_in">listen</span>(fd, SOMAXCONN);</span><br><span class="line">    <span class="comment">// int listen(int fd, int backlog(最大队列长度))</span></span><br><span class="line">    <span class="comment">// 开始监听，出错返回-1</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> new_fd = accept(fd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// accept([fd], [监听地址], [监听地址结构体长度]) 第2，3个参数同bind()</span></span><br><span class="line">        <span class="comment">// 接受连接请求，若无请求则阻塞(也有可能是EAGAIN,取决于你需要什么)</span></span><br><span class="line">        <span class="comment">// 返回用于和对端通信的新的文件描述符,出错返回-1</span></span><br><span class="line">    <span class="comment">// ... handle(new_fd);</span></span><br><span class="line">    <span class="built_in">close</span>(new_fd); <span class="comment">// 关闭文件描述符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/12/linux-socket-epoll-demo/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -384,6 +386,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a>
+      </li>
+    
+      <li>
         <a href="/2020/10/ipsec-configurations-part3/">IPsec 配置备忘 Part3 - Tunnel 模式</a>
       </li>
     
@@ -399,10 +405,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         <a href="/2020/10/linux-windows-multiboot-usb/">Linux + Windows 10 多系统安装 U 盘</a>
       </li>
     
-      <li>
-        <a href="/2020/10/archlinux-on-raspberrypi-4b/">在 Raspberry Pi 4B 上安装 ArchLinux</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -416,7 +418,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>32</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>33</small></li>
   
   </ul>
 </div>
@@ -426,7 +428,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.86px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 14.29px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.57px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.43px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 15.71px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.43px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 12.86px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.43px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.43px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 15.71px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 10px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 15.71px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.86px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.86px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.86px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 14.29px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.57px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.43px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 15.71px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.43px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 12.86px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.43px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.43px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.14px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.43px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 15.71px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.86px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.86px;">装机</a>
   </div>
 </div>
 

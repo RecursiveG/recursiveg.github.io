@@ -288,7 +288,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     </header>
     <div class="entry">
       
-        <p>日常折腾中总免不了要用 LiveCD 修理一下系统，或者是重装一下 Windows 之类的。这时候制作一个引导用的 U 盘基本是最方便的选项了。有不少工具都能创建 U 盘引导，比如 ArchLinux 的 ISO 镜像可以直接用<code>dd</code>写入，Windows 的安装盘也能用 <a href="https://rufus.ie" target="_blank" rel="noopener">Rufus</a> 创建。不过在使用上还是有些不便，比如<code>dd</code>会覆盖整个U盘，在ISO之外不能再存储其他文件。Rufus 只能在 Windows 上运行，而且一只 U 盘也只能放一份 ISO。于是尝试搞明白怎么把 Linux 的 LiveCD 和 Windows 的安装 ISO 写入到同一只 U 盘就很有必要了。</p>
+        <blockquote>
+<p><strong><em>Update:</em></strong> Windows 的引导程序似乎有些问题，如果在同一块 U 盘上写入多个 ISO 分区的话，似乎引导会错乱，最终启动的安装程序版本不是引导程序所在分区的版本。所以暂时一个 U 盘还是只能放一个 Windows 版本。垃圾巨硬。</p>
+</blockquote>
+<p>日常折腾中总免不了要用 LiveCD 修理一下系统，或者是重装一下 Windows 之类的。这时候制作一个引导用的 U 盘基本是最方便的选项了。有不少工具都能创建 U 盘引导，比如 ArchLinux 的 ISO 镜像可以直接用<code>dd</code>写入，Windows 的安装盘也能用 <a href="https://rufus.ie" target="_blank" rel="noopener">Rufus</a> 创建。不过在使用上还是有些不便，比如<code>dd</code>会覆盖整个U盘，在ISO之外不能再存储其他文件。Rufus 只能在 Windows 上运行，而且一只 U 盘也只能放一份 ISO。于是尝试搞明白怎么把 Linux 的 LiveCD 和 Windows 的安装 ISO 写入到同一只 U 盘就很有必要了。</p>
 <p>我个人使用的设备都支持 UEFI，所以这里制作的启动盘也只支持 UEFI 启动，需要 MBR 模式启动的读者请往它处寻。当然，Secure Boot 是要关掉的。制作过程我使用 Linux，纯 Windows 用户现在也可以退出了。基本上，我们需要创建一个 EFI 系统分区（EFI System Partition, ESP），其中包含基本的引导程序（Grub2）和 Linux LiveCD 的 ISO 文件。由于 Windows 的安装程序无法以 ISO 形式被引导，因此我们需要给每个 Windows ISO 文件创建一个分区，并将 ISO 中的内容解压进去。但是分区一旦创建不像文件那么好修改，所以创建每个 Windows ISO 分区的时候我都留了一些额外空间，以备以后 ISO 大小变化，这也意味着这些空间就基本浪费了。That&#39;s sad but I guess it&#39;s how things work.</p>
 <p>另外，购买一个优质的 U 盘还是有必要的，不然不管是创建启动盘还是安装系统都会慢得让你痛不欲生。建议用之前先给 U 盘测一下速，什么拷贝速度只有 2MB/s 的金士顿可以直接进垃圾桶了。至于 U 盘大小取决于你要放多少个 ISO 文件和多少个 Windows 分区，一般 Linux 镜像大小在 500MB~3GB 的都有，Windows 10 的分区一般每个需要 5~6GB.</p>
       

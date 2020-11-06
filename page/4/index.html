@@ -72,6 +72,43 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-05-26T02:00:32.000Z"><a href="/2014/05/programming-with-ptrace-part5/">May 25 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/05/programming-with-ptrace-part5/">Programming with PTRACE, Part5 - 内存管理</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>这个part主要讲解Linux的内存管理机制，以及如何查看并限制子进程的内存使用。</p>
+<h1 id="内存的划分"><a href="#内存的划分" class="headerlink" title="内存的划分"></a>内存的划分</h1><p>（嘛。。。这一部分也算是现学现卖的，如果大家觉得有什么讲的不到位的请翻下方的拓展阅读部分）<br>大家都知道，32位系统最大可以寻址4GB的地址空间（不考虑<a href="http://zh.wikipedia.org/wiki/%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E6%89%A9%E5%B1%95" target="_blank" rel="noopener">物理地址扩展</a>），那么这个“地址”究竟指的是哪儿的地址呢？你可以写一个小程序，malloc一点内存，然后把地址打印出来，重复几次，你会发现，分配的内存几乎都在同一个位置。这是因为，对于程序来说，这些地址都是虚拟地址，虚拟地址空间对于每个进程都是独立的，也就是说，对于不同的进程，同样虚拟地址上的数据是不同的。<br>当然，数据肯定是存放在内存条上的，我们把可以直接读写内存条的地址叫做物理地址。物理地址以一定的方式映射到虚拟地址上，所以当程序试图访问虚拟地址时，系统要以一定方式把虚拟地址变成物理地址，这项工作通常是由<a href="http://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83" target="_blank" rel="noopener">MMU(内存管理单元)</a>来完成的。内存的映射不是大块大块的，而是一小片一小片分别映射的，所以在虚拟地址上连续的地址可能在物理地址上相差十万八千里，这些一小片一小片的内存被称为“页”。<br>页的存在给内存分配带来了极大的灵活性，页可以存储在内存里，也可以存储在交换分区里，可以将同一块物理内存映射到不同进程的虚拟空间里（动态库经常这么干），甚至可以映射到磁盘上的某个文件。光说可能有点抽象，于是给幅图(来自Wikipedia)<br><img src="http://upload.wikimedia.org/wikipedia/commons/3/32/Virtual_address_space_and_physical_address_space_relationship.svg" alt="内存页映射是不连续的"><br>虚拟地址被分成多个段，数据有序存放于其中。这是32位Linux的新内存布局(Linux 2.6.7之后):<br><img src="http://static.duartes.org/img/blogPosts/linuxFlexibleAddressSpaceLayout.png" alt="Linux新内存布局"><br>如果你研究过可执行文件的结构，你就会发现，虚拟地址的段就是按可执行文件的段来填充的。另外，由于代码段的起点地址是固定的(0x08048000)，所以编译器就可以预先算出函数的地址了。顺带一提，因为动态库加载时的虚拟地址是不固定的，不能预先计算出函数地址，所以要在编译时使用<code>-fPIC</code>选项生成位置无关代码，否则每次被一个新进程使用时都要进行重定位(可以理解为重新计算函数地址)，并生成该动态库的一个副本，这样压根没有起到节约内存的作用。<br>扯远了，回来。尽管每个进程的虚拟地址空间时互相独立的，但并不意味着进程想访问哪儿就能访问的，比如3GB以上的区域，那儿是内核的领地。即使是堆段，也只能访问已申请的内存部分，非法的内存访问将会引发段错误(Segmentation Fault)。回到<code>malloc()</code>函数上，malloc最终会调用<code>brk</code>或<code>mmap</code>系统调用，brk用于在堆中分配小块内存，mmap则用于在Memory Mapping Segment中分配大块内存。但是并不是每次malloc都会调用brk，这是因为分配的内存实在是太小了，而brk只能分配大一点的内存，所以C运行库(比如glibc)在收到一个malloc时会先用brk向系统“批发”一块大一点的内存，而收到后续分配请求时则把这块大内存“零售”给程序，直到售完再次brk。<br>如果有一个程序死循环单纯malloc内存，内存会不会被吃光呢？答案是不会(我不清楚是不是真的有如此单纯的系统真的会挂掉)，因为系统发现，你只是分配了内存，却没有使用，于是它很机智地将那片内存设置为“可访问”，却没有把它映射到任何一个实际的内存页上！</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/05/programming-with-ptrace-part5/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2014-05-26T02:00:31.000Z"><a href="/2014/05/programming-with-ptrace-part4/">May 25 2014</a></time>
       
       
@@ -521,42 +558,6 @@ if (pid==0){
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-02-08T06:12:59.000Z"><a href="/2014/02/clear-a-special-kind-of-messy-code/">Feb 8 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/02/clear-a-special-kind-of-messy-code/">记一次坑爹的乱码解决过程</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：<br><img src="/images/clear-a-special-kind-of-messy-code/1.png" alt="An Example of the Messy Code"></p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2014/02/clear-a-special-kind-of-messy-code/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -582,6 +583,10 @@ if (pid==0){
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a>
       </li>
     
@@ -597,10 +602,6 @@ if (pid==0){
         <a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1 - IKEv2 基础</a>
       </li>
     
-      <li>
-        <a href="/2020/10/linux-windows-multiboot-usb/">Linux + Windows 10 多系统安装 U 盘</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -614,7 +615,7 @@ if (pid==0){
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>33</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>34</small></li>
   
   </ul>
 </div>
@@ -624,7 +625,7 @@ if (pid==0){
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.86px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 14.29px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.57px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.43px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 15.71px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 17.14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.43px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 12.86px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.43px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.43px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.14px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.43px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 15.71px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.86px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.86px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.5px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 15px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.25px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.75px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.25px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 16.25px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16.25px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.25px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 13.75px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.25px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.25px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.5px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.25px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.5px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.5px;">装机</a>
   </div>
 </div>
 

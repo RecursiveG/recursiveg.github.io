@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>Linux下建立GRE隧道并获取IPv6地址 | RECURSIVE LAND</title>
+  <title>IPsec 配置备忘 Part4 - Virtual IP | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
   <meta name="description" content="Recursive G&#39;s personal blog" />
@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  <meta property="og:title" content="Linux下建立GRE隧道并获取IPv6地址"/>
+  <meta property="og:title" content="IPsec 配置备忘 Part4 - Virtual IP"/>
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
@@ -71,48 +71,35 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
-        <time datetime="2015-09-19T06:35:10.000Z"><a href="/2015/09/get-ipv6-via-gre-tunnel/">Sep 19 2015</a></time>
+        <time datetime="2020-11-05T12:00:00.000Z"><a href="/2020/11/ipsec-configurations-part4/">Nov 5 2020</a></time>
       
       
   
-    <h1 class="title">Linux下建立GRE隧道并获取IPv6地址</h1>
+    <h1 class="title">IPsec 配置备忘 Part4 - Virtual IP</h1>
   
 
     </header>
     <div class="entry">
       
-        <p>虽然HE有提供免费的Tunnelbroker，不过那速度实在不怎么样。于是考虑在有IPv6地址托管主机上建立一个GRE Tunnel。<br>GRE Tunnel需要有内核模块<code>ip_gre</code>支持。远程主机有一段/64的IPv6，我将其中的一段/80分配给自己的机器。<br>使用iproute2工具。当然，你自己的机器需要有一个公网IPv4地址。</p>
-<ol>
-<li>服务器的公网IPv4是<code>$server_ipv4</code></li>
-<li>自己电脑（或者路由器）的公网IPv4是<code>$client_ipv4</code>。</li>
-<li>服务器的IPv6段是<code>a:b:c:d::/64</code></li>
-<li>要分配下去的IPv6段是<code>a:b:c:d:e::/80</code></li>
-</ol>
-<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>脚本如下，需要root，建议用<code>sudo -i</code>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$client_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::1/80 dev gre-tunnel</span><br></pre></td></tr></table></figure>
+        <p>第四篇主要讲一下怎么给客户端下发内网 IP ~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a>；<a href="/2020/10/ipsec-configurations-part3/">Part3 传送门</a></p>
+<h1 id="Virtual-IP-VIP"><a href="#Virtual-IP-VIP" class="headerlink" title="Virtual IP (VIP)"></a>Virtual IP (VIP)</h1><p>接 Part3，有了 Tunnel 模式以后我们实际使用的 IP 地址就不用受制于机器的实际 IP 了。但是手动给每个客户端手动分配一个地址显然是不切实际的。于是我们可以使用 Virtual IP 功能自动向连入的客户端分配一个内网 IP，就像 DHCP 或者 SLAAC 那样。</p>
+<h1 id="场景配置"><a href="#场景配置" class="headerlink" title="场景配置"></a>场景配置</h1><p>与之前完全对称的配置不同，使用 Virtual IP 时需要区分服务端和客户端。先在服务端配置将要分配的 IP，然后由客户端发起连接，服务端就会将配置好的 IP 分发出去。我使用 HostA 作为服务端，HostB 作为客户端。HostA 将会给 HostB 分配 IPv4 与 IPv6 各一个。使用的 Virtual IP 段是<code>fd01::100-fd01::200</code>和<code>10.10.10.100-10.10.10.150</code>。</p>
+<pre><code>hosta$ ip -br addr
+eth1         UP             fd00::1/64 fd01::1/128 10.10.10.1/32
 
-<ul>
-<li>第一行建立隧道，<code>gre-tunnel</code>是隧道名称，可以按自己喜欢的来，记得其他的也要一起改</li>
-<li>第二行激活隧道</li>
-<li>第三行分配IP地址</li>
-</ul>
+hostb$ ip -br addr
+eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA 这里有一些与之前不同的地方，一是内部 IP 全部放在了 eth1 上（而不是 lo 上）；二是内部 IP 的前缀长度都是最大值；三是增加了一个 IPv4 的内部 IP，用于和分配的 IPv4 Virtual IP 通信。同时 HostB 也不再手工分配<code>fd01</code>开头的内部 IP 了，将由 strongSwan 自动配置。</p>
+<p>当连接建立后，我们应该能看到在 HostB 的 eth1 上出现两个新的，自动分配的 IP。且分配到的 IPv4 地址与 10.10.10.1 之间的通信是加密的，分配到的 IPv6 地址与 fd01::1 之间的通信是加密的。</p>
 <a id="more"></a>
-<h2 id="本地配置"><a href="#本地配置" class="headerlink" title="本地配置"></a>本地配置</h2><p>脚本如下，和服务端配置几乎一样，同样需要root：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip tunnel add gre-tunnel mode gre remote <span class="variable">$server_ipv4</span> ttl 64</span><br><span class="line">ip link <span class="built_in">set</span> gre-tunnel up</span><br><span class="line">ip addr add a:b:c:d:e::2/80 dev gre-tunnel</span><br><span class="line">ip -6 route add default dev gre-tunnel</span><br></pre></td></tr></table></figure>
+<h1 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h1><p>配置文件基于 Part3 修改而来，有变化的部分已添加注释：</p>
+<figure class="highlight bash"><figcaption><span>hosta.conf</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">connections &#123;</span><br><span class="line">  conn_hosta_hostb &#123;</span><br><span class="line">    version = 2</span><br><span class="line">    local_addrs = fd00::1</span><br><span class="line">    remote_addrs = fd00::2</span><br><span class="line">    proposals = null-sha-modp2048</span><br><span class="line">    <span class="comment"># 指定要使用的 IP 池</span></span><br><span class="line">    pools = ip6pool,ip4pool</span><br><span class="line">    <span class="built_in">local</span> &#123;</span><br><span class="line">      id = CN=HOSTA_COMMON_NAME</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    remote &#123;</span><br><span class="line">      id = %any</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    children &#123;</span><br><span class="line">      child_sa &#123;</span><br><span class="line">        <span class="comment"># Local TS 加上新增的 IPv4 地址</span></span><br><span class="line">        local_ts = fd01::1/128,10.10.10.1/32</span><br><span class="line">        <span class="comment"># Remote TS 设置为 "dynamic"</span></span><br><span class="line">        <span class="comment"># strongSwan 会自动将其替换成分配出去的 Virtual IP</span></span><br><span class="line">        remote_ts = dynamic</span><br><span class="line">        mode = tunnel</span><br><span class="line">        esp_proposals = null-sha-modp2048</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义 IP 池</span></span><br><span class="line">pools &#123;</span><br><span class="line">  <span class="comment"># IP 池的名称</span></span><br><span class="line">  ip6pool &#123;</span><br><span class="line">    <span class="comment"># 池中的 IP，也可以使用 fd01::100/120 这样的表示法</span></span><br><span class="line">    addrs = fd01::100-fd01::200</span><br><span class="line">  &#125;</span><br><span class="line">  ip4pool &#123;</span><br><span class="line">    addrs = 10.10.10.100-10.10.10.150</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>第一行建立隧道，隧道名称不必和服务器的一样</li>
-<li>第二行激活隧道</li>
-<li>第三行分配IP地址，注意不要和服务器的冲突，这个IP也是将要暴露在网络上的IP</li>
-<li>第四行设定路由，让IPv6流量都走隧道</li>
-</ul>
-<h2 id="访问网络"><a href="#访问网络" class="headerlink" title="访问网络"></a>访问网络</h2><p>现在，两台机器应该可以互ping了。有的比较奇葩的情况可能需要手动<code>ip link set gre0 up</code>一下，gre0似乎是内核模块自动加入的玩意儿，具体怎么回事我也不清楚–_–|<br>但是现在还不能访问外网，还需要在服务器执行以下命令：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv6.conf.all.forwarding=1</span><br><span class="line">sysctl net.ipv6.conf.all.proxy_ndp=1</span><br><span class="line">ip -6 neigh add proxy a:b:c:d:e::2 dev eth0</span><br></pre></td></tr></table></figure>
-<p>第一行开启forward<br>二三行和IPv6的NDP(邻居发现)有关，又是个没搞明白的东西真是残念……<br>eth0是服务器实际连接网络的接口。</p>
-<h2 id="删除-amp-修改"><a href="#删除-amp-修改" class="headerlink" title="删除 &amp; 修改"></a>删除 &amp; 修改</h2><p>要删除Tunnel，在两端均执行:</p>
-<pre><code>ip link set gre-tunnel down
-ip tunnel del gre-tunnel</code></pre><p>如果客户端IP变化:</p>
-<pre><code>ip tunnel change gre-tunnel remote $new_client_ipv4</code></pre><h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>虽然叫做“隧道”，但是内容依然是<em>明文</em>，对保密要求高的同学们要注意了。<br>另外直接用命令建立的隧道在重启后会没有，所以可以考虑用networkd之类的东西来管理。<br>Linux在访问有IPv6地址的域名时会优先使用IPv6，所以要当心服务器流量爆炸。当然配置成IPv4优先也是可以的。<br>如果你的本地IPv4经常变动的话，你可能需要些脚本之类的东西自动更新服务器的Remote IP。<br>对于每一个新的IP(新的设备)，都需要在服务端执行<code>ip -6 neigh add</code>，有知道怎么解决这个问题的请务必留言…</p>
+<figure class="highlight bash"><figcaption><span>hostb.conf</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">connections &#123;</span><br><span class="line">  conn_hosta_hostb &#123;</span><br><span class="line">    version = 2</span><br><span class="line">    local_addrs = fd00::2</span><br><span class="line">    remote_addrs = fd00::1</span><br><span class="line">    proposals = null-sha-modp2048</span><br><span class="line">    <span class="comment"># 向服务器请求 VIP，0.0.0.0 代表任意 IPv4</span></span><br><span class="line">    <span class="comment"># :: 代表任意 IPv6</span></span><br><span class="line">    vips = 0.0.0.0,::</span><br><span class="line">    <span class="built_in">local</span> &#123;</span><br><span class="line">      id = CN=HOSTB_COMMON_NAME</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    remote &#123;</span><br><span class="line">      id = CN=HOSTA_COMMON_NAME</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    children &#123;</span><br><span class="line">      child_sa &#123;</span><br><span class="line">        <span class="comment"># 类似 HostA 的 Remote TS，dynamic 会被自动替换</span></span><br><span class="line">        <span class="comment"># 成从服务端接收到的 VIP</span></span><br><span class="line">        local_ts = dynamic</span><br><span class="line">        <span class="comment"># 增加服务器的 IPv4 内网地址</span></span><br><span class="line">        remote_ts = fd01::1/128,10.10.10.1/32</span><br><span class="line">        mode = tunnel</span><br><span class="line">        esp_proposals = null-sha-modp2048</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="链接测试"><a href="#链接测试" class="headerlink" title="链接测试"></a>链接测试</h1><p>与 Part3 中的对称链接不同，这次你必须从客户端发起连接，也就是从 HostB 执行如下命令：<code>swanctl -i -c child_sa</code>。连接建立后，你应该就能看到自动分配的 IP 了：</p>
+<pre><code>hostb$ ip -br addr
+eth1         UP             fd00::2/64 fd01::100/128 10.10.10.100/32</code></pre><p>此时再从 HostB 分别 ping <code>fd00::1</code>，<code>fd01::1</code>和<code>10.10.10.1</code>，你应该能看到前者没有加密，而后两者的 ICMP 包被包在了<code>fd00::1 &lt;---&gt; fd00::2</code>的 IPv6-ESP 包里：</p>
+<p><img src="/images/ipsec-configurations-part4/IPv4-in-IPv6-ESP.png" alt="IPv4 ICMP inside IPv6 ESP"></p>
 
       
     </div>
@@ -127,7 +114,7 @@ ip tunnel del gre-tunnel</code></pre><p>如果客户端IP变化:</p>
         
   
   <div class="tags">
-    <a href="/tags/Linux/">Linux</a>, <a href="/tags/GRE-Tunnel/">GRE Tunnel</a>, <a href="/tags/IPv6/">IPv6</a>
+    <a href="/tags/教程/">教程</a>, <a href="/tags/IPsec/">IPsec</a>, <a href="/tags/Networking/">Networking</a>, <a href="/tags/VPN/">VPN</a>, <a href="/tags/折腾/">折腾</a>
   </div>
 
         

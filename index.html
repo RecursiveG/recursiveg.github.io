@@ -72,6 +72,47 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-11-14T08:30:00.000Z"><a href="/2020/11/ipsec-configurations-part5/">Nov 14 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>记录一下使用到的端口以及需要做的防火墙配置，不一定能覆盖所有场景，如果有漏掉的规则欢迎留言补充。</p>
+<p><strong><em>TL;DR</em></strong> 在两端均放行：</p>
+<ul>
+<li>UDP 500</li>
+<li>UDP 4500</li>
+<li>ESP 协议
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/11/ipsec-configurations-part5/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-11-05T12:00:00.000Z"><a href="/2020/11/ipsec-configurations-part4/">Nov 5 2020</a></time>
       
       
@@ -83,8 +124,8 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>第四篇主要讲一下怎么给客户端下发内网 IP ~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a>；<a href="/2020/10/ipsec-configurations-part3/">Part3 传送门</a></p>
-<h1 id="Virtual-IP-VIP"><a href="#Virtual-IP-VIP" class="headerlink" title="Virtual IP (VIP)"></a>Virtual IP (VIP)</h1><p>接 Part3，有了 Tunnel 模式以后我们实际使用的 IP 地址就不用受制于机器的实际 IP 了。但是手动给每个客户端手动分配一个地址显然是不切实际的。于是我们可以使用 Virtual IP 功能自动向连入的客户端分配一个内网 IP，就像 DHCP 或者 SLAAC 那样。</p>
-<h1 id="场景配置"><a href="#场景配置" class="headerlink" title="场景配置"></a>场景配置</h1><p>与之前完全对称的配置不同，使用 Virtual IP 时需要区分服务端和客户端。先在服务端配置将要分配的 IP，然后由客户端发起连接，服务端就会将配置好的 IP 分发出去。我使用 HostA 作为服务端，HostB 作为客户端。HostA 将会给 HostB 分配 IPv4 与 IPv6 各一个。使用的 Virtual IP 段是<code>fd01::100-fd01::200</code>和<code>10.10.10.100-10.10.10.150</code>。</p>
+<h2 id="Virtual-IP-VIP"><a href="#Virtual-IP-VIP" class="headerlink" title="Virtual IP (VIP)"></a>Virtual IP (VIP)</h2><p>接 Part3，有了 Tunnel 模式以后我们实际使用的 IP 地址就不用受制于机器的实际 IP 了。但是手动给每个客户端手动分配一个地址显然是不切实际的。于是我们可以使用 Virtual IP 功能自动向连入的客户端分配一个内网 IP，就像 DHCP 或者 SLAAC 那样。</p>
+<h2 id="场景配置"><a href="#场景配置" class="headerlink" title="场景配置"></a>场景配置</h2><p>与之前完全对称的配置不同，使用 Virtual IP 时需要区分服务端和客户端。先在服务端配置将要分配的 IP，然后由客户端发起连接，服务端就会将配置好的 IP 分发出去。我使用 HostA 作为服务端，HostB 作为客户端。HostA 将会给 HostB 分配 IPv4 与 IPv6 各一个。使用的 Virtual IP 段是<code>fd01::100-fd01::200</code>和<code>10.10.10.100-10.10.10.150</code>。</p>
 <pre><code>hosta$ ip -br addr
 eth1         UP             fd00::1/64 fd01::1/128 10.10.10.1/32
 
@@ -357,50 +398,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-03T05:50:00.000Z"><a href="/2020/10/archlinux-on-raspberrypi-4b/">Oct 3 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/archlinux-on-raspberrypi-4b/">在 Raspberry Pi 4B 上安装 ArchLinux</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p><img src="/images/archlinux-on-raspberrypi-4b/01-neofetch.png" alt="Neofetch"><br>很久之前就买了一个树莓派，不过一直在吃灰，正好最近有空就再拿出来折腾一下。原装系统是 32 位的，那么就必定要换一个 64 位的啦，不然对不起这 64 位的 CPU 呀。秉承“Arch大法好”的理念，我就决定用 Archlinux ARM 了。我非常建议先用原版系统<a href="https://www.raspberrypi.org/documentation/hardware/raspberrypi/booteeprom.md" target="_blank" rel="noopener">更新 Bootloader 和 EEPROM</a>到最新版本。这样可以避免各种奇怪的 bug 和使用一些新加入的功能，比如从网络启动什么的。</p>
-<p>ArchLinux ARM 其实已经提供了<a href="https://archlinuxarm.org/platforms/armv8/broadcom/raspberry-pi-4" target="_blank" rel="noopener">树莓派的安装教程</a>，基本上只要跟着做即可，我用的是 AArch64 镜像，并且把根文件系统从 ext4 换成了 f2fs，希望在 SD 卡上能有一点点加成效果。装完以后发现串口没有输出，自然不能忍，继续折腾。RPi 4B 一共有<a href="https://www.raspberrypi.org/documentation/configuration/uart.md" target="_blank" rel="noopener">两个串口控制器</a>，一个 PL011，另一个被称作 MiniUART。默认情况下，PL011 连接到蓝牙模块，并且 MiniUART 被禁用，但是我们可以通过 <a href="https://www.raspberrypi.org/documentation/configuration/config-txt/README.md" target="_blank" rel="noopener"><code>config.txt</code> 加载 dtb overlay</a> 来调整。一些常见的配置有：</p>
-<ul>
-<li>启用 MiniUART 串口，PL011 继续负责蓝牙</li>
-<li>禁用蓝牙，让 PL011 负责串口通信</li>
-<li>启用 MiniUART，让 MiniUART 负责蓝牙，PL011 负责串口</li>
-</ul>
-<p>但是 ArchLinux ARM 使用 U-Boot 来启动内核，并不遵循 config.txt (╯°Д°)╯ ┻━┻</p>
-<p>那么我们只能把 U-Boot 干掉了 （&lt;ゝω・）☆</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/archlinux-on-raspberrypi-4b/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -424,6 +421,10 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
       </li>
     
@@ -439,10 +440,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
         <a href="/2020/10/ipsec-configurations-part2/">IPsec 配置备忘 Part2 - 证书</a>
       </li>
     
-      <li>
-        <a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1 - IKEv2 基础</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -456,7 +453,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>34</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>35</small></li>
   
   </ul>
 </div>
@@ -466,7 +463,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.5px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 15px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.25px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.75px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.25px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 16.25px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 16.25px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.25px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 13.75px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.25px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.25px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.5px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.25px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.5px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.5px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.5px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 15px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.25px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.75px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.25px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 16.25px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 15px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.25px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 13.75px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.25px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.25px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.5px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.25px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.75px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.5px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.5px;">装机</a>
   </div>
 </div>
 
@@ -542,20 +539,5 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </script>
 
 
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-            processEscapes: true
-        }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax();
-        for (var i = 0; i < all.length; ++i)
-            all[i].SourceElement().parentNode.className += ' has-jax';
-    });
-</script>
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

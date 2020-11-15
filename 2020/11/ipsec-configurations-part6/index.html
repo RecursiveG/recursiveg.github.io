@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>RECURSIVE LAND</title>
+  <title>IPsec 配置备忘 Part6 - Android 客户端 | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
   <meta name="description" content="Recursive G&#39;s personal blog" />
@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  
+  <meta property="og:title" content="IPsec 配置备忘 Part6 - Android 客户端"/>
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
@@ -65,8 +65,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper">
-  <article class="post">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
   
   <div class="post-content">
     <header>
@@ -76,7 +75,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
       
       
   
-    <h1 class="title"><a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a></h1>
+    <h1 class="title">IPsec 配置备忘 Part6 - Android 客户端</h1>
   
 
     </header>
@@ -102,6 +101,17 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <footer>
       
         
+  
+  <div class="categories">
+    <a href="/categories/Programming/">Programming</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/教程/">教程</a>, <a href="/tags/IPsec/">IPsec</a>, <a href="/tags/Networking/">Networking</a>, <a href="/tags/VPN/">VPN</a>, <a href="/tags/折腾/">折腾</a>
+  </div>
+
         
       
       <div class="clearfix"></div>
@@ -110,307 +120,17 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </article>
 
 
+<section id="comment">
+  <h1 class="title">留言</h1>
 
-
-  <article class="post">
   
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-11-14T08:30:00.000Z"><a href="/2020/11/ipsec-configurations-part5/">Nov 14 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>记录一下使用到的端口以及需要做的防火墙配置，不一定能覆盖所有场景，如果有漏掉的规则欢迎留言补充。</p>
-<p><strong><em>TL;DR</em></strong> 在两端均放行：</p>
-<ul>
-<li>UDP 500</li>
-<li>UDP 4500</li>
-<li>ESP 协议
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/11/ipsec-configurations-part5/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
   </div>
-</article>
-
-
-
-
-  <article class="post">
   
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-11-05T12:00:00.000Z"><a href="/2020/11/ipsec-configurations-part4/">Nov 5 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a></h1>
-  
+</section>
 
-    </header>
-    <div class="entry">
-      
-        <p>第四篇主要讲一下怎么给客户端下发内网 IP ~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a>；<a href="/2020/10/ipsec-configurations-part3/">Part3 传送门</a></p>
-<h2 id="Virtual-IP-VIP"><a href="#Virtual-IP-VIP" class="headerlink" title="Virtual IP (VIP)"></a>Virtual IP (VIP)</h2><p>接 Part3，有了 Tunnel 模式以后我们实际使用的 IP 地址就不用受制于机器的实际 IP 了。但是手动给每个客户端手动分配一个地址显然是不切实际的。于是我们可以使用 Virtual IP 功能自动向连入的客户端分配一个内网 IP，就像 DHCP 或者 SLAAC 那样。</p>
-<h2 id="场景配置"><a href="#场景配置" class="headerlink" title="场景配置"></a>场景配置</h2><p>与之前完全对称的配置不同，使用 Virtual IP 时需要区分服务端和客户端。先在服务端配置将要分配的 IP，然后由客户端发起连接，服务端就会将配置好的 IP 分发出去。我使用 HostA 作为服务端，HostB 作为客户端。HostA 将会给 HostB 分配 IPv4 与 IPv6 各一个。使用的 Virtual IP 段是<code>fd01::100-fd01::200</code>和<code>10.10.10.100-10.10.10.150</code>。</p>
-<pre><code>hosta$ ip -br addr
-eth1         UP             fd00::1/64 fd01::1/128 10.10.10.1/32
-
-hostb$ ip -br addr
-eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA 这里有一些与之前不同的地方，一是内部 IP 全部放在了 eth1 上（而不是 lo 上）；二是内部 IP 的前缀长度都是最大值；三是增加了一个 IPv4 的内部 IP，用于和分配的 IPv4 Virtual IP 通信。同时 HostB 也不再手工分配<code>fd01</code>开头的内部 IP 了，将由 strongSwan 自动配置。</p>
-<p>当连接建立后，我们应该能看到在 HostB 的 eth1 上出现两个新的，自动分配的 IP。且分配到的 IPv4 地址与 10.10.10.1 之间的通信是加密的，分配到的 IPv6 地址与 fd01::1 之间的通信是加密的。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/11/ipsec-configurations-part4/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-11-02T14:00:00.000Z"><a href="/2020/11/samsung-980pro-speedtest/">Nov 2 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>三星的新 SSD 980 Pro 已经发售一段时间了，前两天看到 Amazon 上 1TB 有货，赶紧下单两条。今天到货，于是装机测一波速度。打算用来做系统盘，所以自然就是用来组 RAID-0 咯。于是用 fio 分别测试了一下 btrfs 和 mdadm 组 RAID 的性能。测试完全不严谨，参数是用脸滚键盘滚出来的，放出来仅供各位一乐，为什么是娱乐向你看数据就知道了。同时拉上了打酱油的 960 Evo（我现在的系统盘），以及完全是搞笑用的<code>/dev/shm</code>：</p>
-<table>
-<thead>
-<tr>
-<th align="left">场景</th>
-<th align="right">连续读取(MiB/s)</th>
-<th align="right">连续写入(MiB/s)</th>
-<th align="right">4K 随机读取(kIOPS)</th>
-<th align="right">4K 随机写入(kIOPS)</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">980 Pro 单盘 EXT4</td>
-<td align="right">6370</td>
-<td align="right">4725</td>
-<td align="right">330</td>
-<td align="right">125</td>
-</tr>
-<tr>
-<td align="left">980 Pro 单盘 BTRFS</td>
-<td align="right">6264</td>
-<td align="right">2720</td>
-<td align="right">137</td>
-<td align="right">63.7</td>
-</tr>
-<tr>
-<td align="left">980 Pro mdadm RAID-0 EXT4</td>
-<td align="right">12186</td>
-<td align="right">9426</td>
-<td align="right">298</td>
-<td align="right">115</td>
-</tr>
-<tr>
-<td align="left">980 Pro BTRFS RAID0</td>
-<td align="right">5937</td>
-<td align="right">3932</td>
-<td align="right">133</td>
-<td align="right">63.3</td>
-</tr>
-<tr>
-<td align="left">/dev/shm</td>
-<td align="right">6290</td>
-<td align="right">5541</td>
-<td align="right">792</td>
-<td align="right">571</td>
-</tr>
-<tr>
-<td align="left">960 Evo 单盘 XFS</td>
-<td align="right">2963</td>
-<td align="right">410</td>
-<td align="right">199</td>
-<td align="right">31.3</td>
-</tr>
-</tbody></table>
-<p>Emmmm, mdadm RAID0 比内存快……这很合理……以及 btrfs 你的 RAID 性能还能更烂一点吗？</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/11/samsung-980pro-speedtest/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-31T02:50:00.000Z"><a href="/2020/10/ipsec-configurations-part3/">Oct 30 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/ipsec-configurations-part3/">IPsec 配置备忘 Part3 - Tunnel 模式</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>第三篇简单介绍一下 IPsec 的 Tunnel 模式，没看过前两篇的快去看~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a></p>
-<h2 id="Tunnel-模式简介"><a href="#Tunnel-模式简介" class="headerlink" title="Tunnel 模式简介"></a>Tunnel 模式简介</h2><p><img src="/images/ipsec-configurations-part3/01-tunnel-mode-header-layout.png" alt="Tunnel mode header layout"> 前两篇中我们使用的都是 Transport 模式，但是实际使用中，更常用的是 Tunnel 模式。Transport 模式只加密四层及以上数据，而不修改 IP 头，原始的 IP 头将会原样传输。这意味着我们只能进行点对点传输，因为只有一个 IP 头，我们无法告知对方服务器我们实际要访问的地址。Tunnel 模式则是连原始的 IP 头也一起加密，然后再在前端添加一个新的 IP 头，这样服务器在收到数据包后，可以解密并读取内部的 IP 头，再转发给实际的目标服务器。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/ipsec-configurations-part3/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-30T15:50:00.000Z"><a href="/2020/10/ipsec-configurations-part2/">Oct 30 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/ipsec-configurations-part2/">IPsec 配置备忘 Part2 - 证书</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>作为系列的第二篇文章，讲解基本的证书原理和配置方法。没看过第一部分的快去看～<br>传送门：<a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1</a>。</p>
-<h2 id="证书认证基础"><a href="#证书认证基础" class="headerlink" title="证书认证基础"></a>证书认证基础</h2><p>我们在 Part1 中看到，PSK 认证的基本思路是使用一个只有通信双方才知道的暗号，如果能确认对方确实知道这个暗号，那么认证就成功了。证书认证的思路非常不同：假设 A 需要向 B 证明自己的身份，同时 A 知道 B 信任 C，那么 A 可以向 C 索取一份“介绍信”，当 B 询问 A 的身份时，A 可以向 B 展示这份 C 出具的“介绍信”，如果 B 能够确认这份“介绍信”确实是由 C 出具的，那么认证就成功了。注意这个认证是单向的，假设 A 也信任 C，那么 B 也可以通过向 C 索取“介绍信”来向 A 证明自己的身份。在 PKI 体系中，A 和 B 持有各自的“私钥”，C 作为 Certificate Authority (CA) 向 A/B 颁发证书（即“介绍信”）。同时，CA 也会向自己颁发一份证书并分发给 A/B，A/B 使用 CA 的证书来确认 B/A 出示的证书确实为 C 所颁发。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/ipsec-configurations-part2/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-29T15:40:00.000Z"><a href="/2020/10/ipsec-configurations-part1/">Oct 29 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1 - IKEv2 基础</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>俗话说得好，配置 IPsec 隧道只有零次和无数次，在被 strongSwan 折磨了 N 次以后，我终于决定要把之前试过的配置都记录下来，于是就有了这个系列。我计划基本上每个 PART 会介绍一个（或几个）特定场景下的配置，配置文件样例以 strongSwan vici 为主，之后可能会介绍 iOS, Android 或者是 Mikrotik 路由器的配置方法，如果我能坚持不鸽写到那里的话（画外音：你这 FLAG 立得……）。如果各位有想看的配置场景欢迎留言告诉我，会考虑先写。</p>
-<h2 id="IKEv2-与-IPsec-基础"><a href="#IKEv2-与-IPsec-基础" class="headerlink" title="IKEv2 与 IPsec 基础"></a>IKEv2 与 IPsec 基础</h2><p>严格来说 IKEv2 不是 VPN，它的全称是 Internet Key Exchange，只是一种用于交换密钥的协议罢了。密钥在计算机里一般就表示为一串固定长度的二进制数据，密钥交换就是指在两台设备之间约定一个相同的二进制串，就像两个密友之间约定暗号一样。一旦密钥交换完毕，IKE 的使命就结束了，具体怎么用约定好的密钥加密数据不是 IKE 解决的问题。在 Linux 系统上，实际的数据包加密解密是由内核的 XFRM 框架负责的，你可以使用<code>ip xfrm</code>命令看到配置好的密钥以及加解密使用的算法。事实上，不使用 IKEv2 而完全手动“交换”密钥是可行的，比如<a href="https://gist.github.com/blackgear/a9f96261b091b2215dfd" target="_blank" rel="noopener">朴素VPN：一个纯内核级静态隧道</a>。你可以看到作者直接使用<code>ip xfrm {policy,state} add</code>指令设定密钥，然后内核就会自动用设定的密钥加密流量。</p>
-<p>然而，手动管理内核状态是复杂的，人工分发密钥也不怎么安全，这时就轮到 strongSwan 登场啦（或者说，任何实现了 IKE 的 Daemon 服务）。两台服务器的 strongSwan 使用 IKEv2 协议交换密钥，解决了密钥分发的问题。随后 strongSwan 会把交换得来的密钥设定进内核，这样内核就会自动加密指定的流量了。</p>
-<p>从数据包层面上看，IKE 是7层协议，密钥交换使用特殊的 UDP 包完成。而一般被加密的数据包会使用 ESP 封装，ESP 头一般紧跟在 IP 头后。ESP 也可以被封装进 UDP 用以穿越 NAT。</p>
-<h2 id="没有-TUN-设备"><a href="#没有-TUN-设备" class="headerlink" title="没有 TUN 设备"></a>没有 TUN 设备</h2><p>内核 XFRM 的工作方式和基于 TUN 设备的 VPN 很不一样。一般基于 TUN 的 VPN 会加密所有进入 TUN 设备的流量，因此你可以直接使用路由表来控制哪些流量走 VPN，哪些不走。而 XFRM 的匹配基于策略（i.e. 源地址+目标地址+一些别的），如果某个数据包匹配到了一个策略，这个数据包就会根据这个策略指定的方式被加密。</p>
-<p>比方说有<code>A [fd00::1]</code>和<code>B [fd00::2]</code>，如果你从 A 发送一个数据包到 B，普通情况下这个数据包是明文的。如果你在 A 配置了<code>src=fd00::1,dst=fd00::2,encrypt=&lt;...&gt;</code>的策略并再发一个数据包，这个包就会自动被加密。B 收到了这个数据包，但是它并不知道该如何解密，所以你必须同时在 B 配置一条<code>src=fd00::1,dst=fd00::2,decrypt=&lt;...&gt;</code>的策略，这样 B 才能解密。对于从 B 到 A 的流量也需要类似的两条策略。使用 IKEv2 的话，这些策略 strongSwan 都会自动帮你设置好，无需操心。于是你会发现，尽管我们仍然在使用节点本身的 IP，但是流量却已经被加密了。</p>
-<p>对于那些必须使用路由表或是策略匹配不是很有效的场景, <a href="https://wiki.strongswan.org/projects/strongswan/wiki/RouteBasedVPN" target="_blank" rel="noopener">Route-based IPsec VPN</a> 也是存在的。我也许会在未来的某一期讲。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/ipsec-configurations-part1/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-
-<nav id="pagination">
-  
-  
-    <a href="/page/2/" class="alignright next">下一页</a>
-  
-  <div class="clearfix"></div>
-</nav></div></div>
+</div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">
@@ -527,7 +247,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     var dsq = document.createElement('script');
     dsq.type = 'text/javascript';
     dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
   }());
 }

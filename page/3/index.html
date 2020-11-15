@@ -72,6 +72,47 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2019-03-20T18:00:00.000Z"><a href="/2019/03/haskell-intro/">Mar 20 2019</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2019/03/haskell-intro/">Haskell 简易指南</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>用任何你喜欢的方法安装 <a href="https://www.haskell.org/" target="_blank" rel="noopener">Glasgow Haskell Compiler</a> (a.k.a. GHC)。Cabal 之类的<br>依赖管理系统就用不着了。 <del>因为我也不会用。</del> 保证能够执行<code>ghc</code>和<code>ghci</code>命令就行。</p>
+<h1 id="GHCi基础"><a href="#GHCi基础" class="headerlink" title="GHCi基础"></a>GHCi基础</h1><p>首先，把以下文件保存成<code>helloworld.hs</code>。</p>
+<figure class="highlight haskell"><figcaption><span>helloworld.hs</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">foo</span> = <span class="string">"hello, world"</span></span><br></pre></td></tr></table></figure>
+<p>然后执行<code>ghci helloworld.hs</code>，然后在<code>&gt;</code>提示符后输入<code>foo</code>并回车</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GHCi, version 8.6.3: http:&#x2F;&#x2F;www.haskell.org&#x2F;ghc&#x2F;  :? for help</span><br><span class="line">[1 of 1] Compiling Main             ( helloworld.hs, interpreted )</span><br><span class="line">Ok, one module loaded.</span><br><span class="line">*Main&gt; foo</span><br><span class="line">&quot;hello, world&quot;</span><br><span class="line">*Main&gt;</span><br></pre></td></tr></table></figure>
+<p>你可以使用<code>:r</code>来重新载入文件，也可以使用<code>:l &lt;文件名&gt;</code>来载入代码。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2019/03/haskell-intro/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2017-05-12T09:30:00.000Z"><a href="/2017/05/simple-chrome-extension/">May 12 2017</a></time>
       
       
@@ -344,39 +385,6 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-07-16T05:43:25.000Z"><a href="/2014/07/domain-name-registrar-switched/">Jul 16 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/07/domain-name-registrar-switched/">域名注册商更换</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>昨天折腾了一天，把域名从Godaddy转移到了Name.com<br>表示基本没遇到什么麻烦，信用卡借用了家长的，付款也很方便。<br>关键是便宜啊。转入9美刀，续期11美刀,比Godaddy坑爹的18刀便宜太多了啊<del>~<br>而且还有免费的WHOIS保护啊</del>优惠码<code>PRIVACYPLEASE</code>超好记有木有！<br>虽然不是最便宜的但是Name.com的控制台相当美观呐~<br>结尾吐槽一句：在万网注册的都是真的勇士。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -402,6 +410,10 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a>
       </li>
     
@@ -417,10 +429,6 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
         <a href="/2020/10/ipsec-configurations-part3/">IPsec 配置备忘 Part3 - Tunnel 模式</a>
       </li>
     
-      <li>
-        <a href="/2020/10/ipsec-configurations-part2/">IPsec 配置备忘 Part2 - 证书</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -434,7 +442,7 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>35</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>36</small></li>
   
   </ul>
 </div>
@@ -444,7 +452,7 @@ gradle -i ideaModule</code></pre><p>然后请耐心等待指令完成，可以�
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.5px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 15px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.25px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.75px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.25px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 16.25px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 15px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.25px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 13.75px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.25px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.25px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.5px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.25px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.75px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.5px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.5px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.22px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 15.56px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.89px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 16.67px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.44px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 14.44px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.78px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.33px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.22px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.22px;">装机</a>
   </div>
 </div>
 
@@ -520,5 +528,20 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 </script>
 
 
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

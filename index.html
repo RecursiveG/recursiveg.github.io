@@ -72,6 +72,51 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-11-15T09:45:00.000Z"><a href="/2020/11/ipsec-configurations-part7/">Nov 15 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>接 Part2 与 Part6。尝试折腾一下除了“以证书 DN 作为 id”以外的证书使用姿势，如果有错误或者与本文解释相冲突的情况欢迎在评论指出。</p>
+<h2 id="IKEv2-证书认证"><a href="#IKEv2-证书认证" class="headerlink" title="IKEv2 证书认证"></a>IKEv2 证书认证</h2><p>在 IKEv2 里，一方需要认证另一方基本只需要<a href="https://tools.ietf.org/html/rfc7296#page-11" target="_blank" rel="noopener">两样信息</a>，<code>ID</code>和<code>AUTH</code>。ID 就是之前配置文件里反复出现的那个，AUTH 一般是使用证书私钥对某些数据的签名，<a href="https://tools.ietf.org/html/rfc7296#section-2.15" target="_blank" rel="noopener">具体细节请参考 RFC</a>。证书则是把两者关联了起来：如果对方给出的 AUTH 能通过证书验证，那么对方就是这份证书所表示的那个人，同时这份证书又是颁发给 ID 的，那么对方就是 ID。</p>
+<p>验证者要取得对方的证书有几种方式：</p>
+<ul>
+<li>管理员可以直接把证书塞进验证者的<code>/etc</code>目录里</li>
+<li>被验证者可以自己把证书发送给验证者（<code>send_cert = always</code>参数）</li>
+<li>验证者可以向被验证者请求证书（<code>send_certreq = yes</code>参数）。当然被验证者也可以选择不发送证书（<code>send_cert = never</code>参数），只是验证会失败就是了。</li>
+</ul>
+<p>另外如果验证者既不询问证书（<code>send_certreq = no</code>），被验证者也不<strong>主动</strong>发送证书（<code>send_cert = ifasked</code>），验证一样会失败。</p>
+<p>strongSwan 在尝试匹配 ID 和证书的时候会检查 Subject DN 和 <a href="https://www.alvestrand.no/objectid/2.5.29.17.html" target="_blank" rel="noopener">SubjectAltName (SAN)</a>。我们之前一直在使用 Subject DN，而 SAN 则允许我们使用域名甚至 IP 作为 ID。另外，虽然我一直称呼“域名”或是“IP”，但是实际上只要 SAN 和 ID 匹配即可，这个“域名”到底是不是我们的并没有关系。（当然只有自签才能签出这种证书）</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/11/ipsec-configurations-part7/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-11-14T14:40:00.000Z"><a href="/2020/11/ipsec-configurations-part6/">Nov 14 2020</a></time>
       
       
@@ -83,7 +128,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <div class="entry">
       
         <p>接 Part4，终于要开始准备搭一个能用的 VPN 服务器了。另外，如果你要拿这个配置去翻墙请自便，但是不对实际效果做任何保证，本文只考虑传统的 VPN 使用场景。</p>
-<p>基本上，服务端的配置和 Part4 中的一致，这里着重介绍如何配置客户端。配置使用 Play Store 上的 <a href="https://play.google.com/store/apps/details?id=org.strongswan.android" target="_blank" rel="noopener">strongSwan客户端</a>。</p>
+<p>基本上，服务端的配置和 Part4 中的一致，这里着重介绍如何配置客户端。配置使用 Play Store 上的 <a href="https://play.google.com/store/apps/details?id=org.strongswan.android" target="_blank" rel="noopener">strongSwan客户端</a>，版本为 2.3.1。</p>
 <h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>首先，这个客户端似乎还不支持 ed25519 证书，因此我们需要改为使用 ecdsa 证书。完整的证书生成操作请看 Part2，在生成私钥时指定<code>--key-type ecdsa</code>即可。现在假设你已经生成好了所有 6 个文件：<code>ca-key.pem</code>,<code>ca-cert.pem</code>,<code>client-key.pem</code>,<code>client-cert.pem</code>,<code>server-key.pem</code>,<code>server-cert.pem</code>。</p>
 <p>另外，这次我们会在服务器上配置 NAT，所以不再需要手动在服务端配置一个 IP 了。假设服务端<code>eth0</code>接口的公网 IP 是<code>2000::1</code>。首先将<code>ca-cert.pem</code>,<code>server-key.pem</code>,<code>server-cert.pem</code>三个文件移动到服务器上正确的地方。然后编写配置文件，同样的，这里只注释和 Part4 中不同的地方。</p>
 <figure class="highlight bash"><figcaption><span>server.conf</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">connections &#123;</span><br><span class="line">  android-connection &#123;</span><br><span class="line">    version = 2</span><br><span class="line">    <span class="comment"># 服务器的地址。根据官方文档，服务器内核版本需要大于等于 5.8</span></span><br><span class="line">    <span class="comment"># 才能支持 Android 客户端使用 IPv6 地址连接</span></span><br><span class="line">    local_addrs = 2000::1</span><br><span class="line">    <span class="comment"># 接受客户端来自任何地方</span></span><br><span class="line">    remote_addrs = %any</span><br><span class="line">    proposals = aes256gcm128-sha512-x25519</span><br><span class="line">    <span class="comment"># 只分配 IPv4 的虚拟 IP</span></span><br><span class="line">    pools = ip4pool</span><br><span class="line">    <span class="built_in">local</span> &#123;</span><br><span class="line">      <span class="comment"># 请按照实际情况修改 id</span></span><br><span class="line">      id = CN=server common name</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    remote &#123;</span><br><span class="line">      id = %any</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    children &#123;</span><br><span class="line">      child_sa &#123;</span><br><span class="line">        <span class="comment"># 允许客户端将去往所有目的地的流量发送给服务端</span></span><br><span class="line">        local_ts = 0.0.0.0/0</span><br><span class="line">        remote_ts = dynamic</span><br><span class="line">        mode = tunnel</span><br><span class="line">        esp_proposals = aes256gcm128-sha512-x25519</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pools &#123;</span><br><span class="line">  <span class="comment"># 只保留 IPv4 池</span></span><br><span class="line">  ip4pool &#123;</span><br><span class="line">    addrs = 10.10.10.100-10.10.10.150</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -92,7 +137,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">certtool \</span><br><span class="line">    --load-privkey client-key.pem \</span><br><span class="line">    --load-certificate client-cert.pem \</span><br><span class="line">    <span class="comment"># 名称随意</span></span><br><span class="line">    --p12-name <span class="string">"Key Cert Bundle"</span> \</span><br><span class="line">    <span class="comment"># 空密码</span></span><br><span class="line">    --empty-password \</span><br><span class="line">    <span class="comment"># 合并成 PKCS12 格式</span></span><br><span class="line">    --to-p12 \</span><br><span class="line">    <span class="comment"># 需要指定 3des-pkcs12，否则 Android 系统无法正确导入</span></span><br><span class="line">    --pkcs-cipher 3des-pkcs12 &gt; client-p12bundle.pem</span><br></pre></td></tr></table></figure>
 
 <p>新生成的文件是<code>client-p12bundle.pem</code>。然后我们参照 strongSwan 的<a href="https://wiki.strongswan.org/projects/strongswan/wiki/AndroidVPNClientProfiles" target="_blank" rel="noopener">文档</a>创建可以直接导入应用的 Profile 文件。当然你也可以手动导入证书再手动配置 Profile。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">jq -n \</span><br><span class="line">    <span class="comment"># 生成一个随机的 UUID</span></span><br><span class="line">    --arg uuid `uuidgen -r` \</span><br><span class="line">    <span class="comment"># Profile 的名称，可以随意写</span></span><br><span class="line">    --arg name <span class="string">"My server"</span>\</span><br><span class="line">    <span class="comment"># 认证类型</span></span><br><span class="line">    --arg <span class="built_in">type</span> <span class="string">"ikev2-cert"</span>\</span><br><span class="line">    <span class="comment"># 需要手动指定 remote id，否则服务器的地址将被当作 id，导致认证失败</span></span><br><span class="line">    <span class="comment"># 当然你也可以在创建证书的时候就把服务器地址写在证书里，避免手工指定 DN</span></span><br><span class="line">    <span class="comment"># 注意：id 和服务器地址和证书有复杂的检验关系，填写不当容易造成各种奇怪的</span></span><br><span class="line">    <span class="comment">#      身份验证错误。</span></span><br><span class="line">    --arg remoteid <span class="string">"CN=server common name"</span>\</span><br><span class="line">    <span class="comment"># 服务器的地址，我这里使用 2000::1 代替了实际地址，使用 IPv4 和域名也是可以的。</span></span><br><span class="line">    --arg addr <span class="string">"2000::1"</span>\</span><br><span class="line">    <span class="comment"># 嵌入服务器证书，注意这里我直接嵌了服务器本身的证书。嵌 CA 证书应该也是</span></span><br><span class="line">    <span class="comment"># 可行的，但是我没试。</span></span><br><span class="line">    --arg servercert <span class="string">"`sed '/-----/d' server-cert.pem`"</span>\</span><br><span class="line">    <span class="comment"># 嵌入客户端私钥和证书</span></span><br><span class="line">    --arg localbundle <span class="string">"`sed '/-----/d' client-p12bundle.pem`"</span>\</span><br><span class="line">    <span class="string">'&#123;</span></span><br><span class="line"><span class="string">        uuid:$uuid,</span></span><br><span class="line"><span class="string">        name:$name,</span></span><br><span class="line"><span class="string">        type:$type,</span></span><br><span class="line"><span class="string">        remote:&#123;</span></span><br><span class="line"><span class="string">            id:$remoteid,</span></span><br><span class="line"><span class="string">            addr:$addr,</span></span><br><span class="line"><span class="string">            cert:$servercert</span></span><br><span class="line"><span class="string">        &#125;,</span></span><br><span class="line"><span class="string">        local: &#123;</span></span><br><span class="line"><span class="string">            p12:$localbundle</span></span><br><span class="line"><span class="string">        &#125;,</span></span><br><span class="line"><span class="string">        "ipv6-transport": true</span></span><br><span class="line"><span class="string">    &#125;'</span> &gt; profile.sswan</span><br><span class="line">    <span class="comment"># 根据官方文档，服务器内核版本需要大于等于 5.8 才能支持客户端使用 IPv6 地址</span></span><br><span class="line">    <span class="comment"># 连接。同时需要设定 ipv6-transport 为 true。如果你使用 IPv4 则不需要此设置。</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">jq -n \</span><br><span class="line">    <span class="comment"># 生成一个随机的 UUID</span></span><br><span class="line">    --arg uuid `uuidgen -r` \</span><br><span class="line">    <span class="comment"># Profile 的名称，可以随意写</span></span><br><span class="line">    --arg name <span class="string">"My server"</span>\</span><br><span class="line">    <span class="comment"># 认证类型</span></span><br><span class="line">    --arg <span class="built_in">type</span> <span class="string">"ikev2-cert"</span>\</span><br><span class="line">    <span class="comment"># 需要手动指定 remote id，否则服务器的地址将被当作 id，导致认证失败</span></span><br><span class="line">    <span class="comment"># 当然你也可以在创建证书的时候就把服务器地址写在证书里，避免手工指定 DN</span></span><br><span class="line">    <span class="comment"># 注意：id 和服务器地址和证书有复杂的检验关系，填写不当容易造成各种奇怪的</span></span><br><span class="line">    <span class="comment">#      身份验证错误。</span></span><br><span class="line">    --arg remoteid <span class="string">"CN=server common name"</span>\</span><br><span class="line">    <span class="comment"># 服务器的地址，我这里使用 2000::1 代替了实际地址，使用 IPv4 和域名也是可以的。</span></span><br><span class="line">    --arg addr <span class="string">"2000::1"</span>\</span><br><span class="line">    <span class="comment"># 嵌入服务器证书，注意这里我直接嵌了服务器本身的证书。嵌 CA 证书应该也是</span></span><br><span class="line">    <span class="comment"># 可行的，但是我没试。</span></span><br><span class="line">    --arg servercert <span class="string">"`sed '/-----/d' server-cert.pem`"</span>\</span><br><span class="line">    <span class="comment"># 嵌入客户端私钥和证书</span></span><br><span class="line">    --arg localbundle <span class="string">"`sed '/-----/d' client-p12bundle.pem`"</span>\</span><br><span class="line">    <span class="string">'&#123;</span></span><br><span class="line"><span class="string">        uuid:$uuid,</span></span><br><span class="line"><span class="string">        name:$name,</span></span><br><span class="line"><span class="string">        type:$type,</span></span><br><span class="line"><span class="string">        remote:&#123;</span></span><br><span class="line"><span class="string">            id:$remoteid,</span></span><br><span class="line"><span class="string">            addr:$addr,</span></span><br><span class="line"><span class="string">            cert:$servercert</span></span><br><span class="line"><span class="string">        &#125;,</span></span><br><span class="line"><span class="string">        local: &#123;</span></span><br><span class="line"><span class="string">            p12:$localbundle</span></span><br><span class="line"><span class="string">        &#125;,</span></span><br><span class="line"><span class="string">        "ipv6-transport": true</span></span><br><span class="line"><span class="string">    &#125;'</span> &gt; profile.sswan</span><br><span class="line">    <span class="comment"># 根据官方文档，服务器内核版本需要大于等于 5.8 才能支持客户端使用 IPv6 地址</span></span><br><span class="line">    <span class="comment"># 连接。同时需要设定 ipv6-transport 为 true。如果你使用 IPv4 则不需要此设置。</span></span><br><span class="line">    <span class="comment"># 另外这里没有指定 local.id，根据文档，在没有指定 local.id 的情况下，客户端程序</span></span><br><span class="line">    <span class="comment"># 会自动使用客户端证书的 DN 作为 id</span></span><br></pre></td></tr></table></figure>
 
 <p>最后将生成的<code>profile.sswan</code>文件拷贝到手机上并导入即可。然后试一下能否成功建立连接。</p>
 <h2 id="NAT-配置"><a href="#NAT-配置" class="headerlink" title="NAT 配置"></a>NAT 配置</h2><p>然后这样配置完了，虽然能连上服务器，但是依然不能访问网络，我们还需要在服务器上配置一下 NAT。一般是一条防火墙的<code>masquerade</code>规则。这里只简单把配置放出来给自己做个备忘，不做细讲：</p>
@@ -361,48 +406,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-29T15:40:00.000Z"><a href="/2020/10/ipsec-configurations-part1/">Oct 29 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1 - IKEv2 基础</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>俗话说得好，配置 IPsec 隧道只有零次和无数次，在被 strongSwan 折磨了 N 次以后，我终于决定要把之前试过的配置都记录下来，于是就有了这个系列。我计划基本上每个 PART 会介绍一个（或几个）特定场景下的配置，配置文件样例以 strongSwan vici 为主，之后可能会介绍 iOS, Android 或者是 Mikrotik 路由器的配置方法，如果我能坚持不鸽写到那里的话（画外音：你这 FLAG 立得……）。如果各位有想看的配置场景欢迎留言告诉我，会考虑先写。</p>
-<h2 id="IKEv2-与-IPsec-基础"><a href="#IKEv2-与-IPsec-基础" class="headerlink" title="IKEv2 与 IPsec 基础"></a>IKEv2 与 IPsec 基础</h2><p>严格来说 IKEv2 不是 VPN，它的全称是 Internet Key Exchange，只是一种用于交换密钥的协议罢了。密钥在计算机里一般就表示为一串固定长度的二进制数据，密钥交换就是指在两台设备之间约定一个相同的二进制串，就像两个密友之间约定暗号一样。一旦密钥交换完毕，IKE 的使命就结束了，具体怎么用约定好的密钥加密数据不是 IKE 解决的问题。在 Linux 系统上，实际的数据包加密解密是由内核的 XFRM 框架负责的，你可以使用<code>ip xfrm</code>命令看到配置好的密钥以及加解密使用的算法。事实上，不使用 IKEv2 而完全手动“交换”密钥是可行的，比如<a href="https://gist.github.com/blackgear/a9f96261b091b2215dfd" target="_blank" rel="noopener">朴素VPN：一个纯内核级静态隧道</a>。你可以看到作者直接使用<code>ip xfrm {policy,state} add</code>指令设定密钥，然后内核就会自动用设定的密钥加密流量。</p>
-<p>然而，手动管理内核状态是复杂的，人工分发密钥也不怎么安全，这时就轮到 strongSwan 登场啦（或者说，任何实现了 IKE 的 Daemon 服务）。两台服务器的 strongSwan 使用 IKEv2 协议交换密钥，解决了密钥分发的问题。随后 strongSwan 会把交换得来的密钥设定进内核，这样内核就会自动加密指定的流量了。</p>
-<p>从数据包层面上看，IKE 是7层协议，密钥交换使用特殊的 UDP 包完成。而一般被加密的数据包会使用 ESP 封装，ESP 头一般紧跟在 IP 头后。ESP 也可以被封装进 UDP 用以穿越 NAT。</p>
-<h2 id="没有-TUN-设备"><a href="#没有-TUN-设备" class="headerlink" title="没有 TUN 设备"></a>没有 TUN 设备</h2><p>内核 XFRM 的工作方式和基于 TUN 设备的 VPN 很不一样。一般基于 TUN 的 VPN 会加密所有进入 TUN 设备的流量，因此你可以直接使用路由表来控制哪些流量走 VPN，哪些不走。而 XFRM 的匹配基于策略（i.e. 源地址+目标地址+一些别的），如果某个数据包匹配到了一个策略，这个数据包就会根据这个策略指定的方式被加密。</p>
-<p>比方说有<code>A [fd00::1]</code>和<code>B [fd00::2]</code>，如果你从 A 发送一个数据包到 B，普通情况下这个数据包是明文的。如果你在 A 配置了<code>src=fd00::1,dst=fd00::2,encrypt=&lt;...&gt;</code>的策略并再发一个数据包，这个包就会自动被加密。B 收到了这个数据包，但是它并不知道该如何解密，所以你必须同时在 B 配置一条<code>src=fd00::1,dst=fd00::2,decrypt=&lt;...&gt;</code>的策略，这样 B 才能解密。对于从 B 到 A 的流量也需要类似的两条策略。使用 IKEv2 的话，这些策略 strongSwan 都会自动帮你设置好，无需操心。于是你会发现，尽管我们仍然在使用节点本身的 IP，但是流量却已经被加密了。</p>
-<p>对于那些必须使用路由表或是策略匹配不是很有效的场景, <a href="https://wiki.strongswan.org/projects/strongswan/wiki/RouteBasedVPN" target="_blank" rel="noopener">Route-based IPsec VPN</a> 也是存在的。我也许会在未来的某一期讲。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/ipsec-configurations-part1/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -426,6 +429,10 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a>
       </li>
     
@@ -441,10 +448,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
         <a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a>
       </li>
     
-      <li>
-        <a href="/2020/10/ipsec-configurations-part3/">IPsec 配置备忘 Part3 - Tunnel 模式</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -458,7 +461,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>36</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>37</small></li>
   
   </ul>
 </div>
@@ -468,7 +471,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12.22px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 15.56px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.89px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 16.67px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.44px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 14.44px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 17.78px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.33px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.22px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.22px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
   </div>
 </div>
 

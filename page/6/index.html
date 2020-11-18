@@ -72,6 +72,44 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2013-01-31T13:46:00.000Z"><a href="/2013/01/cheat-with-pascal/">Jan 31 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/01/cheat-with-pascal/">Pascal中鲜为人知的那些技巧</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>做为一个搞信息学竞赛这么长时间的人，再加上估计很快就要转C++了，我觉得我有必要留下一些关于Pascal语言的资料，于是就有了这篇文章。我只负责解释用法，对基础概念不了解的请自行Google。所有这篇文章里的东西应该都能在Free Pascal自带的文档里找到，我写出来是为了众多不喜欢看英文的同学们，如果你愿意自己去看一下，一定会收益匪浅。</p>
+<h3 id="不同进制的表示"><a href="#不同进制的表示" class="headerlink" title="不同进制的表示"></a>不同进制的表示</h3><p>平时我们写的常量都是十进制数，但我们有时需要写一个比如十六进制数怎么办呢？我们当然可以手动计算一下，但还有更优雅的方法。</p>
+<pre><code>writeln($Ff,#32,&amp;10,#32,%100);</code></pre><p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2013/01/cheat-with-pascal/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2013-01-27T14:00:00.000Z"><a href="/2013/01/data-structure-of-vdisk/">Jan 27 2013</a></time>
       
       
@@ -276,6 +314,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
       </li>
     
@@ -291,10 +333,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
       </li>
     
-      <li>
-        <a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -308,7 +346,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>37</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>38</small></li>
   
   </ul>
 </div>

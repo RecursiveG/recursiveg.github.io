@@ -72,6 +72,54 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-11-17T12:50:00.000Z"><a href="/2020/11/ipsec-configurations-part8/">Nov 17 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>接 Part6。折腾完 Android 以后我们来折腾一下 iOS。基本原理都是一样的，只是需要把苹果那一套 Vendor-specific 的配置选项翻译成 strongSwan 的，这样才能和服务器上的 strongSwan 互相通信嘛。由于 iOS 上的 IKEv2 客户端不是 strongSwan 而是苹果自己魔改的不知道什么版本，所以坑比起 Android 客户端更多。幸好 strongSwan 项目已经帮我们都踩了不少坑了：见 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleClients" target="_blank" rel="noopener">iOS (Apple iPhone, iPad…) and macOS</a> 和 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">IKEv2 Configuration Profile for Apple iOS 8 and newer</a>。</p>
+<p>我的测试环境是一台 iOS 12.4.9 的 iPad。由于在测试的时候发现 iOS 的坑实在太多，以及不同版本的 iOS 的行为都不太一样，如果你碰到了我没碰到的坑我只能祝你好运<code>（&lt;ゝω・）☆</code></p>
+<h2 id="坑坑坑"><a href="#坑坑坑" class="headerlink" title="坑坑坑"></a>坑坑坑</h2><p>由于本 Part 是基于 Part6 的，所以我们先来列举一下会需要我们做调整的 iOS 的坑（大部分在 strongSwan 的文档里已经提到过了）：</p>
+<ol>
+<li>iOS 的 local_id 和 remote_id 全部都是 FQDN 类型，意味着我们需要按照 Part7 的说明给证书加上<code>dns_name</code>的 SAN。</li>
+<li>iOS 在导入客户端证书的时候只允许 CN/SAN 二选一，否则不能导入。所以 iOS 客户端证书不能有 CN。</li>
+<li>iOS 不允许 p12 证书使用空密码。</li>
+<li>iOS 12 还不支持 ed25519，所以我们需要改用其他算法。</li>
+<li>iOS 的 mobileconfig 全是坑。</li>
+<li>iOS 需要在配置描述文件显式指定 CA 的 CN 才会发送 CERTREQ。</li>
+<li>你需要在服务端配置文件的 pool 里指定一个 DNS，否则 iOS 连上后无法上网。</li>
+</ol>
+<p>基本流程是：生成密钥和证书；生成 iOS 的<code>mobileconfig</code>配置描述文件；想办法把这个文件安装到 iOS 设备上；最后尝试连接。由于 iOS 的配置文件比 Android 的复杂许多，所以我写了个 Python 脚本来负责生成。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/11/ipsec-configurations-part8/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-11-15T09:45:00.000Z"><a href="/2020/11/ipsec-configurations-part7/">Nov 15 2020</a></time>
       
       
@@ -369,43 +417,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-30T15:50:00.000Z"><a href="/2020/10/ipsec-configurations-part2/">Oct 30 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/ipsec-configurations-part2/">IPsec 配置备忘 Part2 - 证书</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>作为系列的第二篇文章，讲解基本的证书原理和配置方法。没看过第一部分的快去看～<br>传送门：<a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1</a>。</p>
-<h2 id="证书认证基础"><a href="#证书认证基础" class="headerlink" title="证书认证基础"></a>证书认证基础</h2><p>我们在 Part1 中看到，PSK 认证的基本思路是使用一个只有通信双方才知道的暗号，如果能确认对方确实知道这个暗号，那么认证就成功了。证书认证的思路非常不同：假设 A 需要向 B 证明自己的身份，同时 A 知道 B 信任 C，那么 A 可以向 C 索取一份“介绍信”，当 B 询问 A 的身份时，A 可以向 B 展示这份 C 出具的“介绍信”，如果 B 能够确认这份“介绍信”确实是由 C 出具的，那么认证就成功了。注意这个认证是单向的，假设 A 也信任 C，那么 B 也可以通过向 C 索取“介绍信”来向 A 证明自己的身份。在 PKI 体系中，A 和 B 持有各自的“私钥”，C 作为 Certificate Authority (CA) 向 A/B 颁发证书（即“介绍信”）。同时，CA 也会向自己颁发一份证书并分发给 A/B，A/B 使用 CA 的证书来确认 B/A 出示的证书确实为 C 所颁发。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/ipsec-configurations-part2/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -429,6 +440,10 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
       </li>
     
@@ -444,10 +459,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
         <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
       </li>
     
-      <li>
-        <a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -461,7 +472,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>37</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>38</small></li>
   
   </ul>
 </div>

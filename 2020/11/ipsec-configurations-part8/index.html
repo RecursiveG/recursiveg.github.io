@@ -1,0 +1,298 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  
+  <title>IPsec 配置备忘 Part8 - iOS 客户端 | RECURSIVE LAND</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="Recursive G&#39;s personal blog" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <meta property="og:title" content="IPsec 配置备忘 Part8 - iOS 客户端"/>
+  <meta property="og:site_name" content="RECURSIVE LAND"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">RECURSIVE LAND</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG" target="_blank" rel="noopener">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2020-11-17T12:50:00.000Z"><a href="/2020/11/ipsec-configurations-part8/">Nov 17 2020</a></time>
+      
+      
+  
+    <h1 class="title">IPsec 配置备忘 Part8 - iOS 客户端</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>接 Part6。折腾完 Android 以后我们来折腾一下 iOS。基本原理都是一样的，只是需要把苹果那一套 Vendor-specific 的配置选项翻译成 strongSwan 的，这样才能和服务器上的 strongSwan 互相通信嘛。由于 iOS 上的 IKEv2 客户端不是 strongSwan 而是苹果自己魔改的不知道什么版本，所以坑比起 Android 客户端更多。幸好 strongSwan 项目已经帮我们都踩了不少坑了：见 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleClients" target="_blank" rel="noopener">iOS (Apple iPhone, iPad…) and macOS</a> 和 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">IKEv2 Configuration Profile for Apple iOS 8 and newer</a>。</p>
+<p>我的测试环境是一台 iOS 12.4.9 的 iPad。由于在测试的时候发现 iOS 的坑实在太多，以及不同版本的 iOS 的行为都不太一样，如果你碰到了我没碰到的坑我只能祝你好运<code>（&lt;ゝω・）☆</code></p>
+<h2 id="坑坑坑"><a href="#坑坑坑" class="headerlink" title="坑坑坑"></a>坑坑坑</h2><p>由于本 Part 是基于 Part6 的，所以我们先来列举一下会需要我们做调整的 iOS 的坑（大部分在 strongSwan 的文档里已经提到过了）：</p>
+<ol>
+<li>iOS 的 local_id 和 remote_id 全部都是 FQDN 类型，意味着我们需要按照 Part7 的说明给证书加上<code>dns_name</code>的 SAN。</li>
+<li>iOS 在导入客户端证书的时候只允许 CN/SAN 二选一，否则不能导入。所以 iOS 客户端证书不能有 CN。</li>
+<li>iOS 不允许 p12 证书使用空密码。</li>
+<li>iOS 12 还不支持 ed25519，所以我们需要改用其他算法。</li>
+<li>iOS 的 mobileconfig 全是坑。</li>
+<li>iOS 需要在配置描述文件显式指定 CA 的 CN 才会发送 CERTREQ。</li>
+<li>你需要在服务端配置文件的 pool 里指定一个 DNS，否则 iOS 连上后无法上网。</li>
+</ol>
+<p>基本流程是：生成密钥和证书；生成 iOS 的<code>mobileconfig</code>配置描述文件；想办法把这个文件安装到 iOS 设备上；最后尝试连接。由于 iOS 的配置文件比 Android 的复杂许多，所以我写了个 Python 脚本来负责生成。</p>
+<a id="more"></a>
+<h2 id="IKEv2-配置描述文件生成工具"><a href="#IKEv2-配置描述文件生成工具" class="headerlink" title="IKEv2 配置描述文件生成工具"></a>IKEv2 配置描述文件生成工具</h2><p>生成的配置文件原始模板来自 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">strongSwan 的文档</a>，原文有很详细的注释，建议过一遍。另外 <a href="https://developer.apple.com/business/documentation/Configuration-Profile-Reference.pdf" target="_blank" rel="noopener">Apple 的开发者手册</a>以及<a href="https://developer.apple.com/documentation/networkextension/nevpnprotocolikev2" target="_blank" rel="noopener">开发者网站</a>也可参考。你可以在 Apple 的网站上查到每个算法都是在哪个 iOS 版本里支持的。</p>
+<p>另外我在脚本里有两个硬编码的地方，一个是 ciphersuite 写死了是<code>aes256gcm128-sha256-ecp521</code>。另一个是证书类型写死了<code>ECDSA256</code>（certtool 在使用 ECDSA 的时候的默认值）。如果你需要设置为其他值，需要直接改脚本代码。</p>
+<figure class="highlight python"><figcaption><span>ios-config-gen.py</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> plistlib</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> absl <span class="keyword">import</span> app</span><br><span class="line"><span class="keyword">from</span> absl <span class="keyword">import</span> flags</span><br><span class="line"></span><br><span class="line">FLAGS = flags.FLAGS</span><br><span class="line"></span><br><span class="line"><span class="comment">#--- Reversed DNS notation, iOS requires these.</span></span><br><span class="line">flags.DEFINE_string(<span class="string">"profile_rdns"</span>, <span class="literal">None</span>, <span class="string">"Not displayed, but can be used to replace old profile."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"vpn_rdns"</span>, <span class="literal">None</span>, <span class="string">"Not displayed. Can be arbitrary string."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"client_cert_rdns"</span>, <span class="literal">None</span>, <span class="string">"Not displayed. Can be arbitrary string."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"ca_cert_rdns"</span>, <span class="literal">None</span>, <span class="string">"Not displayed. Can be arbitrary string."</span>)</span><br><span class="line"><span class="comment">#--- Strings to be displayed. Can be anything.</span></span><br><span class="line">flags.DEFINE_string(<span class="string">"profile_display_name"</span>, <span class="literal">None</span>, <span class="string">"Arbitrary descriptive name."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"vpn_display_name"</span>, <span class="literal">None</span>, <span class="string">"Arbitrary descriptive name."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"client_cert_display_name"</span>, <span class="literal">None</span>, <span class="string">"Arbitrary descriptive name."</span>) </span><br><span class="line">flags.DEFINE_string(<span class="string">"client_cert_file_name"</span>, <span class="literal">None</span>, <span class="string">"Arbitrary descriptive name."</span>) </span><br><span class="line">flags.DEFINE_string(<span class="string">"ca_cert_display_name"</span>, <span class="literal">None</span>, <span class="string">"Arbitrary descriptive name."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"vpn_profile_name"</span>, <span class="literal">None</span>, <span class="string">"Arbitrary descriptive name."</span>)</span><br><span class="line"><span class="comment">#--- Server config</span></span><br><span class="line">flags.DEFINE_string(<span class="string">"server_addr"</span>, <span class="literal">None</span>, <span class="string">"Domain name or IP of the server."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"server_id"</span>, <span class="literal">None</span>, <span class="string">"Remote id. iOS always send this as FQDN type."</span>)</span><br><span class="line"><span class="comment">#--- Client config</span></span><br><span class="line">flags.DEFINE_string(<span class="string">"client_cert_p12_file"</span>, <span class="literal">None</span>, <span class="string">"Client cert p12 file."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"client_cert_p12_pwd"</span>, <span class="literal">None</span>, <span class="string">"Password for client p12 cert."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"client_id"</span>, <span class="literal">None</span>, <span class="string">"Client's ID to be sent to the server. iOS always send this as FQDN type."</span>)</span><br><span class="line"><span class="comment">#--- CA config</span></span><br><span class="line">flags.DEFINE_string(<span class="string">"ca_cert_pem_file"</span>, <span class="literal">None</span>, <span class="string">"CA cert file, not p12 format."</span>)</span><br><span class="line">flags.DEFINE_string(<span class="string">"ca_common_name"</span>, <span class="literal">None</span>, <span class="string">"CA's Common name. iOS will send a CERTREQ iff this value MATCHES the CA's common name"</span>)</span><br><span class="line"><span class="comment">#--- Everything is required except client_cert_p12_pwd</span></span><br><span class="line">flags.mark_flag_as_required(<span class="string">"profile_rdns"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"vpn_rdns"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"client_cert_rdns"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"ca_cert_rdns"</span>)</span><br><span class="line"></span><br><span class="line">flags.mark_flag_as_required(<span class="string">"profile_display_name"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"vpn_display_name"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"client_cert_display_name"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"client_cert_file_name"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"ca_cert_display_name"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"vpn_profile_name"</span>)</span><br><span class="line"></span><br><span class="line">flags.mark_flag_as_required(<span class="string">"server_addr"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"server_id"</span>)</span><br><span class="line"></span><br><span class="line">flags.mark_flag_as_required(<span class="string">"client_cert_p12_file"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"client_id"</span>)</span><br><span class="line"></span><br><span class="line">flags.mark_flag_as_required(<span class="string">"ca_cert_pem_file"</span>)</span><br><span class="line">flags.mark_flag_as_required(<span class="string">"ca_common_name"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">load_pem_file</span><span class="params">(fname:str)</span>-&gt;bytes:</span></span><br><span class="line">    <span class="keyword">with</span> open(fname, <span class="string">"r"</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = [l.strip() <span class="keyword">for</span> l <span class="keyword">in</span> f.read().split(<span class="string">"\n"</span>)]</span><br><span class="line">    lines = filter(<span class="keyword">lambda</span> l:len(l) &gt; <span class="number">0</span> <span class="keyword">and</span> <span class="string">'-----'</span> <span class="keyword">not</span> <span class="keyword">in</span> l, lines)</span><br><span class="line">    <span class="keyword">return</span> base64.b64decode(<span class="string">''</span>.join(lines))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">client_cert_payload</span><span class="params">()</span>:</span></span><br><span class="line">    ret = dict()</span><br><span class="line">    ret[<span class="string">"PayloadIdentifier"</span>] = FLAGS.client_cert_rdns</span><br><span class="line">    ret[<span class="string">"PayloadDisplayName"</span>] = FLAGS.client_cert_display_name</span><br><span class="line">    ret[<span class="string">"PayloadCertificateFileName"</span>] = FLAGS.client_cert_file_name</span><br><span class="line">    ret[<span class="string">"PayloadUUID"</span>] = str(uuid.uuid4())</span><br><span class="line">    ret[<span class="string">"PayloadType"</span>] = <span class="string">"com.apple.security.pkcs12"</span></span><br><span class="line">    ret[<span class="string">"PayloadVersion"</span>] = <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> FLAGS.client_cert_p12_pwd <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        ret[<span class="string">"Password"</span>] = FLAGS.client_cert_p12_pwd</span><br><span class="line">    ret[<span class="string">"PayloadContent"</span>] = load_pem_file(FLAGS.client_cert_p12_file)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ca_cert_payload</span><span class="params">()</span>:</span></span><br><span class="line">    ret = dict()</span><br><span class="line">    ret[<span class="string">"PayloadIdentifier"</span>] = FLAGS.ca_cert_rdns</span><br><span class="line">    ret[<span class="string">"PayloadDisplayName"</span>] = FLAGS.ca_cert_display_name</span><br><span class="line">    ret[<span class="string">"PayloadUUID"</span>] = str(uuid.uuid4())</span><br><span class="line">    ret[<span class="string">"PayloadType"</span>] = <span class="string">"com.apple.security.root"</span></span><br><span class="line">    ret[<span class="string">"PayloadVersion"</span>] = <span class="number">1</span></span><br><span class="line">    ret[<span class="string">"PayloadContent"</span>] = load_pem_file(FLAGS.ca_cert_pem_file)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">security_parameter_payload</span><span class="params">()</span>:</span></span><br><span class="line">    ret = dict()</span><br><span class="line">    <span class="comment"># Please check Apple's doc for the iOS version supporting these options</span></span><br><span class="line">    <span class="comment"># https://developer.apple.com/documentation/networkextension/nevpnikev2encryptionalgorithm</span></span><br><span class="line">    ret[<span class="string">"EncryptionAlgorithm"</span>] = <span class="string">"AES-256-GCM"</span> <span class="comment"># hardcoded</span></span><br><span class="line">    ret[<span class="string">"IntegrityAlgorithm"</span>] = <span class="string">"SHA2-256"</span> <span class="comment"># hardcoded</span></span><br><span class="line">    ret[<span class="string">"DiffieHellmanGroup"</span>] = <span class="number">21</span> <span class="comment"># hardcoded ecp521</span></span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ikev2_payload</span><span class="params">(client_cert_uuid:str)</span>:</span></span><br><span class="line">    ret = dict()</span><br><span class="line">    ret[<span class="string">"RemoteAddress"</span>] = FLAGS.server_addr</span><br><span class="line">    ret[<span class="string">"RemoteIdentifier"</span>] = FLAGS.server_id</span><br><span class="line">    ret[<span class="string">"LocalIdentifier"</span>] = FLAGS.client_id</span><br><span class="line">    ret[<span class="string">"ServerCertificateIssuerCommonName"</span>] = FLAGS.ca_common_name</span><br><span class="line">    ret[<span class="string">"AuthenticationMethod"</span>] = <span class="string">"Certificate"</span></span><br><span class="line">    ret[<span class="string">"PayloadCertificateUUID"</span>] = client_cert_uuid</span><br><span class="line">    ret[<span class="string">"CertificateType"</span>] = <span class="string">"ECDSA256"</span> <span class="comment"># hardcoded</span></span><br><span class="line">    ret[<span class="string">"IKESecurityAssociationParameters"</span>] = security_parameter_payload()</span><br><span class="line">    ret[<span class="string">"ChildSecurityAssociationParameters"</span>] = security_parameter_payload()</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">vpn_payload</span><span class="params">(client_cert_uuid:str)</span>:</span></span><br><span class="line">    ret = dict()</span><br><span class="line">    ret[<span class="string">"PayloadIdentifier"</span>] = FLAGS.vpn_rdns</span><br><span class="line">    ret[<span class="string">"PayloadDisplayName"</span>] = FLAGS.vpn_display_name</span><br><span class="line">    ret[<span class="string">"PayloadUUID"</span>] = str(uuid.uuid4())</span><br><span class="line">    ret[<span class="string">"PayloadType"</span>] = <span class="string">"com.apple.vpn.managed"</span></span><br><span class="line">    ret[<span class="string">"PayloadVersion"</span>] = <span class="number">1</span></span><br><span class="line">    ret[<span class="string">"UserDefinedName"</span>] = FLAGS.vpn_profile_name</span><br><span class="line">    ret[<span class="string">"VPNType"</span>] = <span class="string">"IKEv2"</span></span><br><span class="line">    ret[<span class="string">"IKEv2"</span>] = ikev2_payload(client_cert_uuid)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mobileconfig_payload</span><span class="params">()</span>:</span></span><br><span class="line">    ca_p = ca_cert_payload()</span><br><span class="line">    client_p = client_cert_payload()</span><br><span class="line">    vpn_p = vpn_payload(client_p[<span class="string">"PayloadUUID"</span>])</span><br><span class="line">    </span><br><span class="line">    ret = dict()</span><br><span class="line">    ret[<span class="string">"PayloadIdentifier"</span>] = FLAGS.profile_rdns</span><br><span class="line">    ret[<span class="string">"PayloadDisplayName"</span>] = FLAGS.profile_display_name</span><br><span class="line">    ret[<span class="string">"PayloadUUID"</span>] = str(uuid.uuid4())</span><br><span class="line">    ret[<span class="string">"PayloadType"</span>] = <span class="string">"Configuration"</span></span><br><span class="line">    ret[<span class="string">"PayloadVersion"</span>] = <span class="number">1</span></span><br><span class="line">    ret[<span class="string">"PayloadContent"</span>] = [vpn_p, client_p, ca_p]</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">(argv)</span>:</span></span><br><span class="line">    print(plistlib.dumps(mobileconfig_payload()).decode())</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">  app.run(main)</span><br></pre></td></tr></table></figure>
+
+<h2 id="客户端配置"><a href="#客户端配置" class="headerlink" title="客户端配置"></a>客户端配置</h2><p>iOS 的客户端证书模板如下，具体的私钥生成和证书签发和 Part2 中的一致，获得<code>ios-key.pem</code>，<code>ios-cert.pem</code>两个文件。</p>
+<figure class="highlight bash"><figcaption><span>ios.tmpl</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 没有设置 common name</span></span><br><span class="line"><span class="comment"># 给客户端设置 DNS 类型的 SAN</span></span><br><span class="line">dns_name = <span class="string">"iOS Client"</span></span><br><span class="line">activation_date = <span class="string">"2020-01-01 00:00:00 UTC+0"</span></span><br><span class="line">expiration_date = <span class="string">"2021-01-01 00:00:00 UTC+0"</span></span><br></pre></td></tr></table></figure>
+<p>然后生成 p12 文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">certtool \</span><br><span class="line">    --load-privkey ios-key.pem \</span><br><span class="line">    --load-certificate ios-cert.pem \</span><br><span class="line">    --p12-name <span class="string">"iOS Key Cert Bundle"</span> \</span><br><span class="line">    <span class="comment"># 需要指定一个密码</span></span><br><span class="line">    --password <span class="string">"123456"</span> \</span><br><span class="line">    --to-p12 \</span><br><span class="line">    --pkcs-cipher 3des-pkcs12 &gt; ios-p12bundle.pem</span><br></pre></td></tr></table></figure>
+<p>生成 iOS 的配置描述文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">./ios-config-gen.py \</span><br><span class="line">    <span class="comment"># 指定 CA 证书文件</span></span><br><span class="line">    --ca_cert_pem_file ca-cert.pem \</span><br><span class="line">    <span class="comment"># 指定 CA 的 Common name。只有在这里的值和证书中的值匹配时 iOS 才会给服务器</span></span><br><span class="line">    <span class="comment"># 发送证书请求。当然你也可以在服务器设置 send_cert=always</span></span><br><span class="line">    --ca_common_name <span class="string">"CA_COMMON_NAME"</span> \</span><br><span class="line">    <span class="comment"># 客户端证书文件</span></span><br><span class="line">    --client_cert_p12_file <span class="string">"ios-p12bundle.pem"</span> \</span><br><span class="line">    <span class="comment"># client_id 需要和之前的 SAN 名一致</span></span><br><span class="line">    --client_id <span class="string">"iOS Client"</span> \</span><br><span class="line">    <span class="comment"># iOS 似乎会优先将域名解析成 IPv6 地址，所以这里我们手动指定服务器的 IPv4 地址</span></span><br><span class="line">    --server_addr <span class="string">"12.34.56.78"</span> \</span><br><span class="line">    <span class="comment"># 服务器的 ID，这也是只匹配 SAN 不匹配 DN</span></span><br><span class="line">    --server_id <span class="string">"vpn.server.com"</span> \</span><br><span class="line">    <span class="comment"># 可选，p12 证书的密码，不指定的话会要求用户输入</span></span><br><span class="line">    <span class="comment"># --client_cert_p12_pwd "123456" \</span></span><br><span class="line">    <span class="comment"># 没啥影响但是必填的选项（大概可以随便填？）</span></span><br><span class="line">    --profile_rdns <span class="string">"profile_rdns"</span>\</span><br><span class="line">    --vpn_rdns <span class="string">"vpn_rdns"</span>\</span><br><span class="line">    --client_cert_rdns <span class="string">"client_cert_rdns"</span>\</span><br><span class="line">    --ca_cert_rdns <span class="string">"ca_cert_rdns"</span>\</span><br><span class="line">    <span class="comment"># 所有以下选项（大概）只影响界面显示的字符串，可以（大概）随意填写。</span></span><br><span class="line">    <span class="comment"># 你可以用当前设置看看每个选项到底会被显示在哪儿。</span></span><br><span class="line">    --profile_display_name <span class="string">"profile_display_name"</span>\</span><br><span class="line">    --vpn_display_name <span class="string">"vpn_display_name"</span>\</span><br><span class="line">    --client_cert_display_name <span class="string">"client_cert_display_name"</span>\</span><br><span class="line">    --client_cert_file_name <span class="string">"client_cert_file_name"</span>\</span><br><span class="line">    --ca_cert_display_name <span class="string">"ca_cert_display_name"</span>\</span><br><span class="line">    --vpn_profile_name <span class="string">"vpn_profile_name"</span>\</span><br><span class="line">    <span class="comment"># 输出文件</span></span><br><span class="line">    &gt; ios-profile.mobileconfig</span><br></pre></td></tr></table></figure>
+<p>然后导入进设备就 OK。可以用<code>python -m http.server</code>临时开启一个 HTTP 服务器，然后用浏览器访问这个文件即可。<br><del>你说导入失败？那是 iOS 的 BUG</del></p>
+<h2 id="服务器配置"><a href="#服务器配置" class="headerlink" title="服务器配置"></a>服务器配置</h2><p>服务器配置基于 Part7 的配置修改，只注释变化部分</p>
+<figure class="highlight bash"><figcaption><span>server.conf</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">connections &#123;</span><br><span class="line">  android-connection &#123;</span><br><span class="line">    version = 2</span><br><span class="line">    local_addrs = 12.34.56.78</span><br><span class="line">    remote_addrs = %any</span><br><span class="line">    <span class="comment"># 添加 iOS 设备使用的 ciphersuite</span></span><br><span class="line">    proposals = aes256gcm128-sha512-x25519,aes256gcm128-sha256-ecp521</span><br><span class="line">    pools = ip4pool</span><br><span class="line">    <span class="built_in">local</span> &#123;</span><br><span class="line">      id = vpn.server.com</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    remote &#123;</span><br><span class="line">      id = %any</span><br><span class="line">      auth = pubkey</span><br><span class="line">    &#125;</span><br><span class="line">    children &#123;</span><br><span class="line">      child_sa &#123;</span><br><span class="line">        local_ts = 0.0.0.0/0</span><br><span class="line">        remote_ts = dynamic</span><br><span class="line">        mode = tunnel</span><br><span class="line">        <span class="comment"># 同上</span></span><br><span class="line">        esp_proposals = aes256gcm128-sha512-x25519,aes256gcm128-sha256-ecp521</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pools &#123;</span><br><span class="line">  ip4pool &#123;</span><br><span class="line">    addrs = 10.10.10.100-10.10.10.150</span><br><span class="line">    <span class="comment"># 指定使用的 DNS</span></span><br><span class="line">    dns = 1.1.1.1</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后重启 strongSwan 测试即可。连不上？Have fun time debugging.</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Programming/">Programming</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/教程/">教程</a>, <a href="/tags/IPsec/">IPsec</a>, <a href="/tags/Networking/">Networking</a>, <a href="/tags/VPN/">VPN</a>, <a href="/tags/折腾/">折腾</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:recursiveg.me">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/Life/">Life</a><small>2</small></li>
+  
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
+  
+    <li><a href="/categories/Programming/">Programming</a><small>38</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="https://exz.me" target="_blank" rel="noopener" title="Epix Sphere">Epix Sphere</a></li>
+  
+    <li><a href="https://farseerfc.me" target="_blank" rel="noopener" title="FarseerFc">FarseerFc</a></li>
+  
+    <li><a href="https://im.librazy.org" target="_blank" rel="noopener" title="Librazy">Librazy</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明 / Licensing</h3>
+    <div class="entry">
+        <center>
+            <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">
+                <img class="nofancybox nolightbox" alt="CC-BY-NC 4.0" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" />
+            </a>
+        </center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license noopener" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可。
+        <p>
+        Unless stated otherwise, RecursiveG is the author of all articles on this website. All articles are licensed under a <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+        <p>
+        本站所有的代码，包括行内代码以及代码块中的代码，使用 CC 与 <a rel="license noopener" href="https://opensource.org/licenses/MIT" target="_blank">MIT</a> 双许可发布，你可任选其一使用。
+        <p>
+        All codes on this website, inline or in codeblocks, are dual-licensed under CC and <a rel="license noopener" href="https://opensource.org/licenses/MIT" target="_blank">MIT</a>. You can use whichever license that meets your needs.
+        </p>
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2020 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

@@ -72,6 +72,43 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-10-30T15:50:00.000Z"><a href="/2020/10/ipsec-configurations-part2/">Oct 30 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/10/ipsec-configurations-part2/">IPsec 配置备忘 Part2 - 证书</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>作为系列的第二篇文章，讲解基本的证书原理和配置方法。没看过第一部分的快去看～<br>传送门：<a href="/2020/10/ipsec-configurations-part1/">IPsec 配置备忘 Part1</a>。</p>
+<h2 id="证书认证基础"><a href="#证书认证基础" class="headerlink" title="证书认证基础"></a>证书认证基础</h2><p>我们在 Part1 中看到，PSK 认证的基本思路是使用一个只有通信双方才知道的暗号，如果能确认对方确实知道这个暗号，那么认证就成功了。证书认证的思路非常不同：假设 A 需要向 B 证明自己的身份，同时 A 知道 B 信任 C，那么 A 可以向 C 索取一份“介绍信”，当 B 询问 A 的身份时，A 可以向 B 展示这份 C 出具的“介绍信”，如果 B 能够确认这份“介绍信”确实是由 C 出具的，那么认证就成功了。注意这个认证是单向的，假设 A 也信任 C，那么 B 也可以通过向 C 索取“介绍信”来向 A 证明自己的身份。在 PKI 体系中，A 和 B 持有各自的“私钥”，C 作为 Certificate Authority (CA) 向 A/B 颁发证书（即“介绍信”）。同时，CA 也会向自己颁发一份证书并分发给 A/B，A/B 使用 CA 的证书来确认 B/A 出示的证书确实为 C 所颁发。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/10/ipsec-configurations-part2/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-10-29T15:40:00.000Z"><a href="/2020/10/ipsec-configurations-part1/">Oct 29 2020</a></time>
       
       
@@ -318,54 +355,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-01-12T04:30:00.000Z"><a href="/2020/01/simple-kernel-dev-environment/">Jan 11 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/01/simple-kernel-dev-environment/">简易内核开发环境</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>近期尝试了一下写 Linux 内核代码，于是把折腾过程记录一下，方便以后参考。本文默认使用 x86_64 架构以及 Linux 作为宿主系统。</p>
-<h2 id="使用-QEMU-运行-Linux-内核"><a href="#使用-QEMU-运行-Linux-内核" class="headerlink" title="使用 QEMU 运行 Linux 内核"></a>使用 QEMU 运行 Linux 内核</h2><p>在开始写代码之前，我们需要先准备好模拟器用于运行 Linux。我这里用了QEMU，你也可以用 VirtualBox 之类的虚拟机。一般来说，我们需要一个内核可执行文件（内核本体）和一个 initramfs 镜像（提供用户态程序）。当内核被加载后，它会自动载入 initramfs 镜像，并执行其中的<code>/init</code>程序。由于这一节的重点是 QEMU 配置，所以我直接使用宿主机的内核和 initramfs。以我的 Archlinux 系统为例，内核文件是<code>/boot/vmlinuz-linux</code>，initramfs 文件是<code>/boot/initramfs-linux.img</code>。使用以下命令启动 QEMU，按<code>Ctrl-A x</code>退出。</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 \</span><br><span class="line">    -kernel /boot/vmlinuz-linux \</span><br><span class="line">    -initrd /boot/initramfs-linux.img \</span><br><span class="line">    -nographic -append <span class="string">"console=ttyS0"</span> \</span><br><span class="line">    -m 512 \</span><br><span class="line">    --<span class="built_in">enable</span>-kvm \</span><br><span class="line">    -cpu host</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>-kernel</code> 指定内核可执行文件。</li>
-<li><code>-initrd</code> 指定 initramfs disk 镜像文件。</li>
-<li><code>-nographic -append &quot;console=ttyS0&quot;</code> 禁用视频输出并使用串口作为终端。</li>
-<li><code>-m 512</code> 设定内存。</li>
-<li><code>--enable-kvm</code> 使用KVM。</li>
-<li><code>-cpu host</code> 使用宿主机的 CPU 特性。</li>
-</ul>
-<p>你应该能看到一些系统启动的信息以及无法挂载根分区的报错，这是正常现象，因为我们没有提供任何磁盘文件。你应该可以进入一个紧急修复 Shell, 执行一些简单的如 <code>ls</code> <code>cd</code> 之类的命令。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/01/simple-kernel-dev-environment/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -391,6 +380,10 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   <ul class="entry">
     
       <li>
+        <a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
       </li>
     
@@ -406,10 +399,6 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
       </li>
     
-      <li>
-        <a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -423,7 +412,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>37</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>38</small></li>
   
   </ul>
 </div>

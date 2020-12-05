@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://recursiveg.me/2020/10/ipsec-configurations-part2/</loc>
+    
+    <lastmod>2020-12-05T22:13:32.162Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://recursiveg.me/2020/11/ipsec-configurations-part8/</loc>
     
-    <lastmod>2020-12-03T22:03:09.482Z</lastmod>
+    <lastmod>2020-12-05T22:11:13.726Z</lastmod>
     
   </url>
   
@@ -54,13 +61,6 @@
     <loc>https://recursiveg.me/2020/10/ipsec-configurations-part3/</loc>
     
     <lastmod>2020-10-31T18:06:53.952Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://recursiveg.me/2020/10/ipsec-configurations-part2/</loc>
-    
-    <lastmod>2020-10-31T07:24:13.801Z</lastmod>
     
   </url>
   

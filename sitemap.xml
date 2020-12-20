@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://recursiveg.me/2020/10/ipsec-configurations-part2/</loc>
+    <loc>https://recursiveg.me/2020/12/use-archlinux-in-gns3/</loc>
     
-    <lastmod>2020-12-05T22:13:32.162Z</lastmod>
+    <lastmod>2020-12-20T06:39:48.898Z</lastmod>
     
   </url>
   
   <url>
     <loc>https://recursiveg.me/2020/11/ipsec-configurations-part8/</loc>
     
-    <lastmod>2020-12-05T22:11:13.726Z</lastmod>
+    <lastmod>2020-12-05T22:17:13.395Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://recursiveg.me/2020/10/ipsec-configurations-part2/</loc>
+    
+    <lastmod>2020-12-05T22:13:32.162Z</lastmod>
     
   </url>
   

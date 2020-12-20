@@ -72,6 +72,50 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-05-25T10:26:20.000Z"><a href="/2014/05/programming-with-ptrace-part3/">May 25 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/05/programming-with-ptrace-part3/">Programming with PTRACE, Part3 - 进程的终止与信号</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在Part2中，我们粗略了解了如何使用<code>ptrace</code>获得系统调用信息，即在一个大循环里不断获取程序信息，如果程序退出则停止循环。当然，那个判断异常简陋，几乎无法处理任何特殊情况。我将在本Part中详细解说各种异常情况的处理，同时讲解各种信号相关的问题。</p>
+<h2 id="一些重要的宏"><a href="#一些重要的宏" class="headerlink" title="一些重要的宏"></a>一些重要的宏</h2><p>在使用<code>wait4</code>后，程序的信息被存储在<code>sta</code>变量中，这些信息被存储在这个整数的不同二进制位上，这儿有一系列宏用于帮我们提取这些信息。以下信息是我对<code>man 3 wait</code>中相关部分的翻译,同时参考了<a href="http://www.manualpages.de/OpenBSD/OpenBSD-5.0/man2/WIFEXITED.2.html" target="_blank" rel="noopener">这个</a>页面</p>
+<pre><code>WIFEXITED   如果进程正常退出，返回一个非0值(通常是进程调用了`exit()`或是`_exit()`)
+WIFSIGNALED 如果进程由于一个未被捕获的信号而被终止，返回一个非0值
+WIFSTOPPED  当进程被停止(非终止)时，返回一个非0值(通常发生在当进程处于`traced`状态时)
+
+WEXITSTATUS 当`WIFEXITED`为非0值，获得进程`main()`函数的返回值
+WTERMSIG    如果`WIFSIGNALED`为非0值，获得引起进程终止的信号代码
+WSTOPSIG    如果`WIFSTOPPED`为非0值，获得引起进程停止的信号代码</code></pre><p>除了这六个，还有<code>WIFCONTINUED</code>和<code>WCOREDUMP</code>两个宏，不过我们用不到，我也没仔细研究，就不说了。<br>当进程自行终止时，<code>WIFEXITED</code>即为<code>true</code>，配套使用<code>WEXITSTATUS</code>获得返回值，不做过多解释。当子进程进行系统调用时，<code>WIFSTOPPED</code>为<code>true</code>,同时<code>WSTOPSIG</code>等于<code>SIGTRAP</code>(信号代码为7),我们可以用这种方法区分<code>syscall-stop</code>和<code>signal-delivery-stop</code>。当有一个外部信号要发送给子进程，这个信号会先到达父进程，使<code>WIFSTOPPED</code>为<code>true</code>，同时<code>WSTOPSIG</code>等于该信号的信号代码。父进程可以选择将这个信号继续传递或是不传递，甚至传递另一个信号给子进程。一旦信号真正到达子进程，就进入子进程自己的处理流程或是系统默认动作，可能触发<code>WIFSIGNALED</code>，比如<code>SIGINT</code>。<br>在所有信号中，<code>SIGKILL</code>是一个例外，它不会经过父进程引发<code>WIFSTOPPED</code>，而是直接传递到子进程，引发<code>WIFSIGNALED</code>。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/05/programming-with-ptrace-part3/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2014-04-20T12:00:19.000Z"><a href="/2014/04/programming-with-ptrace-part2/">Apr 20 2014</a></time>
       
       
@@ -294,43 +338,6 @@ if (pid==0){
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2013-03-30T12:02:00.000Z"><a href="/2013/03/universal-storge/">Mar 30 2013</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2013/03/universal-storge/">通用存储及分布式文件共享系统的设想</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p><strong>Update: 本计划已无限期暂停，在可预见的未来没有重启计划，如有需要资料的欢迎发邮件索取</strong></p>
-<p>众所周知，网盘这东西对大众来说不可或缺，国内的在线存储服务也欣欣向荣。但是，由于各种原因，我们仍感到这些不能完全满足我们的要求。<br>比如各种限制、各种暂停分享、还有各种必须付钱才能用的VIP服务等。各大公司想挣钱无可非议，毕竟网络存储绝对是烧钱的主，但作为一个搞技术的人，决不能整天写登陆界面，对吧？<br>动机在<a href="/2013/01/data-structure-of-vdisk/">新浪微盘数据结构解析</a>中说了，在那之后我又研究了其他的网盘，萌生了这么一个设想。<br>简要的说，这个系统可以大大方便文件的传播与获取，延长资源的存活时间。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2013/03/universal-storge/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -356,6 +363,10 @@ if (pid==0){
   <ul class="entry">
     
       <li>
+        <a href="/2020/12/use-archlinux-in-gns3/">在 GNS3 中使用 ArchLinux</a>
+      </li>
+    
+      <li>
         <a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a>
       </li>
     
@@ -371,10 +382,6 @@ if (pid==0){
         <a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a>
       </li>
     
-      <li>
-        <a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -388,7 +395,7 @@ if (pid==0){
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>38</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>39</small></li>
   
   </ul>
 </div>
@@ -398,7 +405,7 @@ if (pid==0){
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
   </div>
 </div>
 

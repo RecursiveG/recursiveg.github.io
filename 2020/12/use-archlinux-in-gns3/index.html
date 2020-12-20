@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  
+  <title>在 GNS3 中使用 ArchLinux | RECURSIVE LAND</title>
+  <meta name="author" content="RecursiveG" />
+  
+  <meta name="description" content="Recursive G&#39;s personal blog" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <meta property="og:title" content="在 GNS3 中使用 ArchLinux"/>
+  <meta property="og:site_name" content="RECURSIVE LAND"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon" />
+  <link rel="alternate" href="/atom.xml" title="RECURSIVE LAND" type="application/atom+xml" />
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css" />
+  <script type="text/javascript"><!--Code to Prevent been iframed-->
+    if(top.location!=self.location){alert('No iFrame Allowed!');top.location=self.location;}
+  </script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-37331447-3', 'auto');
+	ga('send', 'pageview');
+}
+</script>
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">RECURSIVE LAND</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="https://github.com/RecursiveG" target="_blank" rel="noopener">Github</a></li>
+    
+      <li><a href="/atom.xml">RSS</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2020-12-19T14:47:39.000Z"><a href="/2020/12/use-archlinux-in-gns3/">Dec 19 2020</a></time>
+      
+      
+  
+    <h1 class="title">在 GNS3 中使用 ArchLinux</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>之前在折腾 strongSwan 配置的时候需要多台电脑互相连接做测试，用实机各种不方便。比方说，我不想暴露真实 IP，就只能在发布前手工编辑配置文件，也不知道编辑过后的文件到底能不能工作。于是尝试折腾使用 <a href="https://www.gns3.com" target="_blank" rel="noopener">GNS3</a> 来搭建一个虚拟的网络环境。</p>
+<h2 id="安装-GNS3"><a href="#安装-GNS3" class="headerlink" title="安装 GNS3"></a>安装 GNS3</h2><p>你可以尝试从 AUR 安装 GNS3，但是我之前试了几次都不是太成功，于是还是把 GNS3 装进了 virtualenv 里：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建并进入 virtualenv</span></span><br><span class="line">virtualenv -p python3.9 virtualenv</span><br><span class="line"><span class="built_in">source</span> virtualenv/bin/activate</span><br><span class="line"><span class="comment"># 安装 GNS3 及 PyQt5</span></span><br><span class="line">pip install gns3-server gns3-gui pyqt5</span><br><span class="line"><span class="comment"># 安装一些其他的依赖（可能有漏的，请根据 gns3 的出错消息自己安装）</span></span><br><span class="line">yay -S vpcs dynamips</span><br><span class="line"><span class="comment"># 启动 GNS3</span></span><br><span class="line">gns3</span><br></pre></td></tr></table></figure>
+
+<p>GNS3 支持好几种方式来运行虚拟网络中的“节点”，我这里使用 Docker 来运行虚拟的 Archlinux 系统。因此也需要先安装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo pacman -S docker</span><br><span class="line">sudo usermod -aG docker &#96;whoami&#96;</span><br><span class="line">sudo systemctl start docker</span><br></pre></td></tr></table></figure>
+
+<p>同时建议安装 Wireshark 方便抓包调试。</p>
+<h2 id="连接因特网"><a href="#连接因特网" class="headerlink" title="连接因特网"></a>连接因特网</h2><p>进入 GNS3 创建 Project 以后就可以尝试把左侧列表里的设备往中间画布上拖了。但是你会发现不仅设备类型少的可怜而且也基本拖不上去。这时我们需要自己创建设备节点的模板。进 Preferences，在最下面的 Docker containers 里点 New，Image name 输<code>archlinux:base-devel</code>，其他的都默认，Adapters 可以按自己需要指定数量。<br><img src="/images/use-archlinux-in-gns3/01-new-image.png" alt=""><br>点 OK 后，左侧的设备列表里就多了一个设备。拖到画布上，右键 Start，再右键 Console 就可以看到 ArchLinux 的命令行界面了。</p>
+<p>GNS3 默认使用 xterm 作为终端模拟器，如果你像我一样使用 Gnome Terminal，需要先去 General - Console applications 把启动终端的命令改成</p>
+<pre><code>gnome-terminal -t &quot;%d&quot; -- telnet &quot;%h&quot; &quot;%p&quot;</code></pre><p><img src="/images/use-archlinux-in-gns3/02-terminal-cmd.png" alt=""></p>
+<p>这个新创建的 Archlinux 节点还是空空如也的，除了基本的系统什么也没有，我们可以把它连接到实际的网络上，这样就能用 pacman 安装软件包了。先从设备列表里拖一个“Cloud”设备出来，然后点左侧边栏最下面的“Add a link”切换到连线模式，点 Cloud 节点，选择物理机上用于联网的接口，再点 Archlinux 节点，选择要连接的端口，这样一条连线就接好了。Archlinux 节点被直接桥接到了外部接口上，和宿主机位于同一网段。<br><img src="/images/use-archlinux-in-gns3/03-link-connected.png" alt=""></p>
+<p>由于 Archlinux 的镜像不带 dhcpcd 无法自动获取 IP，只能手动设置一下咯：</p>
+<pre><code>ip link set eth0 up
+ip addr add 192.168.1.222/24 dev eth0
+ip route add default via 192.168.1.1 dev eth0
+echo nameserver 1.1.1.1 &gt; /etc/resolv.conf</code></pre><p>不过实际测试以后发现这个速度实在是很残念，可能还是要写 Dockerfile 把镜像配置好再用才行。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Programming/">Programming</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/教程/">教程</a>, <a href="/tags/Networking/">Networking</a>, <a href="/tags/折腾/">折腾</a>, <a href="/tags/GNS3/">GNS3</a>, <a href="/tags/Archlinux/">Archlinux</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:recursiveg.me">
+  </form>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2020/12/use-archlinux-in-gns3/">在 GNS3 中使用 ArchLinux</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part8/">IPsec 配置备忘 Part8 - iOS 客户端</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/Life/">Life</a><small>2</small></li>
+  
+    <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
+  
+    <li><a href="/categories/Programming/">Programming</a><small>39</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
+  </div>
+</div>
+
+
+  <div class="widget blogroll">
+  <h3 class="title">友情链接</h3>
+  <ul class="entry">
+  
+    <li><a href="https://exz.me" target="_blank" rel="noopener" title="Epix Sphere">Epix Sphere</a></li>
+  
+    <li><a href="https://farseerfc.me" target="_blank" rel="noopener" title="FarseerFc">FarseerFc</a></li>
+  
+    <li><a href="https://im.librazy.org" target="_blank" rel="noopener" title="Librazy">Librazy</a></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget copyleft">
+    <h3 class="title">原创声明 / Licensing</h3>
+    <div class="entry">
+        <center>
+            <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">
+                <img class="nofancybox nolightbox" alt="CC-BY-NC 4.0" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" />
+            </a>
+        </center>
+        除非特别声明，本站文章均由RecursiveG原创，均采用<a rel="license noopener" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可。
+        <p>
+        Unless stated otherwise, RecursiveG is the author of all articles on this website. All articles are licensed under a <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+        <p>
+        本站所有的代码，包括行内代码以及代码块中的代码，使用 CC 与 <a rel="license noopener" href="https://opensource.org/licenses/MIT" target="_blank">MIT</a> 双许可发布，你可任选其一使用。
+        <p>
+        All codes on this website, inline or in codeblocks, are dual-licensed under CC and <a rel="license noopener" href="https://opensource.org/licenses/MIT" target="_blank">MIT</a>. You can use whichever license that meets your needs.
+        </p>
+    </div>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2020 RecursiveG
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.indexOf("127.0.0.1")==-1)){
+  var disqus_shortname = 'developmentinprogress';
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  }());
+}
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

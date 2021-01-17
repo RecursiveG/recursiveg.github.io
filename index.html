@@ -72,6 +72,55 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2021-01-16T16:45:00.000Z"><a href="/2021/01/flexget-user-systemd-timer/">Jan 16 2021</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2021/01/flexget-user-systemd-timer/">Flexget+systemd.timer 配置</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>之前一直都是手动检查每周新番并添加到 Transmission 中的，最近尝试把这一流程自动化一下。简单搜索了一下发现了 <a href="https://flexget.com" target="_blank" rel="noopener">FlexGet</a> 这个工具。支持 Transmission 也能在 Linux 下运行，就决定是它了。</p>
+<h2 id="安装到用户目录"><a href="#安装到用户目录" class="headerlink" title="安装到用户目录"></a>安装到用户目录</h2><p>ArchLinux 源里并没有这个包，又考虑到这是个 Python 程序，所以就决定直接用<code>virtualenv</code>了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/.config/flexget</span><br><span class="line"><span class="built_in">cd</span> ~/.config/flexget</span><br><span class="line">virtualenv -p python3.9 virtualenv</span><br><span class="line"><span class="built_in">source</span> virtualenv/bin/activate</span><br><span class="line">pip install flexget</span><br><span class="line">pip install transmission-rpc</span><br></pre></td></tr></table></figure>
+
+<p>然后写一个简单的脚本方便在 systemd service 里调用：</p>
+<figure class="highlight bash"><figcaption><span>~/.config/flexget/execute.sh</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> $(dirname <span class="variable">$0</span>)</span><br><span class="line"><span class="built_in">source</span> virtualenv/bin/activate</span><br><span class="line">flexget execute</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>配置方法可以看教程也可以看<a href="https://flexget.com/Configuration" target="_blank" rel="noopener">官方文档</a>。我就只简单贴一下。</p>
+<figure class="highlight yaml"><figcaption><span>~/.config/flexget/config.yml</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">templates:</span></span><br><span class="line">  <span class="attr">transmission:</span></span><br><span class="line">    <span class="attr">transmission:</span></span><br><span class="line">      <span class="attr">host:</span> <span class="string">'https://domain-name.com/transmission/rpc'</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">443</span></span><br><span class="line">      <span class="attr">username:</span> <span class="string">'your-username'</span></span><br><span class="line">      <span class="attr">password:</span> <span class="string">'your-password'</span></span><br><span class="line"></span><br><span class="line"><span class="attr">tasks:</span></span><br><span class="line">  <span class="string">这里随便写:</span></span><br><span class="line">    <span class="attr">rss:</span> <span class="string">'https://mikanani.me/RSS/...'</span></span><br><span class="line">    <span class="attr">accept_all:</span> <span class="literal">yes</span></span><br><span class="line">    <span class="attr">template:</span> <span class="string">transmission</span></span><br><span class="line">    <span class="attr">transmission:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">'/folder/path/on/server'</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Systemd-配置"><a href="#Systemd-配置" class="headerlink" title="Systemd 配置"></a>Systemd 配置</h2><figure class="highlight toml"><figcaption><span>~/.config/systemd/user/flexget.service</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Refresh RSS with flexget</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Type</span>=<span class="literal">on</span>eshot</span><br><span class="line"><span class="attr">ExecStart</span>=/home/recursiveg/.config/flexget/execute.sh</span><br></pre></td></tr></table></figure>
+
+<p>用户登录后 5 分钟进行同步，然后每两小时检查一次。</p>
+<figure class="highlight toml"><figcaption><span>~/.config/systemd/user/flexget.timer</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Run flexget <span class="literal">on</span> login then every <span class="number">2</span>hrs</span><br><span class="line"></span><br><span class="line"><span class="section">[Timer]</span></span><br><span class="line"><span class="attr">OnStartupSec</span>=<span class="number">5</span>min</span><br><span class="line"><span class="attr">OnUnitActiveSec</span>=<span class="number">2</span>h</span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=timers.target</span><br></pre></td></tr></table></figure>
+
+<p>一些可能会用到的命令：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启用并运行定时器</span></span><br><span class="line">systemctl --user <span class="built_in">enable</span> --now flexget.timer</span><br><span class="line"><span class="comment"># 立即检查</span></span><br><span class="line">systemctl --user start flexget.service</span><br><span class="line"><span class="comment"># 检查定时器情况</span></span><br><span class="line">systemctl --user list-timers</span><br><span class="line"><span class="comment"># 检查日志</span></span><br><span class="line">journalctl --user-unit flexget.service -f</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-12-19T14:47:39.000Z"><a href="/2020/12/use-archlinux-in-gns3/">Dec 19 2020</a></time>
       
       
@@ -344,96 +393,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-11-02T14:00:00.000Z"><a href="/2020/11/samsung-980pro-speedtest/">Nov 2 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/samsung-980pro-speedtest/">[娱乐向] Samsung 980 Pro RAID 性能测试</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>三星的新 SSD 980 Pro 已经发售一段时间了，前两天看到 Amazon 上 1TB 有货，赶紧下单两条。今天到货，于是装机测一波速度。打算用来做系统盘，所以自然就是用来组 RAID-0 咯。于是用 fio 分别测试了一下 btrfs 和 mdadm 组 RAID 的性能。测试完全不严谨，参数是用脸滚键盘滚出来的，放出来仅供各位一乐，为什么是娱乐向你看数据就知道了。同时拉上了打酱油的 960 Evo（我现在的系统盘），以及完全是搞笑用的<code>/dev/shm</code>：</p>
-<table>
-<thead>
-<tr>
-<th align="left">场景</th>
-<th align="right">连续读取(MiB/s)</th>
-<th align="right">连续写入(MiB/s)</th>
-<th align="right">4K 随机读取(kIOPS)</th>
-<th align="right">4K 随机写入(kIOPS)</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">980 Pro 单盘 EXT4</td>
-<td align="right">6370</td>
-<td align="right">4725</td>
-<td align="right">330</td>
-<td align="right">125</td>
-</tr>
-<tr>
-<td align="left">980 Pro 单盘 BTRFS</td>
-<td align="right">6264</td>
-<td align="right">2720</td>
-<td align="right">137</td>
-<td align="right">63.7</td>
-</tr>
-<tr>
-<td align="left">980 Pro mdadm RAID-0 EXT4</td>
-<td align="right">12186</td>
-<td align="right">9426</td>
-<td align="right">298</td>
-<td align="right">115</td>
-</tr>
-<tr>
-<td align="left">980 Pro BTRFS RAID0</td>
-<td align="right">5937</td>
-<td align="right">3932</td>
-<td align="right">133</td>
-<td align="right">63.3</td>
-</tr>
-<tr>
-<td align="left">/dev/shm</td>
-<td align="right">6290</td>
-<td align="right">5541</td>
-<td align="right">792</td>
-<td align="right">571</td>
-</tr>
-<tr>
-<td align="left">960 Evo 单盘 XFS</td>
-<td align="right">2963</td>
-<td align="right">410</td>
-<td align="right">199</td>
-<td align="right">31.3</td>
-</tr>
-</tbody></table>
-<p>Emmmm, mdadm RAID0 比内存快……这很合理……以及 btrfs 你的 RAID 性能还能更烂一点吗？</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/11/samsung-980pro-speedtest/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -457,6 +416,10 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   <ul class="entry">
     
       <li>
+        <a href="/2021/01/flexget-user-systemd-timer/">Flexget+systemd.timer 配置</a>
+      </li>
+    
+      <li>
         <a href="/2020/12/use-archlinux-in-gns3/">在 GNS3 中使用 ArchLinux</a>
       </li>
     
@@ -472,10 +435,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
         <a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a>
       </li>
     
-      <li>
-        <a href="/2020/11/ipsec-configurations-part5/">IPsec 配置备忘 Part5 - 防火墙配置</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -489,7 +448,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>39</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>40</small></li>
   
   </ul>
 </div>
@@ -499,7 +458,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 12px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
   </div>
 </div>
 
@@ -542,7 +501,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2020 RecursiveG
+  &copy; 2021 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

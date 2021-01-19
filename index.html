@@ -72,6 +72,45 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2021-01-18T06:30:00.000Z"><a href="/2021/01/ipsec-configurations-part9/">Jan 18 2021</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2021/01/ipsec-configurations-part9/">IPsec 配置备忘 Part9 - RouterOS</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>这篇来填一个在 Part1 的时候挖的坑，简单介绍一下怎么在 RouterOS 和 strongSwan 之间配置一个 Site-to-Site 的 IKEv2 VPN。如果你还没有动手实际配置过 strongSwan，我强烈建议你先读完至少 Part1~5 和 Part7，并且自己动手配置一个能用的 strongSwan 服务端。这样至少能保证你会配置 strongSwan，否则同时学习 RouterOS 和 strongSwan 两种配置方法会让人云里雾里。</p>
+<h2 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h2><p>RouterOS 做路由器，用 DHCP 给内网设备分配<code>192.168.50.0/24</code>段中的 IP 地址。并且用 IPsec 的 Tunnel 模式将所有来自此 IP 段的数据转发至服务器<code>22.22.22.22</code>。路由器本身的 IP 并不重要。</p>
+<p><img src="/images/ipsec-configurations-part9/01-topology.png" alt="Network topology"></p>
+<h2 id="阅读基本-RouterOS-命令"><a href="#阅读基本-RouterOS-命令" class="headerlink" title="阅读基本 RouterOS 命令"></a>阅读基本 RouterOS 命令</h2><p>在本文中我主要使用 RouterOS 命令来表示具体的配置，但是实际情况下调试 WebUI 会更方便。这里提供一张简图解释怎么阅读 RouterOS 的命令：<br><img src="/images/ipsec-configurations-part9/02-how-to-read-routeros-command.jpg" alt="Command explanation"></p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2021/01/ipsec-configurations-part9/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2021-01-16T16:45:00.000Z"><a href="/2021/01/flexget-user-systemd-timer/">Jan 16 2021</a></time>
       
       
@@ -349,50 +388,6 @@ echo nameserver 1.1.1.1 &gt; /etc/resolv.conf</code></pre><p>不过实际测试�
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-11-05T12:00:00.000Z"><a href="/2020/11/ipsec-configurations-part4/">Nov 5 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/ipsec-configurations-part4/">IPsec 配置备忘 Part4 - Virtual IP</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>第四篇主要讲一下怎么给客户端下发内网 IP ~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a>；<a href="/2020/10/ipsec-configurations-part3/">Part3 传送门</a></p>
-<h2 id="Virtual-IP-VIP"><a href="#Virtual-IP-VIP" class="headerlink" title="Virtual IP (VIP)"></a>Virtual IP (VIP)</h2><p>接 Part3，有了 Tunnel 模式以后我们实际使用的 IP 地址就不用受制于机器的实际 IP 了。但是手动给每个客户端手动分配一个地址显然是不切实际的。于是我们可以使用 Virtual IP 功能自动向连入的客户端分配一个内网 IP，就像 DHCP 或者 SLAAC 那样。</p>
-<h2 id="场景配置"><a href="#场景配置" class="headerlink" title="场景配置"></a>场景配置</h2><p>与之前完全对称的配置不同，使用 Virtual IP 时需要区分服务端和客户端。先在服务端配置将要分配的 IP，然后由客户端发起连接，服务端就会将配置好的 IP 分发出去。我使用 HostA 作为服务端，HostB 作为客户端。HostA 将会给 HostB 分配 IPv4 与 IPv6 各一个。使用的 Virtual IP 段是<code>fd01::100-fd01::200</code>和<code>10.10.10.100-10.10.10.150</code>。</p>
-<pre><code>hosta$ ip -br addr
-eth1         UP             fd00::1/64 fd01::1/128 10.10.10.1/32
-
-hostb$ ip -br addr
-eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA 这里有一些与之前不同的地方，一是内部 IP 全部放在了 eth1 上（而不是 lo 上）；二是内部 IP 的前缀长度都是最大值；三是增加了一个 IPv4 的内部 IP，用于和分配的 IPv4 Virtual IP 通信。同时 HostB 也不再手工分配<code>fd01</code>开头的内部 IP 了，将由 strongSwan 自动配置。</p>
-<p>当连接建立后，我们应该能看到在 HostB 的 eth1 上出现两个新的，自动分配的 IP。且分配到的 IPv4 地址与 10.10.10.1 之间的通信是加密的，分配到的 IPv6 地址与 fd01::1 之间的通信是加密的。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/11/ipsec-configurations-part4/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -416,6 +411,10 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   <ul class="entry">
     
       <li>
+        <a href="/2021/01/ipsec-configurations-part9/">IPsec 配置备忘 Part9 - RouterOS</a>
+      </li>
+    
+      <li>
         <a href="/2021/01/flexget-user-systemd-timer/">Flexget+systemd.timer 配置</a>
       </li>
     
@@ -431,10 +430,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
         <a href="/2020/11/ipsec-configurations-part7/">IPsec 配置备忘 Part7 - 证书 II</a>
       </li>
     
-      <li>
-        <a href="/2020/11/ipsec-configurations-part6/">IPsec 配置备忘 Part6 - Android 客户端</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -448,7 +443,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>40</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>41</small></li>
   
   </ul>
 </div>
@@ -458,7 +453,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 12px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 19px;">Linux</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 11px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 12px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
   </div>
 </div>
 

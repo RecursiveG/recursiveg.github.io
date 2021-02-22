@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://recursiveg.me/"/>
-  <updated>2021-01-19T04:14:10.763Z</updated>
+  <updated>2021-02-22T04:00:30.593Z</updated>
   <id>https://recursiveg.me/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Ciphersuite Memo</title>
+    <link href="https://recursiveg.me/2021/02/ciphersuite-memo/"/>
+    <id>https://recursiveg.me/2021/02/ciphersuite-memo/</id>
+    <published>2021-02-21T11:30:00.000Z</published>
+    <updated>2021-02-22T04:00:30.593Z</updated>
+    
+    <content type="html"><![CDATA[<p>I&#39;m sorry if you landed in this keywords soup only to find it not helpful.</p><ul><li><p><strong>Key Exchange</strong></p><ul><li>DH (<a href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman" target="_blank" rel="noopener">Diffie-Hellman</a>): g^{xy} = {g^x}^y = {g^y}^x</li><li>ECDH (Elliptic-Curve DH)</li><li>ECDHE (ECDH Ephemeral)</li><li>DHE (DH Ephemeral)</li><li><a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)" target="_blank" rel="noopener">RSA (Encryption)</a>: Generate a random bitstream and share it with the peer by encrypting using peer&#39;s RSA public key.</li></ul><p>A related concept is PFS (<a href="https://en.wikipedia.org/wiki/Forward_secrecy" target="_blank" rel="noopener">Perfect Forward Secrecy</a>). DH offers PFS while RSA cannot.</p></li><li><p><strong>Authentication</strong><br>Also known as key-signing. Commonly used together with the PKI(<a href="https://en.wikipedia.org/wiki/Public_key_infrastructure" target="_blank" rel="noopener">Public Key Infrastructure</a>).</p><ul><li><a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)#Signing_messages" target="_blank" rel="noopener">RSA (Signing)</a></li><li>DSA (<a href="https://en.wikipedia.org/wiki/Digital_Signature_Algorithm" target="_blank" rel="noopener">Digital signature algorithm</a>)</li><li>ECDSA (Elliptic-Curve DSA)</li></ul></li><li><p><strong>Encryption</strong><br>Used for data confidentiality.</p><ul><li>RSA (Encryption): The famous asymmetric encryption algorithm.</li><li>AES (<a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard" target="_blank" rel="noopener">Advanced Encryption Standard</a>): A block cipher.</li><li><a href="https://en.wikipedia.org/wiki/Salsa20#ChaCha_variant" target="_blank" rel="noopener">Chacha</a>: A stream cipher.</li><li>and more…</li></ul><p>A related concept is <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation" target="_blank" rel="noopener">mode of operation</a>,which turns a block cipher to a stream cipher. <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)" target="_blank" rel="noopener">CBC</a> is a commonly used one. When it&#39;s used with AES, it&#39;s expressed as <code>AES-CBC</code></p></li><li><p><strong>Message authentication</strong><br>Used for data integrity. These algorithms are also called MAC(<a href="https://en.wikipedia.org/wiki/Message_authentication_code" target="_blank" rel="noopener">Message authentication code</a>).</p><ul><li>Various <a href="https://en.wikipedia.org/wiki/Cryptographic_hash_function" target="_blank" rel="noopener">Hash algorithms</a>, including the famous <a href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms" target="_blank" rel="noopener">SHA family</a>.</li><li>HMAC (<a href="https://en.wikipedia.org/wiki/HMAC" target="_blank" rel="noopener">Hash-based MAC</a>): They uses a hash function inside and allows a “password” to be specified.</li><li><a href="https://en.wikipedia.org/wiki/Poly1305" target="_blank" rel="noopener">Poly1305</a></li></ul></li><li><p><strong>Authenticated Encryption (AE)</strong><br>Combines confidentiality and integrity. Wikipedia: <a href="https://en.wikipedia.org/wiki/Authenticated_encryption" target="_blank" rel="noopener">Authenticated Encryption</a>.</p><ul><li>EtM (<a href="https://en.wikipedia.org/wiki/Authenticated_encryption#Encrypt-then-MAC" target="_blank" rel="noopener">Encrypt-then-MAC</a>): A secure way to combine encryption algorithms with MAC algorithms.</li><li>GCM (<a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode" target="_blank" rel="noopener">Galois/Counter Mode</a>): A mode of operation, when paired with a block cipher, offers AE (actually AEAD) in one step.</li></ul><p>Some commonly used AE methods:</p><ul><li>AES-CBC with an HMAC e.g.<code>AES128-CBC-HMAC-SHA256</code>.</li><li>ChaCha20 with Poly1305.</li><li>AES-GCM</li></ul></li><li><p><strong>Authenticated Encryption with Associated Data (AEAD)</strong><br>Similar to AE, but allows extra unencrypted data (associated data) to be authenticated. Roughly speaking:</p><pre><code>ciphertext = Encrypt(plaintext)auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case for AEAD is when encrypting a network packet, you want the packet header to stay unencrypted (for network routing purposes) but still authenticated.</p></li><li><p><strong>Note about DH and curves of EC-based algorithms</strong><br>DH-based algorithms may have a “Group” option, which specifies a prime field or an elliptic curve. If a prime field is used, such as <code>modp2048</code>, it&#39;s normal DH. If an elliptic curve group is used, such as <code>ecp256</code>, it&#39;s EC-based DH.<br>Some other curves may be used:</p><ul><li><a href="https://en.wikipedia.org/wiki/Curve25519" target="_blank" rel="noopener">Curve25519</a></li><li><a href="https://en.wikipedia.org/wiki/EdDSA" target="_blank" rel="noopener">Edwards curve</a> as in EdDSA and Ed25519</li></ul></li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;I&amp;#39;m sorry if you landed in this keywords soup only to find it not helpful.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Key Exchange&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li
+      
+    
+    </summary>
+    
+    
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
+    
+    
+      <category term="Cryptography" scheme="https://recursiveg.me/tags/Cryptography/"/>
+    
+      <category term="Memo" scheme="https://recursiveg.me/tags/Memo/"/>
+    
+  </entry>
   
   <entry>
     <title>IPsec 配置备忘 Part9 - RouterOS</title>

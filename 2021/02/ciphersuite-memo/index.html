@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>Sync with iDevice on Linux | RECURSIVE LAND</title>
+  <title>Ciphersuite Memo | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
   <meta name="description" content="Recursive G&#39;s personal blog" />
@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  <meta property="og:title" content="Sync with iDevice on Linux"/>
+  <meta property="og:title" content="Ciphersuite Memo"/>
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
@@ -71,21 +71,74 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
-        <time datetime="2012-12-31T13:01:00.000Z"><a href="/2012/12/sync-with-idevice-on-linux/">Dec 31 2012</a></time>
+        <time datetime="2021-02-21T11:30:00.000Z"><a href="/2021/02/ciphersuite-memo/">Feb 21 2021</a></time>
       
       
   
-    <h1 class="title">Sync with iDevice on Linux</h1>
+    <h1 class="title">Ciphersuite Memo</h1>
   
 
     </header>
     <div class="entry">
       
-        <p>It’s a bit hard to connect an iDevice with Linux because Apple is not so open and we have to use iTunes to sync with our iDevice for a long time. Luckily we now have a set of tool so that we can control our device on linux. The most important two library are <a href="http://www.libimobiledevice.org/" target="_blank" rel="noopener">libimobiledevice</a>(libiphone) and libgpod.</p>
-<p>libimobiledevice, like it’s name, is a library who provides the interface to access the iDevice. It provides a higher level of access such as photo, bookmark, install/uninstall softwares and even sync music. And it doesn’t need jailbreak.</p>
-<p>What I want to mention is how musics synchronized with an iDevice. Under the iTunes folder (You may never seen that before. That’s ordinary.), there’s a file called iTunesDB. That’s the file which libgpod really works with. This file contains the name of songs, singers’ names, your play lists and so on. Unfortunately, because Apple don’t want it be modified by any programs except iTunes, they add some hash info into the file. If iPod found the hash is incorrect, it refused to display the songs. There was once a project called iPodHash, but it seems to be die due to a DMCA notice. Apple engineers have changed the hash algorithm for several times and the latest version haven’t been reverse-engineering, as a result, now we can only sync with a old version of iOS.</p>
-<p>If your iDevice is jailbreaked, you can change a key called DBVersion(Sorry, I forgot where it is.). It tells iPod which version of hash algorithm it should use so we could use a known hash on new iOS. This process depends on libimobiledevice too. It only support to sync with iOS 4 or older. That means it’s useless even if you changed DBVersion on your iOS5 device. By the way, you may will not find a iTunesDB file but a iTunesCDB instead. It’s a compressed version of iTunesDB using zlib.</p>
-<p>I feel so sad that such a project is closed and now I can only sync with my iPod on Windows.</p>
+        <p>I&#39;m sorry if you landed in this keywords soup only to find it not helpful.</p>
+<ul>
+<li><p><strong>Key Exchange</strong></p>
+<ul>
+<li>DH (<a href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman" target="_blank" rel="noopener">Diffie-Hellman</a>): g^{xy} = {g^x}^y = {g^y}^x</li>
+<li>ECDH (Elliptic-Curve DH)</li>
+<li>ECDHE (ECDH Ephemeral)</li>
+<li>DHE (DH Ephemeral)</li>
+<li><a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)" target="_blank" rel="noopener">RSA (Encryption)</a>: Generate a random bitstream and share it with the peer by encrypting using peer&#39;s RSA public key.</li>
+</ul>
+<p>A related concept is PFS (<a href="https://en.wikipedia.org/wiki/Forward_secrecy" target="_blank" rel="noopener">Perfect Forward Secrecy</a>). DH offers PFS while RSA cannot.</p>
+</li>
+<li><p><strong>Authentication</strong><br>Also known as key-signing. Commonly used together with the PKI(<a href="https://en.wikipedia.org/wiki/Public_key_infrastructure" target="_blank" rel="noopener">Public Key Infrastructure</a>).</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)#Signing_messages" target="_blank" rel="noopener">RSA (Signing)</a></li>
+<li>DSA (<a href="https://en.wikipedia.org/wiki/Digital_Signature_Algorithm" target="_blank" rel="noopener">Digital signature algorithm</a>)</li>
+<li>ECDSA (Elliptic-Curve DSA)</li>
+</ul>
+</li>
+<li><p><strong>Encryption</strong><br>Used for data confidentiality.</p>
+<ul>
+<li>RSA (Encryption): The famous asymmetric encryption algorithm.</li>
+<li>AES (<a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard" target="_blank" rel="noopener">Advanced Encryption Standard</a>): A block cipher.</li>
+<li><a href="https://en.wikipedia.org/wiki/Salsa20#ChaCha_variant" target="_blank" rel="noopener">Chacha</a>: A stream cipher.</li>
+<li>and more…</li>
+</ul>
+<p>A related concept is <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation" target="_blank" rel="noopener">mode of operation</a>,which turns a block cipher to a stream cipher. <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)" target="_blank" rel="noopener">CBC</a> is a commonly used one. When it&#39;s used with AES, it&#39;s expressed as <code>AES-CBC</code></p>
+</li>
+<li><p><strong>Message authentication</strong><br>Used for data integrity. These algorithms are also called MAC(<a href="https://en.wikipedia.org/wiki/Message_authentication_code" target="_blank" rel="noopener">Message authentication code</a>).</p>
+<ul>
+<li>Various <a href="https://en.wikipedia.org/wiki/Cryptographic_hash_function" target="_blank" rel="noopener">Hash algorithms</a>, including the famous <a href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms" target="_blank" rel="noopener">SHA family</a>.</li>
+<li>HMAC (<a href="https://en.wikipedia.org/wiki/HMAC" target="_blank" rel="noopener">Hash-based MAC</a>): They uses a hash function inside and allows a “password” to be specified.</li>
+<li><a href="https://en.wikipedia.org/wiki/Poly1305" target="_blank" rel="noopener">Poly1305</a></li>
+</ul>
+</li>
+<li><p><strong>Authenticated Encryption (AE)</strong><br>Combines confidentiality and integrity. Wikipedia: <a href="https://en.wikipedia.org/wiki/Authenticated_encryption" target="_blank" rel="noopener">Authenticated Encryption</a>.</p>
+<ul>
+<li>EtM (<a href="https://en.wikipedia.org/wiki/Authenticated_encryption#Encrypt-then-MAC" target="_blank" rel="noopener">Encrypt-then-MAC</a>): A secure way to combine encryption algorithms with MAC algorithms.</li>
+<li>GCM (<a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode" target="_blank" rel="noopener">Galois/Counter Mode</a>): A mode of operation, when paired with a block cipher, offers AE (actually AEAD) in one step.</li>
+</ul>
+<p>Some commonly used AE methods:</p>
+<ul>
+<li>AES-CBC with an HMAC e.g.<code>AES128-CBC-HMAC-SHA256</code>.</li>
+<li>ChaCha20 with Poly1305.</li>
+<li>AES-GCM</li>
+</ul>
+</li>
+<li><p><strong>Authenticated Encryption with Associated Data (AEAD)</strong><br>Similar to AE, but allows extra unencrypted data (associated data) to be authenticated. Roughly speaking:</p>
+<pre><code>ciphertext = Encrypt(plaintext)
+auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case for AEAD is when encrypting a network packet, you want the packet header to stay unencrypted (for network routing purposes) but still authenticated.</p>
+</li>
+<li><p><strong>Note about DH and curves of EC-based algorithms</strong><br>DH-based algorithms may have a “Group” option, which specifies a prime field or an elliptic curve. If a prime field is used, such as <code>modp2048</code>, it&#39;s normal DH. If an elliptic curve group is used, such as <code>ecp256</code>, it&#39;s EC-based DH.<br>Some other curves may be used:</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Curve25519" target="_blank" rel="noopener">Curve25519</a></li>
+<li><a href="https://en.wikipedia.org/wiki/EdDSA" target="_blank" rel="noopener">Edwards curve</a> as in EdDSA and Ed25519</li>
+</ul>
+</li>
+</ul>
 
       
     </div>
@@ -100,7 +153,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         
   
   <div class="tags">
-    <a href="/tags/Written-In-English/">Written In English</a>, <a href="/tags/iDevice/">iDevice</a>, <a href="/tags/Linux/">Linux</a>
+    <a href="/tags/Cryptography/">Cryptography</a>, <a href="/tags/Memo/">Memo</a>
   </div>
 
         

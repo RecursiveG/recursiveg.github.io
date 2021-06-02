@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://recursiveg.me/"/>
-  <updated>2021-02-22T04:00:30.593Z</updated>
+  <updated>2021-06-02T05:46:27.336Z</updated>
   <id>https://recursiveg.me/</id>
   
   <author>
@@ -15,6 +15,37 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>计算机网络基础概念备忘</title>
+    <link href="https://recursiveg.me/2021/06/computer-network-memo/"/>
+    <id>https://recursiveg.me/2021/06/computer-network-memo/</id>
+    <published>2021-06-01T15:00:00.000Z</published>
+    <updated>2021-06-02T05:46:27.336Z</updated>
+    
+    <content type="html"><![CDATA[<p>本文试图在较短篇幅中解释一些计算机网络方面的基本概念，试图避免在与计算机网络爱好者交流过程中出现的鸡同鸭讲的现象。由于大部分业余爱好者可以接触到的网络环境是普通家庭环境，因此本文假设以下网络环境：</p><pre><code>──入户光纤──► [光猫] ──网线──► [&quot;路由器&quot;] ──网线──► [任意有线设备]</code></pre><p>本文使用绝对化语言以减少对非专业读者造成的困惑。</p><h2 id="路由器与交换机"><a href="#路由器与交换机" class="headerlink" title="路由器与交换机"></a>路由器与交换机</h2><p>“路由”与“交换”是两个互相独立的概念，两个词语不可互相替代。<br>市面上能购买到的“路由器”能够同时支持“路由”和“交换”，这通常是通过两块独立的芯片做到的：“路由芯片”负责“路由”操作，“交换芯片”执行“交换”操作。<br>通过配置，你可以让路由芯片的行为看上去像是交换芯片，但是此时路由芯片进行的操作仍然是“路由”，只是看上去像交换而已。<br>下图是 MikroTik RB4011 的 Block diagram，可以看到路由芯片为 AL21400，交换芯片为两片 RTL8367，10 个以太网口连接到交换芯片，交换芯片通过内部走线连接到路由芯片。</p><p><img src="https://i.mt.lv/cdn/product_files/RB4011iGSplusRM_180903.png" alt="MikroTik RB4011 block diagram"></p><h2 id="地址"><a href="#地址" class="headerlink" title="地址"></a>地址</h2><p>“地址”这个词一般指以下三者之一：</p><ol><li>IPv4 地址，长这样：<code>aaa.bbb.ccc.ddd</code></li><li>IPv6 地址，长这样：<code>2001:abcd:4321::1</code></li><li>MAC 地址，长这样：<code>aa:bb:cc:dd:ee:ff</code></li></ol><h2 id="数据如何到达目的地-I"><a href="#数据如何到达目的地-I" class="headerlink" title="数据如何到达目的地 I"></a>数据如何到达目的地 I</h2><p>考虑最简单的情况，两台电脑直接用网线连接：</p><pre><code>[电脑] ──网线── [电脑]</code></pre><p>当一台电脑要向另一台电脑发送数据时，直接发送即可，数据必然能被另一台电脑收到。</p><h2 id="数据如何到达目的地-II"><a href="#数据如何到达目的地-II" class="headerlink" title="数据如何到达目的地 II"></a>数据如何到达目的地 II</h2><p>考虑更复杂的情况，三台电脑通过某种中间设备互相连接：</p><pre><code>[中间设备 接口1] ──网线── [电脑1]         接口2] ──网线── [电脑2]         接口3] ──网线── [电脑3]</code></pre><p>当电脑1发送数据时，它必须说明数据的接收者是谁，是电脑2还是电脑3？我们假设接受者是电脑3。当数据到达“中间设备”后，该设备需要确定，“电脑3”是连接在接口2还是接口3上。当该中间设备确定了电脑3连接在接口3上以后，它就可以将数据从接口3发出。</p><p>在现实世界中，我们给电脑的编号（1/2/3 等）被称作 MAC 地址，中间设备确定某台电脑所连接的接口的过程被称作“MAC 地址学习”，“MAC 地址学习”+“发送数据包到正确的接口”的过程被称作“交换”，能够执行“交换”动作的硬件设备被称作“交换机”。因此，这里的“中间设备”就是一台交换机。</p><h2 id="数据如何到达目的地-III"><a href="#数据如何到达目的地-III" class="headerlink" title="数据如何到达目的地 III"></a>数据如何到达目的地 III</h2><p>出于<abbr title="设备制造商可以重复使用 MAC 地址；以太网不是唯一的二层网络；etc.">各种原因</abbr>，MAC 地址只能在小范围内使用，为了让你能访问在地球另一边的网站，我们需要一个在全球范围内都能指定唯一一台电脑的地址系统，这就是 IP 地址。</p><p>未完待续……</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;本文试图在较短篇幅中解释一些计算机网络方面的基本概念，试图避免在与计算机网络爱好者交流过程中出现的鸡同鸭讲的现象。由于大部分业余爱好者可以接触到的网络环境是普通家庭环境，因此本文假设以下网络环境：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;──入户光纤──► [光猫] ──网线──► 
+      
+    
+    </summary>
+    
+    
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
+    
+    
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Networking" scheme="https://recursiveg.me/tags/Networking/"/>
+    
+      <category term="Memo" scheme="https://recursiveg.me/tags/Memo/"/>
+    
+  </entry>
   
   <entry>
     <title>Ciphersuite Memo</title>

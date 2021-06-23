@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   
-  <title>公钥加密 | RECURSIVE LAND</title>
+  <title>手动硬盘安装 WePE | RECURSIVE LAND</title>
   <meta name="author" content="RecursiveG" />
   
   <meta name="description" content="Recursive G&#39;s personal blog" />
@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  <meta property="og:title" content="公钥加密"/>
+  <meta property="og:title" content="手动硬盘安装 WePE"/>
   <meta property="og:site_name" content="RECURSIVE LAND"/>
 
   
@@ -71,22 +71,20 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
-        <time datetime="2012-12-31T13:02:00.000Z"><a href="/2012/12/public-key-cryptography/">Dec 31 2012</a></time>
+        <time datetime="2021-06-22T14:00:00.000Z"><a href="/2021/06/manual-wepe-installation/">Jun 22 2021</a></time>
       
       
   
-    <h1 class="title">公钥加密</h1>
+    <h1 class="title">手动硬盘安装 WePE</h1>
   
 
     </header>
     <div class="entry">
       
-        <p>各种加密方法大体可以分成两类，一类是对称加密，另一类是非对称加密。</p>
-<p>凯撒密码是对称加密中的一种，他的加密方法是把A变成B，把B变成C，于是解密的时候只要把字母替换回来就行了。也就是说，任何知道加密方法的人就可以解密。</p>
-<p>RSA是一种非对称加密算法，他的特点是任何人都可以加密，但只有我可以解密。做个比喻，人人都可以把锁头扣上，但只有拥有钥匙的人可以开锁。这个分发出去的用于加密的东西叫做公钥，也被称作证书。而留在自己身边的“钥匙”就是私钥，是绝对不能被第二个人拿到的。</p>
-<p>于是乎，你可以把公钥发给别人，别人把数据用你的公钥加密后传给你，你用私钥解密后阅读。在这个过程中，任何人截取到数据都是无效的，因为它没有你的私钥。</p>
-<p>RSA还有一个特点，就是可以用私钥加密，用公钥解密。你会问，公钥人人都能拿到，相当于人人都能解密，那这样加密有什么意义呢？意义在于，它可以作为身份验证。用私钥加密的过程叫签名，而验证签名就是用对应的公钥解密。因为为只有用对应的私钥签名的文件才能用公钥解密，既然它可以用公钥解密，就一定是由对应私钥签署的，而私钥只有你有，于是这份文件就一定是你发布的。网络上的HTTPS就是依靠着个。一般来说，用私钥加密的都是MD5、SHA1 之类的，加密原文太耗系统资源。</p>
-<p>对付这种非对称的加密方式，有一种叫做“中间人攻击”的攻击方法，它会使双方之间的通信完全暴露。我就偷懒不写了，大家自己找资料。</p>
+        <p>最近尝试了一些 Windows 下的全盘备份/恢复方案，于是顺便折腾了一下各种 <a href="https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-intro" target="_blank" rel="noopener">WinPE</a> 系统。WinPE 简单来说就是一个 Windows 的 LiveCD，带有各种用于 Windows 的工具。网友们在微软的 WinPE 基础上加入各种驱动和方便使用的图形化操作界面，作为不同的 WinPE “发行版”发布，<a href="http://www.wepe.com.cn/" target="_blank" rel="noopener">微PE(WePE)</a> 是这些“发行版”之一。</p>
+<p>WePE 自带的安装程序除了安装必要的启动项以外还会安装一些没啥用的选项。所以记录一下手动安装启动项的方法。环境为 Windows 10 64位 UEFI 启动。你需要先制作 WePE 的 ISO，然后把 ISO 里的<code>WEPE</code>目录复制到随便一个分区里，我假设是<code>D:</code>。用管理员身份执行以下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">bcdedit &#x2F;create &#x2F;device</span><br><span class="line"># 你会拿到一串 GUID, 假设是 &#123;A...&#125;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;A...&#125;&quot; ramdisksdidevice partition&#x3D;D:</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;A...&#125;&quot; ramdisksdipath \WEPE\WEPE.SDI</span><br><span class="line"></span><br><span class="line">bcdedit &#x2F;create &#x2F;d &quot;WePE&quot; &#x2F;application osloader</span><br><span class="line"># 你会拿到一串 GUID, 假设是 &#123;B...&#125;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; device &quot;ramdisk&#x3D;[D:]\WEPE\WEPE64.WIM,&#123;A...&#125;&quot;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; osdevice &quot;ramdisk&#x3D;[D:]\WEPE\WEPE64.WIM,&#123;A...&#125;&quot;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; path \windows\system32\boot\winload.efi</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; systemroot \windows</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; nx OptIn</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; pae ForceEnable</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; detecthal Yes</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; winpe yes</span><br><span class="line">bcdedit &#x2F;displayorder &quot;&#123;B...&#125;&quot; &#x2F;addlast</span><br><span class="line">bcdedit &#x2F;timeout 3</span><br></pre></td></tr></table></figure>
+<p>设定完启动项以后就可以把盘符删掉了。</p>
 
       
     </div>
@@ -95,13 +93,13 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
         
   
   <div class="categories">
-    <a href="/categories/Mathematics/">Mathematics</a>
+    <a href="/categories/Programming/">Programming</a>
   </div>
 
         
   
   <div class="tags">
-    <a href="/tags/加密/">加密</a>, <a href="/tags/RSA/">RSA</a>
+    <a href="/tags/折腾/">折腾</a>, <a href="/tags/Windows/">Windows</a>
   </div>
 
         

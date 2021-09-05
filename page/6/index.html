@@ -72,6 +72,43 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-04-20T12:00:19.000Z"><a href="/2014/04/programming-with-ptrace-part2/">Apr 20 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/04/programming-with-ptrace-part2/">Programming with PTRACE, Part2 - 系统调用入门</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在这部分，我会介绍如何使用ptrace监控子进程的系统调用。我先将完整代码列在开头，你现在十有八九看不懂它，但我希望你在看完这篇文章后能彻底理解这段代码。（这段代码在64位系统上有效，32位系统请参照最后<code>给32位系统的Tip</code>手动修改源代码）</p>
+<figure class="highlight c"><figcaption><span>demo4.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Parent started"</span>);</span><br><span class="line">  <span class="keyword">pid_t</span> pid;</span><br><span class="line">  pid=fork();</span><br><span class="line">  <span class="keyword">if</span> (pid&lt;<span class="number">0</span>)&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"fork() failed"</span>);</span><br><span class="line">    <span class="keyword">return</span>(<span class="number">-1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (pid==<span class="number">0</span>)&#123;</span><br><span class="line">    ptrace(PTRACE_TRACEME,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child sleeping..."</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Child exec..."</span>);</span><br><span class="line">    execlp(<span class="string">"./target"</span>,<span class="string">"target"</span>,<span class="literal">NULL</span>);</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child PiD == %d\n"</span>,pid);</span><br><span class="line">    <span class="keyword">int</span> sta=<span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rusage</span> <span class="title">ru</span>;</span></span><br><span class="line">    wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">    <span class="keyword">long</span> rax_rt=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Child execve() returned with %ld\n"</span>,rax_rt);</span><br><span class="line">    ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">int</span> intocall=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">      wait4(pid,&amp;sta,<span class="number">0</span>,&amp;ru);</span><br><span class="line">      <span class="keyword">if</span> (WIFEXITED(sta))&#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Child Exited"</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">long</span> _ORIG_RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*ORIG_RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">long</span> _RAX=ptrace(PTRACE_PEEKUSER,pid,<span class="number">8</span>*RAX,<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">if</span> (intocall)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Entering SYSCALL %ld .... "</span>,_ORIG_RAX);</span><br><span class="line">        intocall=<span class="number">0</span>;</span><br><span class="line">      &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Exited with %ld\n"</span>,_RAX);</span><br><span class="line">        intocall=<span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      ptrace(PTRACE_SYSCALL,pid,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/04/programming-with-ptrace-part2/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2014-04-17T13:16:29.000Z"><a href="/2014/04/programming-with-ptrace-part1/">Apr 17 2014</a></time>
       
       
@@ -294,44 +331,6 @@ if (pid==0){
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2013-01-31T13:46:00.000Z"><a href="/2013/01/cheat-with-pascal/">Jan 31 2013</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2013/01/cheat-with-pascal/">Pascal中鲜为人知的那些技巧</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>做为一个搞信息学竞赛这么长时间的人，再加上估计很快就要转C++了，我觉得我有必要留下一些关于Pascal语言的资料，于是就有了这篇文章。我只负责解释用法，对基础概念不了解的请自行Google。所有这篇文章里的东西应该都能在Free Pascal自带的文档里找到，我写出来是为了众多不喜欢看英文的同学们，如果你愿意自己去看一下，一定会收益匪浅。</p>
-<h3 id="不同进制的表示"><a href="#不同进制的表示" class="headerlink" title="不同进制的表示"></a>不同进制的表示</h3><p>平时我们写的常量都是十进制数，但我们有时需要写一个比如十六进制数怎么办呢？我们当然可以手动计算一下，但还有更优雅的方法。</p>
-<pre><code>writeln($Ff,#32,&amp;10,#32,%100);</code></pre><p>你觉得它会输出什么呢？它输出<code>255 8 4</code>!所以以<code>$</code>开头的是16进制数，<code>&amp;</code>开头的是8进制数，<code>%</code>开头的是二进制数。顺带一提的是，以<code>#</code>开头的数会转变成对应ASCII码的字符，其实它可以和前面的三个符号共同使用，即<code>#$20</code>和<code>#%100000</code>都代表了空格。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2013/01/cheat-with-pascal/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -357,6 +356,10 @@ if (pid==0){
   <ul class="entry">
     
       <li>
+        <a href="/2021/09/lto-tape-drive-intro/">LTO-5 磁带机折腾入门</a>
+      </li>
+    
+      <li>
         <a href="/2021/08/usb4-thunderbolt4-memo/">USB4 与 Thunderbolt 4 备忘</a>
       </li>
     
@@ -372,10 +375,6 @@ if (pid==0){
         <a href="/2021/01/ipsec-configurations-part9/">IPsec 配置备忘 Part9 - RouterOS</a>
       </li>
     
-      <li>
-        <a href="/2021/01/flexget-user-systemd-timer/">Flexget+systemd.timer 配置</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -389,7 +388,7 @@ if (pid==0){
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>44</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>45</small></li>
   
   </ul>
 </div>
@@ -399,7 +398,7 @@ if (pid==0){
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12.22px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.67px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11.11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/Linux/" style="font-size: 18.89px;">Linux</a> <a href="/tags/Memo/" style="font-size: 11.11px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11.11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.78px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.44px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 11.11px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11.11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.56px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 11.11px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11.11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 12.22px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 18.89px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.11px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.33px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.22px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.11px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12.22px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 11px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 11px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 11px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 12px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 12px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
   </div>
 </div>
 

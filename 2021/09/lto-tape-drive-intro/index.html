@@ -96,7 +96,7 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
 <pre><code>sudo ltfs -o device_list</code></pre><p>2.格式化磁带</p>
 <pre><code>sudo mkltfs -d /dev/sgX</code></pre><p>3.挂载</p>
 <pre><code>sudo ltfs -o devname=/dev/sgX /ltfs</code></pre><p>4.卸载</p>
-<pre><code>sudo umount /ltfs</code></pre><h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>磁带机买来干什么？鉴于磁带的顺序读写以及需要手动换磁带（买带库的大佬请忽略）的特性，注定了它只适合于备份和归档用途。备份像是重疾保险，你希望永远也用不上的它；归档是你 6 岁时的玩具，舍不得丢但也不会再用。所以如果你说 NAS 空间不够，要用磁带来存你的电影，我觉得不太行。但如果你打算收集世界上所有的电影，磁带大概可行。</p>
+<pre><code>sudo umount /ltfs</code></pre><h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>磁带机买来干什么？鉴于磁带的顺序读写以及需要手动换磁带（买带库的大佬请忽略）的特性，注定了它只适合于备份和归档用途。备份像是重疾保险，你希望永远也用不上；归档是你 6 岁时的玩具，舍不得丢但也不会再用。所以如果你说 NAS 空间不够，要用磁带来存你的电影，我觉得不太行。但如果你仓鼠症发作，打算收集世界上所有的电影，磁带大概可行。</p>
 <p>我还顺便搜集了一下 HP 的官方文档，方便参考：</p>
 <ul>
 <li>HP LTO Ultrium tape drives technical reference manual, Volume 1~5, LTO5 drives:<ul>

@@ -72,6 +72,55 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-12-19T14:47:39.000Z"><a href="/2020/12/use-archlinux-in-gns3/">Dec 19 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/12/use-archlinux-in-gns3/">在 GNS3 中使用 ArchLinux</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>之前在折腾 strongSwan 配置的时候需要多台电脑互相连接做测试，用实机各种不方便。比方说，我不想暴露真实 IP，就只能在发布前手工编辑配置文件，也不知道编辑过后的文件到底能不能工作。于是尝试折腾使用 <a href="https://www.gns3.com" target="_blank" rel="noopener">GNS3</a> 来搭建一个虚拟的网络环境。</p>
+<h2 id="安装-GNS3"><a href="#安装-GNS3" class="headerlink" title="安装 GNS3"></a>安装 GNS3</h2><p>你可以尝试从 AUR 安装 GNS3，但是我之前试了几次都不是太成功，于是还是把 GNS3 装进了 virtualenv 里：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建并进入 virtualenv</span></span><br><span class="line">virtualenv -p python3.9 virtualenv</span><br><span class="line"><span class="built_in">source</span> virtualenv/bin/activate</span><br><span class="line"><span class="comment"># 安装 GNS3 及 PyQt5</span></span><br><span class="line">pip install gns3-server gns3-gui pyqt5</span><br><span class="line"><span class="comment"># 安装一些其他的依赖（可能有漏的，请根据 gns3 的出错消息自己安装）</span></span><br><span class="line">yay -S vpcs dynamips</span><br><span class="line"><span class="comment"># 启动 GNS3</span></span><br><span class="line">gns3</span><br></pre></td></tr></table></figure>
+
+<p>GNS3 支持好几种方式来运行虚拟网络中的“节点”，我这里使用 Docker 来运行虚拟的 Archlinux 系统。因此也需要先安装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo pacman -S docker</span><br><span class="line">sudo usermod -aG docker &#96;whoami&#96;</span><br><span class="line">sudo systemctl start docker</span><br></pre></td></tr></table></figure>
+
+<p>同时建议安装 Wireshark 方便抓包调试。</p>
+<h2 id="连接因特网"><a href="#连接因特网" class="headerlink" title="连接因特网"></a>连接因特网</h2><p>进入 GNS3 创建 Project 以后就可以尝试把左侧列表里的设备往中间画布上拖了。但是你会发现不仅设备类型少的可怜而且也基本拖不上去。这时我们需要自己创建设备节点的模板。进 Preferences，在最下面的 Docker containers 里点 New，Image name 输<code>archlinux:base-devel</code>，其他的都默认，Adapters 可以按自己需要指定数量。<br><img src="/images/use-archlinux-in-gns3/01-new-image.png" alt=""><br>点 OK 后，左侧的设备列表里就多了一个设备。拖到画布上，右键 Start，再右键 Console 就可以看到 ArchLinux 的命令行界面了。</p>
+<p>GNS3 默认使用 xterm 作为终端模拟器，如果你像我一样使用 Gnome Terminal，需要先去 General - Console applications 把启动终端的命令改成</p>
+<pre><code>gnome-terminal -t &quot;%d&quot; -- telnet &quot;%h&quot; &quot;%p&quot;</code></pre><p><img src="/images/use-archlinux-in-gns3/02-terminal-cmd.png" alt=""></p>
+<p>这个新创建的 Archlinux 节点还是空空如也的，除了基本的系统什么也没有，我们可以把它连接到实际的网络上，这样就能用 pacman 安装软件包了。先从设备列表里拖一个“Cloud”设备出来，然后点左侧边栏最下面的“Add a link”切换到连线模式，点 Cloud 节点，选择物理机上用于联网的接口，再点 Archlinux 节点，选择要连接的端口，这样一条连线就接好了。Archlinux 节点被直接桥接到了外部接口上，和宿主机位于同一网段。<br><img src="/images/use-archlinux-in-gns3/03-link-connected.png" alt=""></p>
+<p>由于 Archlinux 的镜像不带 dhcpcd 无法自动获取 IP，只能手动设置一下咯：</p>
+<pre><code>ip link set eth0 up
+ip addr add 192.168.1.222/24 dev eth0
+ip route add default via 192.168.1.1 dev eth0
+echo nameserver 1.1.1.1 &gt; /etc/resolv.conf</code></pre><p>不过实际测试以后发现这个速度实在是很残念，可能还是要写 Dockerfile 把镜像配置好再用才行。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-11-17T12:50:00.000Z"><a href="/2020/11/ipsec-configurations-part8/">Nov 17 2020</a></time>
       
       
@@ -385,43 +434,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2020-10-31T02:50:00.000Z"><a href="/2020/10/ipsec-configurations-part3/">Oct 30 2020</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/10/ipsec-configurations-part3/">IPsec 配置备忘 Part3 - Tunnel 模式</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>第三篇简单介绍一下 IPsec 的 Tunnel 模式，没看过前两篇的快去看~<br><a href="/2020/10/ipsec-configurations-part1/">Part1 传送门</a>；<a href="/2020/10/ipsec-configurations-part2/">Part2 传送门</a></p>
-<h2 id="Tunnel-模式简介"><a href="#Tunnel-模式简介" class="headerlink" title="Tunnel 模式简介"></a>Tunnel 模式简介</h2><p><img src="/images/ipsec-configurations-part3/01-tunnel-mode-header-layout.png" alt="Tunnel mode header layout"> 前两篇中我们使用的都是 Transport 模式，但是实际使用中，更常用的是 Tunnel 模式。Transport 模式只加密四层及以上数据，而不修改 IP 头，原始的 IP 头将会原样传输。这意味着我们只能进行点对点传输，因为只有一个 IP 头，我们无法告知对方服务器我们实际要访问的地址。Tunnel 模式则是连原始的 IP 头也一起加密，然后再在前端添加一个新的 IP 头，这样服务器在收到数据包后，可以解密并读取内部的 IP 头，再转发给实际的目标服务器。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2020/10/ipsec-configurations-part3/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -447,6 +459,10 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   <ul class="entry">
     
       <li>
+        <a href="/2022/01/rclone-onedrive-for-business/">Rclone 同步 OneDrive for Business 共享</a>
+      </li>
+    
+      <li>
         <a href="/2021/09/lto-tape-drive-intro/">LTO-5 磁带机折腾入门</a>
       </li>
     
@@ -462,10 +478,6 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
         <a href="/2021/02/ciphersuite-memo/">Ciphersuite Memo</a>
       </li>
     
-      <li>
-        <a href="/2021/01/ipsec-configurations-part9/">IPsec 配置备忘 Part9 - RouterOS</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -479,7 +491,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>45</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>46</small></li>
   
   </ul>
 </div>
@@ -489,7 +501,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 12px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 11px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 11px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 11px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 11px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 11px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 11px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 11px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 12px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 12px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 12px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.82px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10.91px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
   </div>
 </div>
 
@@ -532,7 +544,7 @@ eth1         UP             fd00::2/64</code></pre><p>和 Part3 相比，HostA �
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2021 RecursiveG
+  &copy; 2022 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

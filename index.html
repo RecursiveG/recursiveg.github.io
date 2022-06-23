@@ -72,6 +72,52 @@ if((window.location.origin.indexOf("localhost")==-1)&&(window.location.origin.in
     <header>
       
         <div class="icon"></div>
+        <time datetime="2022-06-22T16:00:00.000Z"><a href="/2022/06/riscv-microcontroller-intro-part1/">Jun 22 2022</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2022/06/riscv-microcontroller-intro-part1/">折腾 RISC-V 单片机 Part1</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><img src="/images/riscv-microcontroller-intro-part1/01-board-pic.png" alt="SparkFun RED-V"></p>
+<p>大约半年前在 SparkFun 上买了一块 RED-V 开发板。基本算是 HiFive1 Rev B 的克隆，比 Rev B 便宜一些，同样使用 SiFive 的 FE310-G002 处理器。SiFive 的 MCU 自带一套 SDK，不过要搭配指定的 IDE 才好用，作为有洁癖的 Linux 用户这当然是不行的，所以就有了这次的折腾。</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>我一开始是打算用 SDK 的代码，不过看了一圈感觉这样和玩 Arduino 也没区别了，失去了折腾的意义，所以决定放弃 SDK 直接用汇编艹寄存器。<br>这里是需要准备的文档和工具：</p>
+<ul>
+<li>SparkFun RED-V Schematic: 这是板子的电路图，用来看板子上的接口都具体连接到 MCU 的哪个针脚。</li>
+<li><a href="https://www.sifive.com/documentation" target="_blank" rel="noopener">Freedom E310-G002 Datasheet/Manual</a>: 这两份文件可以从 SiFive 的网站上下载到，包含几乎所有重要信息。</li>
+<li>Clang: 编译器。为啥不用 GCC？因为我不想单独折腾一份 GCC 的工具链。Clang 既可以编译出 x86 程序又可以编译出 RISC-V 程序，从软件源里装好就可以直接用了。</li>
+<li>LLD: LLVM Linker。这下也不用配置 RISC-V 的 binutils 了</li>
+<li>OpenOCD: 负责和板子通信，烧录程序，调试等。</li>
+</ul>
+<p>三份 PDF 文档需要自己下载，而其他三个程序应该能直接用包管理装。</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2022/06/riscv-microcontroller-intro-part1/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2022-01-29T17:30:00.000Z"><a href="/2022/01/rclone-onedrive-for-business/">Jan 29 2022</a></time>
       
       
@@ -362,52 +408,6 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2021-01-16T16:45:00.000Z"><a href="/2021/01/flexget-user-systemd-timer/">Jan 16 2021</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2021/01/flexget-user-systemd-timer/">Flexget+systemd.timer 配置</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>之前一直都是手动检查每周新番并添加到 Transmission 中的，最近尝试把这一流程自动化一下。简单搜索了一下发现了 <a href="https://flexget.com" target="_blank" rel="noopener">FlexGet</a> 这个工具。支持 Transmission 也能在 Linux 下运行，就决定是它了。</p>
-<h2 id="安装到用户目录"><a href="#安装到用户目录" class="headerlink" title="安装到用户目录"></a>安装到用户目录</h2><p>ArchLinux 源里并没有这个包，又考虑到这是个 Python 程序，所以就决定直接用<code>venv</code>了：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/.config/flexget</span><br><span class="line"><span class="built_in">cd</span> ~/.config/flexget</span><br><span class="line">python -m venv virtualenv</span><br><span class="line"><span class="built_in">source</span> virtualenv/bin/activate</span><br><span class="line">pip install flexget</span><br><span class="line">pip install transmission-rpc</span><br></pre></td></tr></table></figure>
-
-<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>配置方法可以看教程也可以看<a href="https://flexget.com/Configuration" target="_blank" rel="noopener">官方文档</a>。我就只简单贴一下。</p>
-<figure class="highlight yaml"><figcaption><span>~/.config/flexget/config.yml</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">templates:</span></span><br><span class="line">  <span class="attr">transmission:</span></span><br><span class="line">    <span class="attr">transmission:</span></span><br><span class="line">      <span class="attr">host:</span> <span class="string">'https://domain-name.com/transmission/rpc'</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">443</span></span><br><span class="line">      <span class="attr">username:</span> <span class="string">'your-username'</span></span><br><span class="line">      <span class="attr">password:</span> <span class="string">'your-password'</span></span><br><span class="line"></span><br><span class="line"><span class="attr">tasks:</span></span><br><span class="line">  <span class="string">这里随便写:</span></span><br><span class="line">    <span class="attr">rss:</span> <span class="string">'https://mikanani.me/RSS/...'</span></span><br><span class="line">    <span class="attr">accept_all:</span> <span class="literal">yes</span></span><br><span class="line">    <span class="attr">template:</span> <span class="string">transmission</span></span><br><span class="line">    <span class="attr">transmission:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">'/folder/path/on/server'</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Systemd-配置"><a href="#Systemd-配置" class="headerlink" title="Systemd 配置"></a>Systemd 配置</h2><figure class="highlight toml"><figcaption><span>~/.config/systemd/user/flexget.service</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Refresh RSS with flexget</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Type</span>=<span class="literal">on</span>eshot</span><br><span class="line"><span class="attr">ExecStart</span>=/home/recursiveg/.config/flexget/virtualenv/bin/flexget execute</span><br></pre></td></tr></table></figure>
-
-<p>用户登录后 5 分钟进行同步，然后每两小时检查一次。</p>
-<figure class="highlight toml"><figcaption><span>~/.config/systemd/user/flexget.timer</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Run flexget <span class="literal">on</span> login then every <span class="number">2</span>hrs</span><br><span class="line"></span><br><span class="line"><span class="section">[Timer]</span></span><br><span class="line"><span class="attr">OnStartupSec</span>=<span class="number">5</span>min</span><br><span class="line"><span class="attr">OnUnitActiveSec</span>=<span class="number">2</span>h</span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=timers.target</span><br></pre></td></tr></table></figure>
-
-<p>一些可能会用到的命令：</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启用并运行定时器</span></span><br><span class="line">systemctl --user <span class="built_in">enable</span> --now flexget.timer</span><br><span class="line"><span class="comment"># 立即检查</span></span><br><span class="line">systemctl --user start flexget.service</span><br><span class="line"><span class="comment"># 检查定时器情况</span></span><br><span class="line">systemctl --user list-timers</span><br><span class="line"><span class="comment"># 检查日志</span></span><br><span class="line">journalctl --user-unit flexget.service -f</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -431,6 +431,10 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
   <ul class="entry">
     
       <li>
+        <a href="/2022/06/riscv-microcontroller-intro-part1/">折腾 RISC-V 单片机 Part1</a>
+      </li>
+    
+      <li>
         <a href="/2022/01/rclone-onedrive-for-business/">Rclone 同步 OneDrive for Business 共享</a>
       </li>
     
@@ -446,10 +450,6 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
         <a href="/2021/06/manual-wepe-installation/">手动硬盘安装 WePE</a>
       </li>
     
-      <li>
-        <a href="/2021/02/ciphersuite-memo/">Ciphersuite Memo</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -463,7 +463,7 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>46</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>47</small></li>
   
   </ul>
 </div>
@@ -473,7 +473,7 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 11.82px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10.91px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 12.73px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10.91px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
   </div>
 </div>
 

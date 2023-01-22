@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://recursiveg.me/2021/02/ciphersuite-memo/</loc>
+    
+    <lastmod>2023-01-22T02:04:43.554Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://recursiveg.me/2022/06/riscv-microcontroller-intro-part1/</loc>
     
     <lastmod>2022-06-23T06:58:48.216Z</lastmod>
@@ -33,13 +40,6 @@
     <loc>https://recursiveg.me/2021/06/manual-wepe-installation/</loc>
     
     <lastmod>2021-06-23T03:27:31.548Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://recursiveg.me/2021/02/ciphersuite-memo/</loc>
-    
-    <lastmod>2021-02-22T04:00:30.593Z</lastmod>
     
   </url>
   

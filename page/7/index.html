@@ -71,6 +71,42 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-02-08T06:12:59.000Z"><a href="/2014/02/clear-a-special-kind-of-messy-code/">Feb 8 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/02/clear-a-special-kind-of-messy-code/">记一次坑爹的乱码解决过程</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>某日，我在网上下载了一些音乐，然后打开，发现了乱码。Linux系统上出现乱码本不是什么好大惊小怪的事，但是，在经过N种方法来回折腾依然无法解决的情况下，我意识到，这大约是我见过的最奇葩的一种乱码了。先上图：<br><img src="/images/clear-a-special-kind-of-messy-code/1.png" alt="An Example of the Messy Code"></p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2014/02/clear-a-special-kind-of-messy-code/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2013-12-24T13:26:08.000Z"><a href="/2013/12/site-migration-complete/">Dec 24 2013</a></time>
       
       
@@ -284,46 +320,6 @@
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2012-12-31T12:50:00.000Z"><a href="/2012/12/how-to-solve-the-connection-reset-problem/">Dec 31 2012</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2012/12/how-to-solve-the-connection-reset-problem/">How to solve the &#34;Connection Reset&#34; problem</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>考虑到安全原因，这篇文章用英语写成。如果你没有足够的勇气读完它，请自觉退出。</p>
-<p>This article is written mainly for those people in China. Be sure you are enough familiar with what you are reading and what you try to do.</p>
-<p>================================================================</p>
-<p>As we all known, in China mainland, we cannot visit sites like YouTube Facebook Twitter. And the Google sites are out of service frequently. It’s because the Chinese government used some technical methods to prevent us from visiting them. The government has setup a system to do this. It’s called the <a href="https://en.wikipedia.org/wiki/Great_Firewall" target="_blank" rel="noopener">Great Firewall of China</a> (GFW). This system keeps look on the gateway export. And if it finds something unusual. It will stop the connection.</p>
-<p>The system usually inject a RESET into the TCP connection. To prevent this, we can use HTTPS(The S means Secure) instead of HTTP. So the system can not inject the RESET any more. It’s easy to perform. You just need to replace the “http://“ part of a URL with “https://“. And the URL will look like this “<a href="https://www.facebook.com&quot;" target="_blank" rel="noopener">https://www.facebook.com&quot;</a>. Most of the sites support a HTTPS connection.</p>
-<p>Unfortunately, this will not always works. Because the system also used another method called “DNS Redirection”. As we all known, the computers on the Internet are identified by IP address. But human can’t remember them easily. So we use some meaningful phases called “Domain”. Some computers on the Internet provide the kind of service to translate the domains to IP address which is the only form computers can recognize. They are called the “DNS Server”. DNS Redirection is that the DNS servers won’t return the correct IP address (usually were instructed to do so) so that we can’t visit the particular sites.</p>
-<p>Luckily, we can assign an IP to a domain manually. That’s the function of a file called <a href="https://en.wikipedia.org/wiki/Hosts_(file)" target="_blank" rel="noopener">hosts</a>. There’s a project called <a href="https://code.google.com/p/smarthosts/" target="_blank" rel="noopener">smarthosts</a> on Google Code. It provided a set of IP address you may use. Paste them to your local hosts file and enjoy the Internet.</p>
-<p>I will write more about the Internet censorship and how to avoid it. Check back later.</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -349,6 +345,10 @@
   <ul class="entry">
     
       <li>
+        <a href="/2023/01/transfer-lrzsz-binary-using-ascii-xfr/">使用 ascii-xfr 传输 rz 程序</a>
+      </li>
+    
+      <li>
         <a href="/2022/06/riscv-microcontroller-intro-part1/">折腾 RISC-V 单片机 Part1</a>
       </li>
     
@@ -364,10 +364,6 @@
         <a href="/2021/08/usb4-thunderbolt4-memo/">USB4 与 Thunderbolt 4 备忘</a>
       </li>
     
-      <li>
-        <a href="/2021/06/manual-wepe-installation/">手动硬盘安装 WePE</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -381,7 +377,7 @@
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>47</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>48</small></li>
   
   </ul>
 </div>
@@ -391,7 +387,7 @@
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 12.73px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10.91px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 13.64px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.82px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
   </div>
 </div>
 

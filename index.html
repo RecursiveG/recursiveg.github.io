@@ -71,6 +71,50 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2023-01-23T13:00:00.000Z"><a href="/2023/01/transfer-lrzsz-binary-using-ascii-xfr/">Jan 23 2023</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2023/01/transfer-lrzsz-binary-using-ascii-xfr/">使用 ascii-xfr 传输 rz 程序</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>最近继续折腾一些嵌入式设备，需要通过 UART 传输一些文件。一般来说直接使用 rz/sz 即可，但不幸的是 rz applet 并没有编译进这个设备的 busybox。同时由于一些蛋疼的原因，我们也不能重新烧写设备的 rootfs 镜像或者是从网络安装，那么就只能自己想办法解决咯……</p>
+<p>基本思路是自己静态编译一份 rz 程序，然后从串口发送给嵌入式设备，然后再利用这个 rz 接收 sz。然后就能双向发送文件了。</p>
+<p>设备上至少需要有<code>cat</code>命令和<code>base64 -d</code>。如果没有base64可以试试<code>openssl base64 -d</code>。如果还是没有那这篇文章的方法就不适用于你了。另外在设备上最好还要有一个 gzip 之类的压缩程序，可以显著缩短初次传输时间，以及一个 checksum 程序用于检查。我这里用了<code>xz</code>和<code>md5sum</code>。</p>
+<p>在主机上你需要有<code>ascii-xfr</code>程序。</p>
+<h2 id="编译-rz"><a href="#编译-rz" class="headerlink" title="编译 rz"></a>编译 rz</h2><p>你需要有一个能用的工具链，我的设备是 AArch64，直接使用了源里的 gcc。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载代码</span></span><br><span class="line">wget <span class="string">'https://www.ohse.de/uwe/releases/lrzsz-0.12.20.tar.gz'</span></span><br><span class="line"><span class="comment"># 解压</span></span><br><span class="line">tar xaf lrzsz-0.12.20.tar.gz</span><br><span class="line"><span class="built_in">cd</span> lrzsz-0.12.20</span><br><span class="line"><span class="comment"># 静态编译</span></span><br><span class="line">CFLAGS=<span class="string">'-Oz -static'</span> CC=aarch64-linux-gnu-gcc  ./configure --target=arm64-linux</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p>如果你有对应设备的工具链也可以动态编译，这样编译出来的文件会更小。</p>
+<h2 id="使用-ascii-xfr-发送-rz"><a href="#使用-ascii-xfr-发送-rz" class="headerlink" title="使用 ascii-xfr 发送 rz"></a>使用 ascii-xfr 发送 rz</h2><p>我这里使用<code>picocom</code>连接设备，其他程序比如<code>minicom</code>，<code>screen</code>请自行查阅手册寻找使用方法。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 接上文</span></span><br><span class="line">cp src/lrz rz</span><br><span class="line"><span class="comment"># 进一步裁剪文件体积</span></span><br><span class="line">aarch64-linux-gnu-strip --strip-all rz</span><br><span class="line"><span class="comment"># 计算 checksum 备用</span></span><br><span class="line">md5sum rz</span><br><span class="line">ee96d7186db0f5240040c183636a8c9d</span><br><span class="line"><span class="comment"># 压缩</span></span><br><span class="line">xz -9 rz</span><br><span class="line"><span class="comment"># 编码成 BASE64</span></span><br><span class="line">base64 rz.xz &gt; rz.xz.64</span><br><span class="line"><span class="comment"># 连接设备，记得使用你自己设备的波特率</span></span><br><span class="line">picocom -b 1500000 -s <span class="string">'ascii-xfr -sn -c 1'</span> /dev/ttyUSB0</span><br><span class="line"><span class="comment"># 在设备中准备接收</span></span><br><span class="line">wimpy_board$ cat &gt; rz.xz.64</span><br><span class="line"><span class="comment"># 按 Ctrl-A Ctrl-S，然后输入要发送的文件的文件名</span></span><br><span class="line">*** file: rz.xz.64</span><br><span class="line"><span class="comment"># 等待字符滚完，然后按 回车 + Ctrl-D 退出 cat</span></span><br><span class="line"><span class="comment"># 传输速度是 1000Bps，我最终需要传输 420 多 KB，需要 7 分钟。</span></span><br><span class="line"><span class="comment"># 传输完毕后在设备上还原可执行文件</span></span><br><span class="line">wimpy_board$ base64 -d rz.xz.64 &gt; rz.xz</span><br><span class="line">wimpy_board$ xz -d rz.xz</span><br><span class="line">wimpy_board$ chmod +x rz</span><br><span class="line"><span class="comment"># 最后比较一下 md5 值，并确认可以正常运行</span></span><br><span class="line">wimpy_board$ md5sum rz</span><br><span class="line">ee96d7186db0f5240040c183636a8c9d</span><br><span class="line">wimpy_board$ ./rz</span><br><span class="line"><span class="comment"># 连按 5 次 Ctrl-X 退出</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="使用-rz-接收-sz"><a href="#使用-rz-接收-sz" class="headerlink" title="使用 rz 接收 sz"></a>使用 rz 接收 sz</h2><p>有经验的朋友到这里可以直接右上角退出了，不过我还是记录一下做个备忘。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按 Ctrl-A Ctrl-X 退出 picocom，然后再重新连接。</span></span><br><span class="line"><span class="comment"># 不带 -s 参数时 picocom 默认使用本机的 sz 发送文件。</span></span><br><span class="line">picocom -b 1500000 /dev/ttyUSB0</span><br><span class="line">wimpy_board$ ./rz</span><br><span class="line">waiting to receive.**</span><br><span class="line"><span class="comment"># 按 Ctrl-A Ctrl-S，然后输入要发送的文件的文件名</span></span><br><span class="line">*** file: src/lsz</span><br><span class="line">$ sz -vv src/lsz</span><br><span class="line">Sending: lsz</span><br><span class="line">Bytes Sent:1173536   BPS:144649                          </span><br><span class="line"></span><br><span class="line">Transfer complete</span><br><span class="line"></span><br><span class="line">*** <span class="built_in">exit</span> status: 0 ***</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2022-06-22T16:00:00.000Z"><a href="/2022/06/riscv-microcontroller-intro-part1/">Jun 22 2022</a></time>
       
       
@@ -368,45 +412,6 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2021-01-18T06:30:00.000Z"><a href="/2021/01/ipsec-configurations-part9/">Jan 18 2021</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2021/01/ipsec-configurations-part9/">IPsec 配置备忘 Part9 - RouterOS</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>这篇来填一个在 Part1 的时候挖的坑，简单介绍一下怎么在 RouterOS 和 strongSwan 之间配置一个 Site-to-Site 的 IKEv2 VPN。如果你还没有动手实际配置过 strongSwan，我强烈建议你先读完至少 Part1~5 和 Part7，并且自己动手配置一个能用的 strongSwan 服务端。这样至少能保证你会配置 strongSwan，否则同时学习 RouterOS 和 strongSwan 两种配置方法会让人云里雾里。</p>
-<h2 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h2><p>RouterOS 做路由器，用 DHCP 给内网设备分配<code>192.168.50.0/24</code>段中的 IP 地址。并且用 IPsec 的 Tunnel 模式将所有来自此 IP 段的数据转发至服务器<code>22.22.22.22</code>。路由器本身的 IP 并不重要。</p>
-<p><img src="/images/ipsec-configurations-part9/01-topology.png" alt="Network topology"></p>
-<h2 id="阅读基本-RouterOS-命令"><a href="#阅读基本-RouterOS-命令" class="headerlink" title="阅读基本 RouterOS 命令"></a>阅读基本 RouterOS 命令</h2><p>在本文中我主要使用 RouterOS 命令来表示具体的配置，但是实际情况下调试 WebUI 会更方便。这里提供一张简图解释怎么阅读 RouterOS 的命令：<br><img src="/images/ipsec-configurations-part9/02-how-to-read-routeros-command.jpg" alt="Command explanation"></p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2021/01/ipsec-configurations-part9/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -430,6 +435,10 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
   <ul class="entry">
     
       <li>
+        <a href="/2023/01/transfer-lrzsz-binary-using-ascii-xfr/">使用 ascii-xfr 传输 rz 程序</a>
+      </li>
+    
+      <li>
         <a href="/2022/06/riscv-microcontroller-intro-part1/">折腾 RISC-V 单片机 Part1</a>
       </li>
     
@@ -445,10 +454,6 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
         <a href="/2021/08/usb4-thunderbolt4-memo/">USB4 与 Thunderbolt 4 备忘</a>
       </li>
     
-      <li>
-        <a href="/2021/06/manual-wepe-installation/">手动硬盘安装 WePE</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -462,7 +467,7 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>47</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>48</small></li>
   
   </ul>
 </div>
@@ -472,7 +477,7 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 12.73px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 10.91px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 13.64px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.82px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
   </div>
 </div>
 

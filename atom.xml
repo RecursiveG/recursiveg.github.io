@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://recursiveg.me/"/>
-  <updated>2022-06-23T06:58:48.216Z</updated>
+  <updated>2023-01-24T04:03:16.485Z</updated>
   <id>https://recursiveg.me/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>使用 ascii-xfr 传输 rz 程序</title>
+    <link href="https://recursiveg.me/2023/01/transfer-lrzsz-binary-using-ascii-xfr/"/>
+    <id>https://recursiveg.me/2023/01/transfer-lrzsz-binary-using-ascii-xfr/</id>
+    <published>2023-01-23T13:00:00.000Z</published>
+    <updated>2023-01-24T04:03:16.485Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近继续折腾一些嵌入式设备，需要通过 UART 传输一些文件。一般来说直接使用 rz/sz 即可，但不幸的是 rz applet 并没有编译进这个设备的 busybox。同时由于一些蛋疼的原因，我们也不能重新烧写设备的 rootfs 镜像或者是从网络安装，那么就只能自己想办法解决咯……</p><p>基本思路是自己静态编译一份 rz 程序，然后从串口发送给嵌入式设备，然后再利用这个 rz 接收 sz。然后就能双向发送文件了。</p><p>设备上至少需要有<code>cat</code>命令和<code>base64 -d</code>。如果没有base64可以试试<code>openssl base64 -d</code>。如果还是没有那这篇文章的方法就不适用于你了。另外在设备上最好还要有一个 gzip 之类的压缩程序，可以显著缩短初次传输时间，以及一个 checksum 程序用于检查。我这里用了<code>xz</code>和<code>md5sum</code>。</p><p>在主机上你需要有<code>ascii-xfr</code>程序。</p><h2 id="编译-rz"><a href="#编译-rz" class="headerlink" title="编译 rz"></a>编译 rz</h2><p>你需要有一个能用的工具链，我的设备是 AArch64，直接使用了源里的 gcc。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载代码</span></span><br><span class="line">wget <span class="string">'https://www.ohse.de/uwe/releases/lrzsz-0.12.20.tar.gz'</span></span><br><span class="line"><span class="comment"># 解压</span></span><br><span class="line">tar xaf lrzsz-0.12.20.tar.gz</span><br><span class="line"><span class="built_in">cd</span> lrzsz-0.12.20</span><br><span class="line"><span class="comment"># 静态编译</span></span><br><span class="line">CFLAGS=<span class="string">'-Oz -static'</span> CC=aarch64-linux-gnu-gcc  ./configure --target=arm64-linux</span><br><span class="line">make</span><br></pre></td></tr></table></figure><p>如果你有对应设备的工具链也可以动态编译，这样编译出来的文件会更小。</p><h2 id="使用-ascii-xfr-发送-rz"><a href="#使用-ascii-xfr-发送-rz" class="headerlink" title="使用 ascii-xfr 发送 rz"></a>使用 ascii-xfr 发送 rz</h2><p>我这里使用<code>picocom</code>连接设备，其他程序比如<code>minicom</code>，<code>screen</code>请自行查阅手册寻找使用方法。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 接上文</span></span><br><span class="line">cp src/lrz rz</span><br><span class="line"><span class="comment"># 进一步裁剪文件体积</span></span><br><span class="line">aarch64-linux-gnu-strip --strip-all rz</span><br><span class="line"><span class="comment"># 计算 checksum 备用</span></span><br><span class="line">md5sum rz</span><br><span class="line">ee96d7186db0f5240040c183636a8c9d</span><br><span class="line"><span class="comment"># 压缩</span></span><br><span class="line">xz -9 rz</span><br><span class="line"><span class="comment"># 编码成 BASE64</span></span><br><span class="line">base64 rz.xz &gt; rz.xz.64</span><br><span class="line"><span class="comment"># 连接设备，记得使用你自己设备的波特率</span></span><br><span class="line">picocom -b 1500000 -s <span class="string">'ascii-xfr -sn -c 1'</span> /dev/ttyUSB0</span><br><span class="line"><span class="comment"># 在设备中准备接收</span></span><br><span class="line">wimpy_board$ cat &gt; rz.xz.64</span><br><span class="line"><span class="comment"># 按 Ctrl-A Ctrl-S，然后输入要发送的文件的文件名</span></span><br><span class="line">*** file: rz.xz.64</span><br><span class="line"><span class="comment"># 等待字符滚完，然后按 回车 + Ctrl-D 退出 cat</span></span><br><span class="line"><span class="comment"># 传输速度是 1000Bps，我最终需要传输 420 多 KB，需要 7 分钟。</span></span><br><span class="line"><span class="comment"># 传输完毕后在设备上还原可执行文件</span></span><br><span class="line">wimpy_board$ base64 -d rz.xz.64 &gt; rz.xz</span><br><span class="line">wimpy_board$ xz -d rz.xz</span><br><span class="line">wimpy_board$ chmod +x rz</span><br><span class="line"><span class="comment"># 最后比较一下 md5 值，并确认可以正常运行</span></span><br><span class="line">wimpy_board$ md5sum rz</span><br><span class="line">ee96d7186db0f5240040c183636a8c9d</span><br><span class="line">wimpy_board$ ./rz</span><br><span class="line"><span class="comment"># 连按 5 次 Ctrl-X 退出</span></span><br></pre></td></tr></table></figure><h2 id="使用-rz-接收-sz"><a href="#使用-rz-接收-sz" class="headerlink" title="使用 rz 接收 sz"></a>使用 rz 接收 sz</h2><p>有经验的朋友到这里可以直接右上角退出了，不过我还是记录一下做个备忘。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按 Ctrl-A Ctrl-X 退出 picocom，然后再重新连接。</span></span><br><span class="line"><span class="comment"># 不带 -s 参数时 picocom 默认使用本机的 sz 发送文件。</span></span><br><span class="line">picocom -b 1500000 /dev/ttyUSB0</span><br><span class="line">wimpy_board$ ./rz</span><br><span class="line">waiting to receive.**</span><br><span class="line"><span class="comment"># 按 Ctrl-A Ctrl-S，然后输入要发送的文件的文件名</span></span><br><span class="line">*** file: src/lsz</span><br><span class="line">$ sz -vv src/lsz</span><br><span class="line">Sending: lsz</span><br><span class="line">Bytes Sent:1173536   BPS:144649                          </span><br><span class="line"></span><br><span class="line">Transfer complete</span><br><span class="line"></span><br><span class="line">*** <span class="built_in">exit</span> status: 0 ***</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;最近继续折腾一些嵌入式设备，需要通过 UART 传输一些文件。一般来说直接使用 rz/sz 即可，但不幸的是 rz applet 并没有编译进这个设备的 busybox。同时由于一些蛋疼的原因，我们也不能重新烧写设备的 rootfs 镜像或者是从网络安装，那么就只能自己想办
+      
+    
+    </summary>
+    
+    
+      <category term="Programming" scheme="https://recursiveg.me/categories/Programming/"/>
+    
+    
+      <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
+    
+      <category term="硬件" scheme="https://recursiveg.me/tags/%E7%A1%AC%E4%BB%B6/"/>
+    
+      <category term="脚本" scheme="https://recursiveg.me/tags/%E8%84%9A%E6%9C%AC/"/>
+    
+  </entry>
   
   <entry>
     <title>折腾 RISC-V 单片机 Part1</title>

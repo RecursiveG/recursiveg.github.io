@@ -97,7 +97,7 @@
 <p>另外一些地址可以用于控制硬件，比如<code>[0x1001_2000, 0x1001_2FFF]</code>属于 GPIO，稍后可以看到，如果往某个特定的地址写<code>1</code>，那么芯片上的某个针脚的电平(电压)就会发生变化，如果这个针脚上连了一个 LED，那么它的亮灭状态也会发生变化。这些可以控制硬件行为的地址我一般称之为寄存器，注意不要和汇编语言里的寄存器搞混了。</p>
 <h2 id="程序应该放在哪儿？"><a href="#程序应该放在哪儿？" class="headerlink" title="程序应该放在哪儿？"></a>程序应该放在哪儿？</h2><p>一个重要的问题是，单片机在启动的时候到底会执行哪条指令？查看 Manual Chapter 5.1 可知:</p>
 <pre><code>On power-on, the core&apos;s reset vector is 0x1004.</code></pre><p>即会首先执行 0x1004 处的指令（练习：请翻阅 Memory Map 查看该地址属于哪片区域？）并且手册也列出了预先烧录在该地址的指令列表。不过很可惜我并没有找到文档里所说的 <code>MSEL pin</code> 在哪里，不过从调试结果来看，0x1018处的jr指令最终会跳转到0x10000处。</p>
-<p>继续阅读 Manual 5.1.1, 0x10000处的指令会跳转到0x20000，继续阅读Datasheet Chapter 5 “Boot code”，我们最终会跳转到地址0x20000000，查看memory map，该地址属于QSPI 0 Flash，也就是非易失存储器，看上去这里就是我们应该写入代码的地方了。（PC程序员初次看到Program counter能直接指向外部存储设备实在是刷新三观）。</p>
+<p>继续阅读 Manual 5.1.1, 0x10000处的指令会跳转到0x20000，继续阅读Datasheet Chapter 5 &quot;Boot code&quot;，我们最终会跳转到地址0x20000000，查看memory map，该地址属于QSPI 0 Flash，也就是非易失存储器，看上去这里就是我们应该写入代码的地方了。（PC程序员初次看到Program counter能直接指向外部存储设备实在是刷新三观）。</p>
 <h2 id="编程器"><a href="#编程器" class="headerlink" title="编程器"></a>编程器</h2><p>向单片机写入程序的过程被称作 program（编程），所以用来编程的硬件也就叫做“编程器”了。还有一个我无论如何都无法理解的翻译叫做“仿真器”，英文叫 emulator, 这应该也是一个上古词汇，但是比起“编程器”，这个词更强调你可以调试单片机上的程序，比如下断点，单步执行等。现在一般用来指链接单片机和电脑的那根线。总而言之，你需要一个东西把单片机和电脑连起来，以便两者通信。</p>
 <p>一般来说，这个硬件一头用JTAG等方式连接到单片机，另一头通过USB协议连接电脑，OpenOCD则是一个开源的程序允许你通过这个“编程器”以各种方式操纵各种单片机。当然也包括向 SPI Flash 中写入我们的程序。</p>
 <p>在 RED-V 上，最大的芯片是一块 MK22FN128 的ARM单片机，这块单片机里预先写入了一个 <a href="link">J-Link OB</a> 的商业程序，这个程序让这个ARM单片机实现了编程器的功能，所以我们只要直接用普通的USB线连接板子和电脑就可以了。J-Link 使用一种特殊的协议与电脑通信，好在Segger公司公开了这种协议的spec，所以OpenOCD也能和编程器通信啦。</p>
@@ -243,7 +243,7 @@
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2024 RecursiveG
+  &copy; 2025 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

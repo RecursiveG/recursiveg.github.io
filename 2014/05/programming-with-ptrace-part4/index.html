@@ -81,7 +81,7 @@
     <div class="entry">
       
         <p>这个part是<a href="/2014/04/programming-with-ptrace-part2/">Part2</a>的延续，所以我强烈建议你弄明白Part2中的内容后再来看本part。那么进入正题，我将在这个部分讲解系统调用的参数传递顺序以及如何利用ptrace系统调用获得用户空间的数据。</p>
-<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="noopener">这里</a>看到，就在”Architecture calling conventions”下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
+<h2 id="参数与寄存器"><a href="#参数与寄存器" class="headerlink" title="参数与寄存器"></a>参数与寄存器</h2><p>我在Part2中提到过，系统调用的参数是以一定顺序保存在寄存器里的，那么这个顺序是什么呢？在<code>man 2 syscall</code>中有两张表格解释了这个问题，你也可以在<a href="http://man7.org/linux/man-pages/man2/syscall.2.html" target="_blank" rel="noopener">这里</a>看到，就在&quot;Architecture calling conventions&quot;下面。我知道很多人很懒，所以我就把这两张表格复制过来了。</p>
 <center>
 
 <table>
@@ -301,7 +301,7 @@
 表格内容虽多，但其实我们关心的只有i386和x86_64（32位和64位）一共4行（因为有两张表格嘛）。精简提炼下，一共就两句话
 
 <blockquote>
-<p>对于32位系统，系统调用号存放在EAX寄存器，参数依次放入EBX、ECX、EDX、ESI … 返回值位于EAX寄存器<br>  对于64位系统，系统调用号存放在RAX寄存器，参数依次放入RDI、RSI、RDX、R10 … 返回值位于RAX寄存器</p>
+<p>对于32位系统，系统调用号存放在EAX寄存器，参数依次放入EBX、ECX、EDX、ESI ... 返回值位于EAX寄存器<br>  对于64位系统，系统调用号存放在RAX寄存器，参数依次放入RDI、RSI、RDX、R10 ... 返回值位于RAX寄存器</p>
 </blockquote>
 <p>以64位系统下的<code>write()</code>调用为例:</p>
 <pre><code>ssize_t write(int fd, const void *buf, size_t count);</code></pre><p>那么RAX是1(write的调用号)，RDI一般为1(stdout),RSI存储着指向用户空间中将要被输出的字符串的地址，RDX自然就是字符串长度啦。</p>
@@ -464,7 +464,7 @@ Exited with code 0</code></pre><p>可以很明显的看到程序搜索动态链�
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2024 RecursiveG
+  &copy; 2025 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

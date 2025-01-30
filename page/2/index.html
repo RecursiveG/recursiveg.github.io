@@ -105,14 +105,14 @@
 <li>RSA (Encryption): The famous asymmetric encryption algorithm.</li>
 <li>AES (<a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard" target="_blank" rel="noopener">Advanced Encryption Standard</a>): A block cipher.</li>
 <li><a href="https://en.wikipedia.org/wiki/Salsa20#ChaCha_variant" target="_blank" rel="noopener">Chacha</a>: A stream cipher.</li>
-<li>and more…</li>
+<li>and more...</li>
 </ul>
 <p>A related concept is <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation" target="_blank" rel="noopener">mode of operation</a>,which turns a block cipher to a stream cipher. <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)" target="_blank" rel="noopener">CBC</a> is a commonly used one. When it&#39;s used with AES, it&#39;s expressed as <code>AES-CBC</code></p>
 </li>
 <li><p><strong>Message authentication</strong><br>Used for data integrity. These algorithms are also called MAC(<a href="https://en.wikipedia.org/wiki/Message_authentication_code" target="_blank" rel="noopener">Message authentication code</a>).</p>
 <ul>
 <li>Various <a href="https://en.wikipedia.org/wiki/Cryptographic_hash_function" target="_blank" rel="noopener">Hash algorithms</a>, including the famous <a href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms" target="_blank" rel="noopener">SHA family</a>.</li>
-<li>HMAC (<a href="https://en.wikipedia.org/wiki/HMAC" target="_blank" rel="noopener">Hash-based MAC</a>): They uses a hash function inside and allows a “password” to be specified.</li>
+<li>HMAC (<a href="https://en.wikipedia.org/wiki/HMAC" target="_blank" rel="noopener">Hash-based MAC</a>): They uses a hash function inside and allows a &quot;password&quot; to be specified.</li>
 <li><a href="https://en.wikipedia.org/wiki/Poly1305" target="_blank" rel="noopener">Poly1305</a></li>
 </ul>
 </li>
@@ -132,7 +132,7 @@
 <pre><code>ciphertext = Encrypt(plaintext)
 auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case for AEAD is when encrypting a network packet, you want the packet header to stay unencrypted (for network routing purposes) but still authenticated.</p>
 </li>
-<li><p><strong>Note about DH and curves of EC-based algorithms</strong><br>DH-based algorithms may have a “Group” option, which specifies a prime field or an elliptic curve. If a prime field is used, such as <code>modp2048</code>, it&#39;s normal DH. If an elliptic curve group is used, such as <code>ecp256</code>, it&#39;s EC-based DH.<br>Some other curves may be used:</p>
+<li><p><strong>Note about DH and curves of EC-based algorithms</strong><br>DH-based algorithms may have a &quot;Group&quot; option, which specifies a prime field or an elliptic curve. If a prime field is used, such as <code>modp2048</code>, it&#39;s normal DH. If an elliptic curve group is used, such as <code>ecp256</code>, it&#39;s EC-based DH.<br>Some other curves may be used:</p>
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/Curve25519" target="_blank" rel="noopener">Curve25519</a></li>
 <li><a href="https://en.wikipedia.org/wiki/EdDSA" target="_blank" rel="noopener">Edwards curve</a> as in EdDSA and Ed25519</li>
@@ -312,7 +312,7 @@ echo nameserver 1.1.1.1 &gt; /etc/resolv.conf</code></pre><p>不过实际测试�
 我在 iOS 12/13/14 各一台设备上测试过，但是测试的时候不是次次都能工作。由于 iOS 的坑实在太多，以及不同版本的 iOS 的行为都不太一样，如果你碰到了我没碰到的坑我只能祝你好运 （<ゝω・）☆
 </div>
 
-<p>接 Part6。折腾完 Android 以后我们来折腾一下 iOS。基本原理都是一样的，只是需要把苹果那一套 Vendor-specific 的配置选项翻译成 strongSwan 的，这样才能和服务器上的 strongSwan 互相通信嘛。由于 iOS 上的 IKEv2 客户端不是 strongSwan 而是苹果自己魔改的不知道什么版本，所以坑比起 Android 客户端更多。幸好 strongSwan 项目已经帮我们都踩了不少坑了：见 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleClients" target="_blank" rel="noopener">iOS (Apple iPhone, iPad…) and macOS</a> 和 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">IKEv2 Configuration Profile for Apple iOS 8 and newer</a>。</p>
+<p>接 Part6。折腾完 Android 以后我们来折腾一下 iOS。基本原理都是一样的，只是需要把苹果那一套 Vendor-specific 的配置选项翻译成 strongSwan 的，这样才能和服务器上的 strongSwan 互相通信嘛。由于 iOS 上的 IKEv2 客户端不是 strongSwan 而是苹果自己魔改的不知道什么版本，所以坑比起 Android 客户端更多。幸好 strongSwan 项目已经帮我们都踩了不少坑了：见 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleClients" target="_blank" rel="noopener">iOS (Apple iPhone, iPad...) and macOS</a> 和 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">IKEv2 Configuration Profile for Apple iOS 8 and newer</a>。</p>
 <h2 id="坑坑坑"><a href="#坑坑坑" class="headerlink" title="坑坑坑"></a>坑坑坑</h2><p>由于本 Part 是基于 Part6 的，所以我们先来列举一下会需要我们做调整的 iOS 的坑（大部分在 strongSwan 的文档里已经提到过了）：</p>
 <ol>
 <li>iOS 的 local_id 和 remote_id 全部都是 FQDN 类型，意味着我们需要按照 Part7 的说明给证书加上<code>dns_name</code>的 SAN。</li>
@@ -543,7 +543,7 @@ echo nameserver 1.1.1.1 &gt; /etc/resolv.conf</code></pre><p>不过实际测试�
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2024 RecursiveG
+  &copy; 2025 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

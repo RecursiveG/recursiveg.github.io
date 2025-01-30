@@ -87,7 +87,7 @@
 我在 iOS 12/13/14 各一台设备上测试过，但是测试的时候不是次次都能工作。由于 iOS 的坑实在太多，以及不同版本的 iOS 的行为都不太一样，如果你碰到了我没碰到的坑我只能祝你好运 （<ゝω・）☆
 </div>
 
-<p>接 Part6。折腾完 Android 以后我们来折腾一下 iOS。基本原理都是一样的，只是需要把苹果那一套 Vendor-specific 的配置选项翻译成 strongSwan 的，这样才能和服务器上的 strongSwan 互相通信嘛。由于 iOS 上的 IKEv2 客户端不是 strongSwan 而是苹果自己魔改的不知道什么版本，所以坑比起 Android 客户端更多。幸好 strongSwan 项目已经帮我们都踩了不少坑了：见 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleClients" target="_blank" rel="noopener">iOS (Apple iPhone, iPad…) and macOS</a> 和 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">IKEv2 Configuration Profile for Apple iOS 8 and newer</a>。</p>
+<p>接 Part6。折腾完 Android 以后我们来折腾一下 iOS。基本原理都是一样的，只是需要把苹果那一套 Vendor-specific 的配置选项翻译成 strongSwan 的，这样才能和服务器上的 strongSwan 互相通信嘛。由于 iOS 上的 IKEv2 客户端不是 strongSwan 而是苹果自己魔改的不知道什么版本，所以坑比起 Android 客户端更多。幸好 strongSwan 项目已经帮我们都踩了不少坑了：见 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleClients" target="_blank" rel="noopener">iOS (Apple iPhone, iPad...) and macOS</a> 和 <a href="https://wiki.strongswan.org/projects/strongswan/wiki/AppleIKEv2Profile" target="_blank" rel="noopener">IKEv2 Configuration Profile for Apple iOS 8 and newer</a>。</p>
 <h2 id="坑坑坑"><a href="#坑坑坑" class="headerlink" title="坑坑坑"></a>坑坑坑</h2><p>由于本 Part 是基于 Part6 的，所以我们先来列举一下会需要我们做调整的 iOS 的坑（大部分在 strongSwan 的文档里已经提到过了）：</p>
 <ol>
 <li>iOS 的 local_id 和 remote_id 全部都是 FQDN 类型，意味着我们需要按照 Part7 的说明给证书加上<code>dns_name</code>的 SAN。</li>
@@ -250,7 +250,7 @@
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2024 RecursiveG
+  &copy; 2025 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

@@ -104,14 +104,14 @@
 <li>RSA (Encryption): The famous asymmetric encryption algorithm.</li>
 <li>AES (<a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard" target="_blank" rel="noopener">Advanced Encryption Standard</a>): A block cipher.</li>
 <li><a href="https://en.wikipedia.org/wiki/Salsa20#ChaCha_variant" target="_blank" rel="noopener">Chacha</a>: A stream cipher.</li>
-<li>and more…</li>
+<li>and more...</li>
 </ul>
 <p>A related concept is <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation" target="_blank" rel="noopener">mode of operation</a>,which turns a block cipher to a stream cipher. <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)" target="_blank" rel="noopener">CBC</a> is a commonly used one. When it&#39;s used with AES, it&#39;s expressed as <code>AES-CBC</code></p>
 </li>
 <li><p><strong>Message authentication</strong><br>Used for data integrity. These algorithms are also called MAC(<a href="https://en.wikipedia.org/wiki/Message_authentication_code" target="_blank" rel="noopener">Message authentication code</a>).</p>
 <ul>
 <li>Various <a href="https://en.wikipedia.org/wiki/Cryptographic_hash_function" target="_blank" rel="noopener">Hash algorithms</a>, including the famous <a href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms" target="_blank" rel="noopener">SHA family</a>.</li>
-<li>HMAC (<a href="https://en.wikipedia.org/wiki/HMAC" target="_blank" rel="noopener">Hash-based MAC</a>): They uses a hash function inside and allows a “password” to be specified.</li>
+<li>HMAC (<a href="https://en.wikipedia.org/wiki/HMAC" target="_blank" rel="noopener">Hash-based MAC</a>): They uses a hash function inside and allows a &quot;password&quot; to be specified.</li>
 <li><a href="https://en.wikipedia.org/wiki/Poly1305" target="_blank" rel="noopener">Poly1305</a></li>
 </ul>
 </li>
@@ -131,7 +131,7 @@
 <pre><code>ciphertext = Encrypt(plaintext)
 auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case for AEAD is when encrypting a network packet, you want the packet header to stay unencrypted (for network routing purposes) but still authenticated.</p>
 </li>
-<li><p><strong>Note about DH and curves of EC-based algorithms</strong><br>DH-based algorithms may have a “Group” option, which specifies a prime field or an elliptic curve. If a prime field is used, such as <code>modp2048</code>, it&#39;s normal DH. If an elliptic curve group is used, such as <code>ecp256</code>, it&#39;s EC-based DH.<br>Some other curves may be used:</p>
+<li><p><strong>Note about DH and curves of EC-based algorithms</strong><br>DH-based algorithms may have a &quot;Group&quot; option, which specifies a prime field or an elliptic curve. If a prime field is used, such as <code>modp2048</code>, it&#39;s normal DH. If an elliptic curve group is used, such as <code>ecp256</code>, it&#39;s EC-based DH.<br>Some other curves may be used:</p>
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/Curve25519" target="_blank" rel="noopener">Curve25519</a></li>
 <li><a href="https://en.wikipedia.org/wiki/EdDSA" target="_blank" rel="noopener">Edwards curve</a> as in EdDSA and Ed25519</li>
@@ -274,7 +274,7 @@ auth_tag = Mac(associated_data + ciphertext)</code></pre><p>A common use case fo
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2024 RecursiveG
+  &copy; 2025 RecursiveG
   
 </div>
 <div class="clearfix"></div></footer>

@@ -71,6 +71,47 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2020-10-24T16:50:00.000Z"><a href="/2020/10/linux-windows-multiboot-usb/">Oct 24 2020</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2020/10/linux-windows-multiboot-usb/">Linux + Windows 10 多系统安装 U 盘</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <blockquote>
+<p><strong><em>Update:</em></strong> Windows 的引导程序似乎有些问题，如果在同一块 U 盘上写入多个 ISO 分区的话，似乎引导会错乱，最终启动的安装程序版本不是引导程序所在分区的版本。所以暂时一个 U 盘还是只能放一个 Windows 版本。垃圾巨硬。</p>
+</blockquote>
+<p>日常折腾中总免不了要用 LiveCD 修理一下系统，或者是重装一下 Windows 之类的。这时候制作一个引导用的 U 盘基本是最方便的选项了。有不少工具都能创建 U 盘引导，比如 ArchLinux 的 ISO 镜像可以直接用<code>dd</code>写入，Windows 的安装盘也能用 <a href="https://rufus.ie" target="_blank" rel="noopener">Rufus</a> 创建。不过在使用上还是有些不便，比如<code>dd</code>会覆盖整个U盘，在ISO之外不能再存储其他文件。Rufus 只能在 Windows 上运行，而且一只 U 盘也只能放一份 ISO。于是尝试搞明白怎么把 Linux 的 LiveCD 和 Windows 的安装 ISO 写入到同一只 U 盘就很有必要了。</p>
+<p>我个人使用的设备都支持 UEFI，所以这里制作的启动盘也只支持 UEFI 启动，需要 MBR 模式启动的读者请往它处寻。当然，Secure Boot 是要关掉的。制作过程我使用 Linux，纯 Windows 用户现在也可以退出了。基本上，我们需要创建一个 EFI 系统分区（EFI System Partition, ESP），其中包含基本的引导程序（Grub2）和 Linux LiveCD 的 ISO 文件。由于 Windows 的安装程序无法以 ISO 形式被引导，因此我们需要给每个 Windows ISO 文件创建一个分区，并将 ISO 中的内容解压进去。但是分区一旦创建不像文件那么好修改，所以创建每个 Windows ISO 分区的时候我都留了一些额外空间，以备以后 ISO 大小变化，这也意味着这些空间就基本浪费了。That&#39;s sad but I guess it&#39;s how things work.</p>
+<p>另外，购买一个优质的 U 盘还是有必要的，不然不管是创建启动盘还是安装系统都会慢得让你痛不欲生。建议用之前先给 U 盘测一下速，什么拷贝速度只有 2MB/s 的金士顿可以直接进垃圾桶了。至于 U 盘大小取决于你要放多少个 ISO 文件和多少个 Windows 分区，一般 Linux 镜像大小在 500MB~3GB 的都有，Windows 10 的分区一般每个需要 5~6GB.</p>
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2020/10/linux-windows-multiboot-usb/#more" class="more-link">Read More</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2020-10-03T05:50:00.000Z"><a href="/2020/10/archlinux-on-raspberrypi-4b/">Oct 3 2020</a></time>
       
       
@@ -318,47 +359,6 @@
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2019-03-20T18:00:00.000Z"><a href="/2019/03/haskell-intro/">Mar 20 2019</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2019/03/haskell-intro/">Haskell 简易指南</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>用任何你喜欢的方法安装 <a href="https://www.haskell.org/" target="_blank" rel="noopener">Glasgow Haskell Compiler</a> (a.k.a. GHC)。Cabal 之类的<br>依赖管理系统就用不着了。 <del>因为我也不会用。</del> 保证能够执行<code>ghc</code>和<code>ghci</code>命令就行。</p>
-<h1 id="GHCi基础"><a href="#GHCi基础" class="headerlink" title="GHCi基础"></a>GHCi基础</h1><p>首先，把以下文件保存成<code>helloworld.hs</code>。</p>
-<figure class="highlight haskell"><figcaption><span>helloworld.hs</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">foo</span> = <span class="string">"hello, world"</span></span><br></pre></td></tr></table></figure>
-<p>然后执行<code>ghci helloworld.hs</code>，然后在<code>&gt;</code>提示符后输入<code>foo</code>并回车</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GHCi, version 8.6.3: http:&#x2F;&#x2F;www.haskell.org&#x2F;ghc&#x2F;  :? for help</span><br><span class="line">[1 of 1] Compiling Main             ( helloworld.hs, interpreted )</span><br><span class="line">Ok, one module loaded.</span><br><span class="line">*Main&gt; foo</span><br><span class="line">&quot;hello, world&quot;</span><br><span class="line">*Main&gt;</span><br></pre></td></tr></table></figure>
-<p>你可以使用<code>:r</code>来重新载入文件，也可以使用<code>:l &lt;文件名&gt;</code>来载入代码。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2019/03/haskell-intro/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -384,6 +384,10 @@
   <ul class="entry">
     
       <li>
+        <a href="/2025/10/msi-trx40-sriov-ari/">在 MSI TRX40 主板上启用 SR-IOV</a>
+      </li>
+    
+      <li>
         <a href="/2024/12/server-connector-gallery/">Server connector gallery</a>
       </li>
     
@@ -399,10 +403,6 @@
         <a href="/2022/01/rclone-onedrive-for-business/">Rclone 同步 OneDrive for Business 共享</a>
       </li>
     
-      <li>
-        <a href="/2021/09/lto-tape-drive-intro/">LTO-5 磁带机折腾入门</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -416,7 +416,7 @@
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>49</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>50</small></li>
   
   </ul>
 </div>
@@ -426,7 +426,7 @@
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/HomeLab/" style="font-size: 10px;">HomeLab</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 13.64px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.82px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/HomeLab/" style="font-size: 10.91px;">HomeLab</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 13.64px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.82px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
   </div>
 </div>
 

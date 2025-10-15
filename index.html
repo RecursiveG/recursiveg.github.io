@@ -71,6 +71,46 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2025-10-14T15:30:00.000Z"><a href="/2025/10/msi-trx40-sriov-ari/">Oct 14 2025</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2025/10/msi-trx40-sriov-ari/">在 MSI TRX40 主板上启用 SR-IOV</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>最近继续折腾很早之前买的线程撕裂者（<a href="/2019/12/build-amd-3960x-pc/">装机回顾</a>）。主板用的是MSI TRX40 PRO 10G，BIOS里有IOMMU选项，显卡直通也一直正常所以没多想。直到最近想折腾一下网卡SR-IOV，然后GG：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root# echo 1 &gt; &#x2F;sys&#x2F;bus&#x2F;pci&#x2F;devices&#x2F;0000:21:00.0&#x2F;sriov_numvfs</span><br><span class="line">kernel: cxgb4 0000:21:00.0: Parent bridge 20:03.1 doesn&#39;t support ARI; can&#39;t instantiate Virtual Functions</span><br></pre></td></tr></table></figure>
+<p>提示系统不支持 ARI (Alternative Routing-ID Interpretation)。看下PCIE根端口的状态，确实没开：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root# lspci -vv -s 20:03.1</span><br><span class="line">20:03.1 PCI bridge: Advanced Micro Devices, Inc. [AMD] Starship&#x2F;Matisse GPP Bridge (prog-if 00 [Normal decode])</span><br><span class="line">        Capabilities: [58] Express (v2) Root Port (Slot+), IntMsgNum 0</span><br><span class="line">                DevCap2: FRS- LN System CLS Not Supported, TPHComp+ ExtTPHComp- ARIFwd-</span><br><span class="line">                DevCtl2: Completion Timeout: 65ms to 210ms, TimeoutDis- ARIFwd-</span><br></pre></td></tr></table></figure>
+<p>在网上搜了一圈以后发现这个设置应该在一个叫<code>AMD CBS</code>的菜单里，然而这块主板并没有……</p>
+<p>于是开始折腾“破解”BIOS设置，终于在浪费N个小时后发现一个叫 <a href="https://winraid.level1techs.com/t/tool-universalamdformbrowser/40353" target="_blank" rel="noopener">Universal AMD Form Browser</a> (<a href="https://github.com/DavidS95/Smokeless_UMAF" target="_blank" rel="noopener">github</a>) 的工具。尝试了一下确实可用。在CBS的NBIO菜单里把&quot;ARI Support&quot;和&quot;ARI Enumeration&quot;都Enable后就可以看到 <code>ARIFwd</code> 的减号变加号了。于是重新尝试，然而再次失败：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kernel: cxgb4 0000:21:00.0: not enough MMIO resources for SR-IOV</span><br></pre></td></tr></table></figure>
+<p>因为这个ARI功能是我们hack出来的，所以目测BIOS没有正确给VF预留足够的地址空间。只需要在内核参数加上<code>pci=realloc</code>，让Linux重新分配地址空间即可。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2024-12-20T11:00:00.000Z"><a href="/2024/12/server-connector-gallery/">Dec 20 2024</a></time>
       
       
@@ -324,42 +364,6 @@ Allison Sheridan: Right, but it&apos;s Thunderbolt 4 it&apos;s 40 [Gbps] per sec
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2021-06-22T14:00:00.000Z"><a href="/2021/06/manual-wepe-installation/">Jun 22 2021</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2021/06/manual-wepe-installation/">手动硬盘安装 WePE</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>最近尝试了一些 Windows 下的全盘备份/恢复方案，于是顺便折腾了一下各种 <a href="https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-intro" target="_blank" rel="noopener">WinPE</a> 系统。WinPE 简单来说就是一个 Windows 的 LiveCD，带有各种用于 Windows 的工具。网友们在微软的 WinPE 基础上加入各种驱动和方便使用的图形化操作界面，作为不同的 WinPE “发行版”发布，<a href="http://www.wepe.com.cn/" target="_blank" rel="noopener">微PE(WePE)</a> 是这些“发行版”之一。</p>
-<p>WePE 自带的安装程序除了安装必要的启动项以外还会安装一些没啥用的选项。所以记录一下手动安装启动项的方法。环境为 Windows 10 64位 UEFI 启动。你需要先制作 WePE 的 ISO，然后把 ISO 里的<code>WEPE</code>目录复制到随便一个分区里，我假设是<code>D:</code>。用管理员身份执行以下命令：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">bcdedit &#x2F;create &#x2F;device</span><br><span class="line"># 你会拿到一串 GUID, 假设是 &#123;A...&#125;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;A...&#125;&quot; ramdisksdidevice partition&#x3D;D:</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;A...&#125;&quot; ramdisksdipath \WEPE\WEPE.SDI</span><br><span class="line"></span><br><span class="line">bcdedit &#x2F;create &#x2F;d &quot;WePE&quot; &#x2F;application osloader</span><br><span class="line"># 你会拿到一串 GUID, 假设是 &#123;B...&#125;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; device &quot;ramdisk&#x3D;[D:]\WEPE\WEPE64.WIM,&#123;A...&#125;&quot;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; osdevice &quot;ramdisk&#x3D;[D:]\WEPE\WEPE64.WIM,&#123;A...&#125;&quot;</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; path \windows\system32\boot\winload.efi</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; systemroot \windows</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; nx OptIn</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; pae ForceEnable</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; detecthal Yes</span><br><span class="line">bcdedit &#x2F;set &quot;&#123;B...&#125;&quot; winpe yes</span><br><span class="line">bcdedit &#x2F;displayorder &quot;&#123;B...&#125;&quot; &#x2F;addlast</span><br><span class="line">bcdedit &#x2F;timeout 3</span><br></pre></td></tr></table></figure>
-<p>设定完启动项以后就可以把盘符删掉了。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -383,6 +387,10 @@ Allison Sheridan: Right, but it&apos;s Thunderbolt 4 it&apos;s 40 [Gbps] per sec
   <ul class="entry">
     
       <li>
+        <a href="/2025/10/msi-trx40-sriov-ari/">在 MSI TRX40 主板上启用 SR-IOV</a>
+      </li>
+    
+      <li>
         <a href="/2024/12/server-connector-gallery/">Server connector gallery</a>
       </li>
     
@@ -398,10 +406,6 @@ Allison Sheridan: Right, but it&apos;s Thunderbolt 4 it&apos;s 40 [Gbps] per sec
         <a href="/2022/01/rclone-onedrive-for-business/">Rclone 同步 OneDrive for Business 共享</a>
       </li>
     
-      <li>
-        <a href="/2021/09/lto-tape-drive-intro/">LTO-5 磁带机折腾入门</a>
-      </li>
-    
   </ul>
 </div>
 
@@ -415,7 +419,7 @@ Allison Sheridan: Right, but it&apos;s Thunderbolt 4 it&apos;s 40 [Gbps] per sec
   
     <li><a href="/categories/Mathematics/">Mathematics</a><small>1</small></li>
   
-    <li><a href="/categories/Programming/">Programming</a><small>49</small></li>
+    <li><a href="/categories/Programming/">Programming</a><small>50</small></li>
   
   </ul>
 </div>
@@ -425,7 +429,7 @@ Allison Sheridan: Right, but it&apos;s Thunderbolt 4 it&apos;s 40 [Gbps] per sec
 <div class="widget tagcloud">
   <h3 class="title">标签云</h3>
   <div class="entry">
-    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/HomeLab/" style="font-size: 10px;">HomeLab</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 13.64px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.82px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
+    <a href="/tags/ACM/" style="font-size: 10px;">ACM</a> <a href="/tags/AMD/" style="font-size: 10px;">AMD</a> <a href="/tags/Archlinux/" style="font-size: 10px;">Archlinux</a> <a href="/tags/Black-Technology/" style="font-size: 11.82px;">Black Technology</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CMake/" style="font-size: 10px;">CMake</a> <a href="/tags/Chrome/" style="font-size: 10px;">Chrome</a> <a href="/tags/Cryptography/" style="font-size: 10px;">Cryptography</a> <a href="/tags/Epoll/" style="font-size: 10px;">Epoll</a> <a href="/tags/GFW/" style="font-size: 10px;">GFW</a> <a href="/tags/GNS3/" style="font-size: 10px;">GNS3</a> <a href="/tags/GRE-Tunnel/" style="font-size: 10px;">GRE Tunnel</a> <a href="/tags/Haskell/" style="font-size: 10px;">Haskell</a> <a href="/tags/Hello-World/" style="font-size: 10px;">Hello World!</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/HomeLab/" style="font-size: 10.91px;">HomeLab</a> <a href="/tags/IPsec/" style="font-size: 16.36px;">IPsec</a> <a href="/tags/IPv6/" style="font-size: 10px;">IPv6</a> <a href="/tags/Java/" style="font-size: 10.91px;">Java</a> <a href="/tags/Kernel/" style="font-size: 10px;">Kernel</a> <a href="/tags/LTO/" style="font-size: 10px;">LTO</a> <a href="/tags/Linux/" style="font-size: 18.18px;">Linux</a> <a href="/tags/Memo/" style="font-size: 10.91px;">Memo</a> <a href="/tags/MikroTik/" style="font-size: 10px;">MikroTik</a> <a href="/tags/MinGW/" style="font-size: 10px;">MinGW</a> <a href="/tags/Minecraft/" style="font-size: 10.91px;">Minecraft</a> <a href="/tags/Networking/" style="font-size: 17.27px;">Networking</a> <a href="/tags/PTRACE/" style="font-size: 14.55px;">PTRACE</a> <a href="/tags/Pascal/" style="font-size: 10px;">Pascal</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RISC-V/" style="font-size: 10px;">RISC-V</a> <a href="/tags/RSA/" style="font-size: 10px;">RSA</a> <a href="/tags/RouterOS/" style="font-size: 10.91px;">RouterOS</a> <a href="/tags/Site-Management/" style="font-size: 10.91px;">Site Management</a> <a href="/tags/Socket/" style="font-size: 10px;">Socket</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/VPN/" style="font-size: 15.45px;">VPN</a> <a href="/tags/WinRAR/" style="font-size: 10px;">WinRAR</a> <a href="/tags/Windows/" style="font-size: 10.91px;">Windows</a> <a href="/tags/Written-In-English/" style="font-size: 10.91px;">Written In English</a> <a href="/tags/iDevice/" style="font-size: 10px;">iDevice</a> <a href="/tags/%E4%B8%9C%E6%96%B9Project/" style="font-size: 10px;">东方Project</a> <a href="/tags/%E4%B9%B1%E7%A0%81/" style="font-size: 10px;">乱码</a> <a href="/tags/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" style="font-size: 10px;">交叉编译</a> <a href="/tags/%E5%8A%A0%E5%AF%86/" style="font-size: 10px;">加密</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/" style="font-size: 11.82px;">技术宅</a> <a href="/tags/%E6%8A%98%E8%85%BE/" style="font-size: 19.09px;">折腾</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 20px;">教程</a> <a href="/tags/%E6%96%B0%E7%95%AA/" style="font-size: 10px;">新番</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 10px;">树莓派</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 13.64px;">硬件</a> <a href="/tags/%E7%BC%96%E7%A8%8B/" style="font-size: 13.64px;">编程</a> <a href="/tags/%E7%BD%91%E7%9B%98/" style="font-size: 12.73px;">网盘</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 11.82px;">脚本</a> <a href="/tags/%E8%A3%85%E6%9C%BA/" style="font-size: 11.82px;">装机</a>
   </div>
 </div>
 

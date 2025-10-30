@@ -309,9 +309,9 @@
     
       <category term="IPsec" scheme="https://recursiveg.me/tags/IPsec/"/>
     
-      <category term="VPN" scheme="https://recursiveg.me/tags/VPN/"/>
-    
       <category term="RouterOS" scheme="https://recursiveg.me/tags/RouterOS/"/>
+    
+      <category term="VPN" scheme="https://recursiveg.me/tags/VPN/"/>
     
   </entry>
   
@@ -785,9 +785,9 @@ eth1         UP             fd00::2/64&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;和 Part
     
       <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
-    
       <category term="Linux" scheme="https://recursiveg.me/tags/Linux/"/>
+    
+      <category term="折腾" scheme="https://recursiveg.me/tags/%E6%8A%98%E8%85%BE/"/>
     
       <category term="装机" scheme="https://recursiveg.me/tags/%E8%A3%85%E6%9C%BA/"/>
     
@@ -860,9 +860,9 @@ eth1         UP             fd00::2/64&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;和 Part
     
       <category term="装机" scheme="https://recursiveg.me/tags/%E8%A3%85%E6%9C%BA/"/>
     
-      <category term="RouterOS" scheme="https://recursiveg.me/tags/RouterOS/"/>
-    
       <category term="MikroTik" scheme="https://recursiveg.me/tags/MikroTik/"/>
+    
+      <category term="RouterOS" scheme="https://recursiveg.me/tags/RouterOS/"/>
     
   </entry>
   
@@ -1062,9 +1062,9 @@ eth1         UP             fd00::2/64&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;和 Part
     
       <category term="教程" scheme="https://recursiveg.me/tags/%E6%95%99%E7%A8%8B/"/>
     
-      <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
-    
       <category term="技术宅" scheme="https://recursiveg.me/tags/%E6%8A%80%E6%9C%AF%E5%AE%85/"/>
+    
+      <category term="编程" scheme="https://recursiveg.me/tags/%E7%BC%96%E7%A8%8B/"/>
     
       <category term="Chrome" scheme="https://recursiveg.me/tags/Chrome/"/>
     
